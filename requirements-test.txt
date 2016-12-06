@@ -1,0 +1,6 @@
+-e git://github.com/xeroc/python-graphenelib@develop#egg=graphenelib
+pycrypto==2.6.1
+scrypt==0.7.1
+pyyaml
+pytest
+coverage
