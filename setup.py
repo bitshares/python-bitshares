@@ -25,7 +25,12 @@ setup(name='bitshares',
       maintainer_email='<Fabian@BitShares.eu>',
       url='http://www.github.com/xeroc/python-bitshares',
       keywords=['bitshares', 'library', 'api', 'rpc'],
-      packages=["bitshares", "bitsharesapi", "bitsharesbase"],
+      packages=[
+          "bitshares",
+          "bitsharesapi",
+          "bitsharesbase",
+          "bitsharesdeprecated"
+      ],
       classifiers=['License :: OSI Approved :: MIT License',
                    'Operating System :: OS Independent',
                    'Programming Language :: Python :: 3',
