@@ -1,41 +1,37 @@
-from grapheneapi.grapheneclient import GrapheneClient
+from bitsharesdeprecated.client import BitSharesClient
 from datetime import datetime
 import time
 
 # from graphenebase.transactions import operations
 
 
-class Proposal(GrapheneClient) :
+class Proposal(BitSharesClient):
     """ Manage Proposals
 
-        :param grapheneapi.GrapheneClient grapheneClient: Grapehen
-                    Client instance with connection details for RPC
-                    *and* websocket connection
-
     """
-    def __init__(self, *args, **kwargs) :
+    def __init__(self, *args, **kwargs):
         super(Proposal, self).__init__(*args, **kwargs)
 
-    def approve_available_proposals(self, from_account, approving_account) :
+    def approve_available_proposals(self, from_account, approving_account):
         """ Approve all proposals for a given account with given approver
 
             :param str from_account: account name to approve *all* proposals for
             :param str approving_account: approving account
 
         """
-        fromAccount        = self.rpc.get_account(from_account)
-        approving_account  = self.rpc.get_account(approving_account)
-        proposals          = self.rpc.ws.get_proposed_transactions(fromAccount["id"])
-        for proposal in proposals :
-            if approving_account["id"] in proposal["available_active_approvals"] :
-                print("%s: Proposal %s already approved. Expires on %s UTC"  %
+        fromAccount = self.rpc.get_account(from_account)
+        approving_account = self.rpc.get_account(approving_account)
+        proposals = self.rpc.ws.get_proposed_transactions(fromAccount["id"])
+        for proposal in proposals:
+            if approving_account["id"] in proposal["available_active_approvals"]:
+                print("%s: Proposal %s already approved. Expires on %s UTC" %
                       (fromAccount["name"], proposal['id'], proposal["expiration_time"]))
-            else :
+            else:
                 print("%s: Approving Proposal %s ..." %
                       (fromAccount["name"], proposal['id']))
                 self.rpc.approve_proposal(approving_account["name"],
                                           proposal["id"],
-                                          {"active_approvals_to_add" : [approving_account["name"]]},
+                                          {"active_approvals_to_add": [approving_account["name"]]},
                                           True)
 
     def propose_transfer(self, proposer_account, from_account, to_account,
@@ -55,18 +51,18 @@ class Proposal(GrapheneClient) :
                         cli_wallet
 
         """
-        proposer         = self.rpc.get_account(proposer_account)
-        fromAccount      = self.rpc.get_account(from_account)
-        toAccount        = self.rpc.get_account(to_account)
-        asset            = self.rpc.get_asset(asset)
-        op               = self.rpc.get_prototype_operation("transfer_operation")
+        proposer = self.rpc.get_account(proposer_account)
+        fromAccount = self.rpc.get_account(from_account)
+        toAccount = self.rpc.get_account(to_account)
+        asset = self.rpc.get_asset(asset)
+        op = self.rpc.get_prototype_operation("transfer_operation")
 
-        op[1]["amount"]["amount"]   = int(amount * 10 ** asset["precision"])
+        op[1]["amount"]["amount"] = int(amount * 10 ** asset["precision"])
         op[1]["amount"]["asset_id"] = asset["id"]
-        op[1]["from"]               = fromAccount["id"]
-        op[1]["to"]                 = toAccount["id"]
+        op[1]["from"] = fromAccount["id"]
+        op[1]["to"] = toAccount["id"]
 
-        exp_time    = datetime.utcfromtimestamp(time.time() + int(expiration)).strftime('%Y-%m-%dT%H:%M:%S')
+        exp_time = datetime.utcfromtimestamp(time.time() + int(expiration)).strftime('%Y-%m-%dT%H:%M:%S')
         buildHandle = self.rpc.begin_builder_transaction()
         self.rpc.add_operation_to_builder_transaction(buildHandle, op)
         self.rpc.set_fees_on_builder_transaction(buildHandle, asset["id"])
@@ -93,7 +89,7 @@ class Proposal(GrapheneClient) :
                 print(rpc.get_transaction_id(tx))
         """
 
-        proposer         = self.rpc.get_account(proposer_account)
+        proposer = self.rpc.get_account(proposer_account)
         buildHandle = self.rpc.begin_builder_transaction()
         for op in ops:
             self.rpc.add_operation_to_builder_transaction(buildHandle, op)
@@ -105,7 +101,7 @@ class Proposal(GrapheneClient) :
 #         ## Alternative implementation building the transactions
 #         ## manually. Not yet working though
 #         op = self.rpc.get_prototype_operation("proposal_create_operation")
-#         for o in ops :
+#         for o in ops:
 #             op[1]["proposed_ops"].append(o)
 #         op[1]["expiration_time"] = expiration
 #         op[1]["fee_paying_account"] = payee_id

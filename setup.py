@@ -29,7 +29,8 @@ setup(name='bitshares',
           "bitshares",
           "bitsharesapi",
           "bitsharesbase",
-          "bitsharesdeprecated"
+          "bitsharesdeprecated",  # deprecated
+          "bitsharesexchange"     # legacy code
       ],
       classifiers=['License :: OSI Approved :: MIT License',
                    'Operating System :: OS Independent',

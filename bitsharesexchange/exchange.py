@@ -1,12 +1,12 @@
-from grapheneapi.grapheneclient import GrapheneClient
-from graphenebase import transactions
-from graphenebase.operations import operations
-from graphenebase.account import PrivateKey, PublicKey
-from graphenebase import memo as Memo
+from bitsharesdeprecated.client import BitSharesClient
+from bitsharesbase import transactions
+from bitsharesbase.operations import operations
+from bitsharesbase.account import PrivateKey, PublicKey
+from bitsharesbase import memo as Memo
 from datetime import datetime
 import time
 import math
-from grapheneextra.proposal import Proposal
+from .proposal import Proposal
 import logging
 from . import deep_eq
 log = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ class WifNotActive(Exception):
     pass
 
 
-class ExampleConfig() :
+class ExampleConfig():
     """ The behavior of your program can be
         defined in a separated class (here called ``ExampleConfig()``. It
         contains the wallet and witness connection parameters:
@@ -33,7 +33,7 @@ class ExampleConfig() :
 
         * `witness_url` is required in all cases
         * If you want to run a bot continuously, the configuration needs
-          to be inherited from `GrapheneWebsocketProtocol`
+          to be inherited from `BitSharesWebsocketProtocol`
         * Either you provide access to a cli_wallet via `wallet_host`
           (etc.) or your need to provide the **active private key** to the
           account as `wif`
@@ -43,58 +43,58 @@ class ExampleConfig() :
 
         .. code-block:: python
 
-            class Config(GrapheneWebsocketProtocol):  # Note the dependency
-                wallet_host           = "localhost"
-                wallet_port           = 8092
-                wallet_user           = ""
-                wallet_password       = ""
-                witness_url           = "ws://localhost:8090/"
-                witness_user          = ""
-                witness_password      = ""
-                wif                   = None
+            class Config(BitSharesWebsocketProtocol):  # Note the dependency
+                wallet_host = "localhost"
+                wallet_port = 8092
+                wallet_user = ""
+                wallet_password = ""
+                witness_url = "ws://localhost:8090/"
+                witness_user = ""
+                witness_password = ""
+                wif = None
 
-        All methods within ``graphene.rpc`` are mapped to the
+        All methods within ``bitshares.rpc`` are mapped to the
         corresponding RPC call of the **wallet** and the parameters are
         handed over directly. Similar behavior is implemented for
-        ``graphene.ws`` which can deal with calls to the **witness
+        ``bitshares.ws`` which can deal with calls to the **witness
         node**.
 
         This allows the use of rpc commands similar to the
-        ``GrapheneAPI`` class:
+        ``BitSharesAPI`` class:
 
         .. code-block:: python
 
-            graphene = GrapheneExchange(Config)
+            bitshares = BitSharesExchange(Config)
             # Calls to the cli-wallet
-            print(graphene.rpc.info())
+            print(bitshares.rpc.info())
             # Calls to the witness node
-            print(graphene.ws.get_account("init0"))
-            print(graphene.ws.get_asset("USD"))
-            print(graphene.ws.get_account_count())
+            print(bitshares.ws.get_account("init0"))
+            print(bitshares.ws.get_asset("USD"))
+            print(bitshares.ws.get_account_count())
 
     """
 
     #: Wallet connection parameters
-    wallet_host           = "localhost"
-    wallet_port           = 8092
-    wallet_user           = ""
-    wallet_password       = ""
+    wallet_host = "localhost"
+    wallet_port = 8092
+    wallet_user = ""
+    wallet_password = ""
 
     #: Witness connection parameter
-    witness_url           = "ws://localhost:8090/"
-    witness_user          = ""
-    witness_password      = ""
+    witness_url = "ws://localhost:8090/"
+    witness_user = ""
+    witness_password = ""
 
     #: The account used here
-    account               = "fabian"
-    wif                   = None
+    account = "fabian"
+    wif = None
 
     #: Markets to watch.
-    watch_markets         = ["USD_BTS"]
-    market_separator      = "_"
+    watch_markets = ["USD_BTS"]
+    market_separator = "_"
 
 
-class GrapheneExchange(GrapheneClient) :
+class BitSharesExchange(BitSharesClient):
     """ This class serves as an abstraction layer for the decentralized
         exchange within the network and simplifies interaction for
         trading bots.
@@ -117,26 +117,26 @@ class GrapheneExchange(GrapheneClient) :
         .. code-block:: python
 
 
-            from grapheneexchange import GrapheneExchange
+            from BitSharesExchange import BitSharesExchange
             import json
 
 
             class Config():
-                wallet_host           = "localhost"
-                wallet_port           = 8092
-                wallet_user           = ""
-                wallet_password       = ""
-                witness_url           = "ws://10.0.0.16:8090/"
-                witness_user          = ""
-                witness_password      = ""
+                wallet_host = "localhost"
+                wallet_port = 8092
+                wallet_user = ""
+                wallet_password = ""
+                witness_url = "ws://10.0.0.16:8090/"
+                witness_user = ""
+                witness_password = ""
 
-                watch_markets         = ["USD_BTS", "GOLD_BTS"]
-                market_separator      = "_"
-                account               = "fabian"
-                wif                   = None
+                watch_markets = ["USD_BTS", "GOLD_BTS"]
+                market_separator = "_"
+                account = "fabian"
+                wif = None
 
             if __name__ == '__main__':
-                dex   = GrapheneExchange(Config)
+                dex = BitSharesExchange(Config)
                 print(json.dumps(dex.returnTradeHistory("USD_BTS"),indent=4))
                 print(json.dumps(dex.returnTicker(),indent=4))
                 print(json.dumps(dex.return24Volume(),indent=4))
@@ -154,14 +154,14 @@ class GrapheneExchange(GrapheneClient) :
     #: The trading account
     myAccount = None
 
-    def __init__(self, config, **kwargs) :
+    def __init__(self, config, **kwargs):
         # Defaults:
         self.safe_mode = True
 
         #: Propose transactions (instead of broadcasting every order, we
         #  here propose every order in a single proposal
-        self.propose_only          = False
-        self.propose_operations    = []
+        self.propose_only = False
+        self.propose_operations = []
 
         if "safe_mode" in kwargs:
             self.safe_mode = kwargs["safe_mode"]
@@ -258,7 +258,7 @@ class GrapheneExchange(GrapheneClient) :
             (int(price * 10 ** (base["precision"] - quote["precision"])) /
              10 ** (base["precision"] - quote["precision"])))
 
-    def _get_market_name_from_ids(self, quote_id, base_id) :
+    def _get_market_name_from_ids(self, quote_id, base_id):
         """ Returns the properly formated name of a market given base
             and quote ids
 
@@ -283,7 +283,7 @@ class GrapheneExchange(GrapheneClient) :
             self.assets[asset["symbol"]] = asset
             return asset
 
-    def _get_assets_from_ids(self, base_id, quote_id) :
+    def _get_assets_from_ids(self, base_id, quote_id):
         """ Returns assets of a market given base
             and quote ids
 
@@ -294,9 +294,9 @@ class GrapheneExchange(GrapheneClient) :
         """
         quote = self._get_asset(quote_id)
         base = self._get_asset(base_id)
-        return {"quote" : quote, "base" : base}
+        return {"quote": quote, "base": base}
 
-    def _get_asset_ids_from_name(self, market) :
+    def _get_asset_ids_from_name(self, market):
         """ Returns the  base and quote ids given a properly formated
             market name
 
@@ -305,11 +305,11 @@ class GrapheneExchange(GrapheneClient) :
             :rtype: json
         """
         quote_symbol, base_symbol = market.split(self.market_separator)
-        quote  = self._get_asset(quote_symbol)
-        base   = self._get_asset(quote_symbol)
-        return {"quote" : quote["id"], "base" : base["id"]}
+        quote = self._get_asset(quote_symbol)
+        base = self._get_asset(quote_symbol)
+        return {"quote": quote["id"], "base": base["id"]}
 
-    def _get_assets_from_market(self, market) :
+    def _get_assets_from_market(self, market):
         """ Returns the  base and quote assets given a properly formated
             market name
 
@@ -318,11 +318,11 @@ class GrapheneExchange(GrapheneClient) :
             :rtype: json
         """
         quote_symbol, base_symbol = market.split(self.market_separator)
-        quote  = self._get_asset(quote_symbol)
-        base   = self._get_asset(base_symbol)
-        return {"quote" : quote, "base" : base}
+        quote = self._get_asset(quote_symbol)
+        base = self._get_asset(base_symbol)
+        return {"quote": quote, "base": base}
 
-    def _get_price(self, o) :
+    def _get_price(self, o):
         """ Given an object with `quote` and `base`, derive the correct
             price.
 
@@ -342,11 +342,11 @@ class GrapheneExchange(GrapheneClient) :
                 That way you can multiply prices with `1.05` to get a +5%.
         """
         quote_amount = float(o["quote"]["amount"])
-        base_amount  = float(o["base"]["amount"])
-        quote_id     = o["quote"]["asset_id"]
-        base_id      = o["base"]["asset_id"]
-        base         = self._get_asset(base_id)
-        quote        = self._get_asset(quote_id)
+        base_amount = float(o["base"]["amount"])
+        quote_id = o["quote"]["asset_id"]
+        base_id = o["base"]["asset_id"]
+        base = self._get_asset(base_id)
+        quote = self._get_asset(quote_id)
         # invert price!
         if (quote_amount / 10 ** quote["precision"]) > 0.0:
             return float((base_amount / 10 ** base["precision"]) /
@@ -375,7 +375,7 @@ class GrapheneExchange(GrapheneClient) :
 
         """
         r = {}
-        if f["op"]["receives"]["asset_id"] == m["base"] :
+        if f["op"]["receives"]["asset_id"] == m["base"]:
             # If the seller received "base" in a quote_base market, than
             # it has been a sell order of quote
             r["base"] = f["op"]["receives"]
@@ -397,7 +397,7 @@ class GrapheneExchange(GrapheneClient) :
             :return: Price
         """
         r = {}
-        if f["min_to_receive"]["asset_id"] == m["base"] :
+        if f["min_to_receive"]["asset_id"] == m["base"]:
             # If the seller received "base" in a quote_base market, than
             # it has been a sell order of quote
             r["base"] = f["min_to_receive"]
@@ -406,7 +406,7 @@ class GrapheneExchange(GrapheneClient) :
             # buy order
             r["base"] = f["amount_to_sell"]
             r["quote"] = f["min_to_receive"]
-        else :
+        else:
             return None
         # invert price!
         return self._get_price(r)
@@ -424,17 +424,17 @@ class GrapheneExchange(GrapheneClient) :
         """
         r = {}
         asset_ids = []
-        for market in self.markets :
+        for market in self.markets:
             m = self.markets[market]
             asset_ids.append(m["base"])
             asset_ids.append(m["quote"])
         asset_ids_unique = list(set(asset_ids))
         assets = self.ws.get_objects(asset_ids_unique)
         for a in assets:
-            r.update({a["symbol"] : a})
+            r.update({a["symbol"]: a})
         return r
 
-    def returnFees(self) :
+    def returnFees(self):
         """ Returns a dictionary of all fees that apply through the
             network
 
@@ -464,7 +464,7 @@ class GrapheneExchange(GrapheneClient) :
                 if operations[name] == f[0]:
                     op_name = name
             fs = f[1]
-            for _type in fs :
+            for _type in fs:
                 fs[_type] = float(fs[_type]) * scale / 1e4 / 10 ** base["precision"]
             r[op_name] = fs
         return r
@@ -529,7 +529,7 @@ class GrapheneExchange(GrapheneClient) :
 
         """
         r = {}
-        for market in self.markets :
+        for market in self.markets:
             m = self.markets[market]
             data = {}
             quote_asset = self._get_asset(m["quote"])
@@ -543,19 +543,19 @@ class GrapheneExchange(GrapheneClient) :
             filled = self.ws.get_fill_order_history(
                 m["quote"], m["base"], 1, api="history")
             # Price and ask/bids
-            if filled :
+            if filled:
                 data["last"] = self._get_price_filled(filled[0], m)
-            else :
+            else:
                 data["last"] = -1
 
             orders = self.ws.get_limit_orders(
                 m["quote"], m["base"], 1)
             if len(orders) > 1:
-                data["lowestAsk"]     = (1 / self._get_price(orders[0]["sell_price"]))
-                data["highestBid"]    = self._get_price(orders[1]["sell_price"])
-            else :
-                data["lowestAsk"]     = -1
-                data["highestBid"]    = -1
+                data["lowestAsk"] = (1 / self._get_price(orders[0]["sell_price"]))
+                data["highestBid"] = self._get_price(orders[1]["sell_price"])
+            else:
+                data["lowestAsk"] = -1
+                data["highestBid"] = -1
 
             # Core Exchange rate
             if quote_asset["id"] != "1.3.0":
@@ -564,36 +564,36 @@ class GrapheneExchange(GrapheneClient) :
                 data["core_exchange_rate"] = self._get_price(base_asset["options"]["core_exchange_rate"])
 
             # smartcoin stuff
-            if "bitasset_data_id" in quote_asset :
+            if "bitasset_data_id" in quote_asset:
                 bitasset = self.getObject(quote_asset["bitasset_data_id"])
                 backing_asset_id = bitasset["options"]["short_backing_asset"]
                 if backing_asset_id == base_asset["id"]:
                     data["settlement_price"] = 1 / self._get_price(bitasset["current_feed"]["settlement_price"])
-            elif "bitasset_data_id" in base_asset :
+            elif "bitasset_data_id" in base_asset:
                 bitasset = self.getObject(base_asset["bitasset_data_id"])
                 backing_asset_id = bitasset["options"]["short_backing_asset"]
                 if backing_asset_id == quote_asset["id"]:
                     data["settlement_price"] = self._get_price(bitasset["current_feed"]["settlement_price"])
 
-            if len(marketHistory) :
-                if marketHistory[0]["key"]["quote"] == m["quote"] :
-                    data["baseVolume"]    = float(marketHistory[0]["base_volume"])  / (10 ** base_asset["precision"])
-                    data["quoteVolume"]   = float(marketHistory[0]["quote_volume"]) / (10 ** quote_asset["precision"])
-                    price24h = ((float(marketHistory[0]["open_base"])  / 10 ** base_asset["precision"]) /
+            if len(marketHistory):
+                if marketHistory[0]["key"]["quote"] == m["quote"]:
+                    data["baseVolume"] = float(marketHistory[0]["base_volume"]) / (10 ** base_asset["precision"])
+                    data["quoteVolume"] = float(marketHistory[0]["quote_volume"]) / (10 ** quote_asset["precision"])
+                    price24h = ((float(marketHistory[0]["open_base"]) / 10 ** base_asset["precision"]) /
                                 (float(marketHistory[0]["open_quote"]) / 10 ** quote_asset["precision"]))
-                else :
+                else:
                     #: Looks weird but is correct:
-                    data["baseVolume"]    = float(marketHistory[0]["quote_volume"]) / (10 ** base_asset["precision"])
-                    data["quoteVolume"]   = float(marketHistory[0]["base_volume"])  / (10 ** quote_asset["precision"])
+                    data["baseVolume"] = float(marketHistory[0]["quote_volume"]) / (10 ** base_asset["precision"])
+                    data["quoteVolume"] = float(marketHistory[0]["base_volume"]) / (10 ** quote_asset["precision"])
                     price24h = ((float(marketHistory[0]["open_quote"]) / 10 ** base_asset["precision"]) /
-                                (float(marketHistory[0]["open_base"])  / 10 ** quote_asset["precision"]))
+                                (float(marketHistory[0]["open_base"]) / 10 ** quote_asset["precision"]))
                 data["price24h"] = price24h
                 data["percentChange"] = ((data["last"] / price24h - 1) * 100)
-            else :
-                data["baseVolume"]    = 0
-                data["quoteVolume"]   = 0
+            else:
+                data["baseVolume"] = 0
+                data["quoteVolume"] = 0
                 data["percentChange"] = 0
-            r.update({market : data})
+            r.update({market: data})
         return r
 
     def return24Volume(self):
@@ -616,7 +616,7 @@ class GrapheneExchange(GrapheneClient) :
 
         """
         r = {}
-        for market in self.markets :
+        for market in self.markets:
             m = self.markets[market]
             marketHistory = self.ws.get_market_history(
                 m["quote"], m["base"],
@@ -627,17 +627,17 @@ class GrapheneExchange(GrapheneClient) :
             quote_asset = self._get_asset(m["quote"])
             base_asset = self._get_asset(m["base"])
             data = {}
-            if len(marketHistory) :
-                if marketHistory[0]["key"]["quote"] == m["quote"] :
+            if len(marketHistory):
+                if marketHistory[0]["key"]["quote"] == m["quote"]:
                     data[m["base_symbol"]] = float(marketHistory[0]["base_volume"]) / (10 ** base_asset["precision"])
                     data[m["quote_symbol"]] = float(marketHistory[0]["quote_volume"]) / (10 ** quote_asset["precision"])
-                else :
+                else:
                     data[m["base_symbol"]] = float(marketHistory[0]["quote_volume"]) / (10 ** base_asset["precision"])
                     data[m["quote_symbol"]] = float(marketHistory[0]["base_volume"]) / (10 ** quote_asset["precision"])
-            else :
+            else:
                 data[m["base_symbol"]] = 0
                 data[m["quote_symbol"]] = 0
-            r.update({market : data})
+            r.update({market: data})
         return r
 
     def returnOrderBook(self, currencyPair="all", limit=25):
@@ -670,11 +670,11 @@ class GrapheneExchange(GrapheneClient) :
 
         """
         r = {}
-        if currencyPair == "all" :
+        if currencyPair == "all":
             markets = list(self.markets.keys())
         else:
             markets = [currencyPair]
-        for market in markets :
+        for market in markets:
             m = self.markets[market]
             orders = self.ws.get_limit_orders(
                 m["quote"], m["base"], limit)
@@ -683,17 +683,17 @@ class GrapheneExchange(GrapheneClient) :
             asks = []
             bids = []
             for o in orders:
-                if o["sell_price"]["base"]["asset_id"] == m["base"] :
+                if o["sell_price"]["base"]["asset_id"] == m["base"]:
                     price = self._get_price(o["sell_price"])
                     volume = float(o["for_sale"]) / 10 ** base_asset["precision"] / self._get_price(o["sell_price"])
                     bids.append([price, volume, o["id"]])
-                else :
+                else:
                     price = 1 / self._get_price(o["sell_price"])
                     volume = float(o["for_sale"]) / 10 ** quote_asset["precision"]
                     asks.append([price, volume, o["id"]])
 
-            data = {"asks" : asks, "bids" : bids}
-            r.update({market : data})
+            data = {"asks": asks, "bids": bids}
+            r.update({market: data})
         return r
 
     def returnBalances(self):
@@ -716,7 +716,7 @@ class GrapheneExchange(GrapheneClient) :
         asset_ids = [a["asset_id"] for a in balances]
         assets = self.ws.get_objects(asset_ids)
         data = {}
-        for i, asset in enumerate(assets) :
+        for i, asset in enumerate(assets):
             amount = float(balances[i]["amount"]) / 10 ** asset["precision"]
             if amount == 0.0:
                 continue
@@ -727,15 +727,15 @@ class GrapheneExchange(GrapheneClient) :
         """ Returns only the ids of open Orders
         """
         r = {}
-        if currencyPair == "all" :
+        if currencyPair == "all":
             markets = list(self.markets.keys())
         else:
             markets = [currencyPair]
         orders = self.ws.get_full_accounts([self.myAccount["id"]], False)[0][1]["limit_orders"]
-        for market in markets :
+        for market in markets:
             r[market] = []
         for o in orders:
-            for market in markets :
+            for market in markets:
                 m = self.markets[market]
                 if ((o["sell_price"]["base"]["asset_id"] == m["base"] and
                     o["sell_price"]["quote"]["asset_id"] == m["quote"]) or
@@ -795,17 +795,17 @@ class GrapheneExchange(GrapheneClient) :
 
         """
         r = {}
-        if currencyPair == "all" :
+        if currencyPair == "all":
             markets = list(self.markets.keys())
         else:
             markets = [currencyPair]
         orders = self.ws.get_full_accounts([self.myAccount["id"]], False)[0][1]["limit_orders"]
-        for market in markets :
+        for market in markets:
             r[market] = []
         for o in orders:
             base_id = o["sell_price"]["base"]["asset_id"]
             base_asset = self._get_asset(base_id)
-            for market in markets :
+            for market in markets:
                 m = self.markets[market]
                 if (o["sell_price"]["base"]["asset_id"] == m["base"] and
                         o["sell_price"]["quote"]["asset_id"] == m["quote"]):
@@ -823,14 +823,14 @@ class GrapheneExchange(GrapheneClient) :
                     t = "sell"
                     total = amount * rate
                     for_sale = float(o["for_sale"]) / 10 ** base_asset["precision"]
-                else :
+                else:
                     continue
-                r[market].append({"rate" : rate,
-                                  "amount" : amount,
-                                  "total" : total,
-                                  "type" : t,
-                                  "amount_to_sell" : for_sale,
-                                  "orderNumber" : o["id"]})
+                r[market].append({"rate": rate,
+                                  "amount": amount,
+                                  "total": total,
+                                  "type": t,
+                                  "amount_to_sell": for_sale,
+                                  "orderNumber": o["id"]})
         return r
 
     def returnOpenOrdersStruct(self, currencyPair="all"):
@@ -892,11 +892,11 @@ class GrapheneExchange(GrapheneClient) :
 
         """
         r = {}
-        if currencyPair == "all" :
+        if currencyPair == "all":
             markets = list(self.markets.keys())
         else:
             markets = [currencyPair]
-        for market in markets :
+        for market in markets:
             m = self.markets[market]
             filled = self.ws.get_fill_order_history(
                 m["quote"], m["base"], 2 * limit, api="history")
@@ -907,15 +907,15 @@ class GrapheneExchange(GrapheneClient) :
                 data["rate"] = self._get_price_filled(f, m)
                 quote = self._get_asset(m["quote"])
                 if f["op"]["account_id"] == self.myAccount["id"]:
-                    if f["op"]["pays"]["asset_id"] == m["base"] :
-                        data["type"]   = "buy"
+                    if f["op"]["pays"]["asset_id"] == m["base"]:
+                        data["type"] = "buy"
                         data["amount"] = int(f["op"]["receives"]["amount"]) / 10 ** quote["precision"]
-                    else :
-                        data["type"]   = "sell"
+                    else:
+                        data["type"] = "sell"
                         data["amount"] = int(f["op"]["pays"]["amount"]) / 10 ** quote["precision"]
-                    data["total"]  = data["amount"] * data["rate"]
+                    data["total"] = data["amount"] * data["rate"]
                     trades.append(data)
-            r.update({market : trades})
+            r.update({market: trades})
         return r
 
     def buy(self,
@@ -949,11 +949,11 @@ class GrapheneExchange(GrapheneClient) :
                 market. I.e. in the BTC/BTS market, prices are BTS per BTC.
                 That way you can multiply prices with `1.05` to get a +5%.
         """
-        if self.safe_mode :
+        if self.safe_mode:
             log.warn("Safe Mode enabled! Not broadcasting anything!")
         # We buy quote and pay with base
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
-        base  = self._get_asset(base_symbol)
+        base = self._get_asset(base_symbol)
         quote = self._get_asset(quote_symbol)
         if self.rpc:
             transaction = self.rpc.sell_asset(self.config.account,
@@ -1023,7 +1023,7 @@ class GrapheneExchange(GrapheneClient) :
                 market. I.e. in the BTC/BTS market, prices are BTS per BTC.
                 That way you can multiply prices with `1.05` to get a +5%.
         """
-        if self.safe_mode :
+        if self.safe_mode:
             log.warn("Safe Mode enabled! Not broadcasting anything!")
         # We sell quote and pay with base
         quote_symbol, base_symbol = currencyPair.split(self.market_separator)
@@ -1100,7 +1100,7 @@ class GrapheneExchange(GrapheneClient) :
         debts = self.ws.get_full_accounts([self.myAccount["id"]], False)[0][1]["call_orders"]
         r = {}
         for debt in debts:
-            base  = self.getObject(debt["call_price"]["base"]["asset_id"])
+            base = self.getObject(debt["call_price"]["base"]["asset_id"])
             quote = self.getObject(debt["call_price"]["quote"]["asset_id"])
 
             if "bitasset_data_id" not in quote:
@@ -1116,12 +1116,12 @@ class GrapheneExchange(GrapheneClient) :
             collateral_amount = int(debt["collateral"]) / 10 ** base["precision"]
             debt_amount = int(debt["debt"]) / 10 ** quote["precision"]
 
-            r[quote["symbol"]] = {"collateral_asset" : base["symbol"],
-                                  "collateral" : collateral_amount,
-                                  "debt" : debt_amount,
-                                  "call_price" : call_price,
+            r[quote["symbol"]] = {"collateral_asset": base["symbol"],
+                                  "collateral": collateral_amount,
+                                  "debt": debt_amount,
+                                  "call_price": call_price,
                                   "settlement_price": settlement_price,
-                                  "ratio" : collateral_amount / debt_amount * settlement_price}
+                                  "ratio": collateral_amount / debt_amount * settlement_price}
         return r
 
     def close_debt_position(self, symbol):
@@ -1130,7 +1130,7 @@ class GrapheneExchange(GrapheneClient) :
             :param str symbol: Symbol to close debt position for
             :raises ValueError: if symbol has no open call position
         """
-        if self.safe_mode :
+        if self.safe_mode:
             log.warn("Safe Mode enabled! Not broadcasting anything!")
         debts = self.list_debt_positions()
         if symbol not in debts:
@@ -1175,7 +1175,7 @@ class GrapheneExchange(GrapheneClient) :
             :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
             :raises ValueError: if required amounts of collateral are not available
         """
-        if self.safe_mode :
+        if self.safe_mode:
             log.warn("Safe Mode enabled! Not broadcasting anything!")
         # We sell quote and pay with base
         asset = self._get_asset(symbol)
@@ -1293,7 +1293,7 @@ class GrapheneExchange(GrapheneClient) :
 
 
         """
-        if self.safe_mode :
+        if self.safe_mode:
             log.warn("Safe Mode enabled! Not broadcasting anything!")
         # We sell quote and pay with base
         asset = self._get_asset(symbol)
@@ -1354,7 +1354,7 @@ class GrapheneExchange(GrapheneClient) :
 
             :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
         """
-        if self.safe_mode :
+        if self.safe_mode:
             log.warn("Safe Mode enabled! Not broadcasting anything!")
         if self.rpc:
             transaction = self.rpc.cancel_order(orderNumber, not (self.safe_mode or self.propose_only))
@@ -1606,7 +1606,7 @@ class GrapheneExchange(GrapheneClient) :
             :param str symbol: Symbol of the asset to fund
             :param float amount: Amount of BTS to use for funding fee pool
         """
-        if self.safe_mode :
+        if self.safe_mode:
             log.warn("Safe Mode enabled! Not broadcasting anything!")
         if self.rpc:
             transaction = self.rpc.fund_asset_fee_pool(self.config.account, symbol, amount, not (self.safe_mode or self.propose_only))
@@ -1642,7 +1642,7 @@ class GrapheneExchange(GrapheneClient) :
             If you want to use a memo you need to specify `memo_wif` in
             the configuration (similar to `wif`).
         """
-        if self.safe_mode :
+        if self.safe_mode:
             log.warn("Safe Mode enabled! Not broadcasting anything!")
         if self.rpc:
             transaction = self.rpc.transfer(

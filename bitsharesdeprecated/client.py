@@ -33,7 +33,7 @@ class ExampleConfig():
 
         .. code-block:: python
 
-            graphene = GrapheneClient(Config)
+            graphene = BitSharesClient(Config)
             print(graphene.rpc.info())
             print(graphene.rpc.get_account("init0"))
             print(graphene.rpc.get_asset("USD"))
@@ -297,7 +297,7 @@ class ExampleConfig():
 
 
 class BitSharesClient():
-    """ The ``GrapheneClient`` class is an abstraction layer that makes the use of the
+    """ The ``BitSharesClient`` class is an abstraction layer that makes the use of the
         RPC and the websocket interface easier to use. A part of this
         abstraction layer is to simplyfy the usage of objects and have
         an internal objects map updated to reduce unecessary queries
@@ -311,7 +311,7 @@ class BitSharesClient():
 
         .. code-block:: python
 
-            graphene = GrapheneClient(config)
+            graphene = BitSharesClient(config)
             graphene.run()
 
     """
