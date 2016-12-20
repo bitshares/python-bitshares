@@ -190,6 +190,19 @@ class AssetOptions(GrapheneObject):
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
+
+            # Sorting
+            for key in [
+                "whitelist_authorities",
+                "blacklist_authorities",
+                "whitelist_markets",
+                "blacklist_markets"
+            ]:
+                kwargs[key] = sorted(
+                    kwargs[key],
+                    key=lambda x: int(x.split(".")[-1]),
+                )
+
             super().__init__(OrderedDict([
                 ('max_supply', Uint64(kwargs["max_supply"])),
                 ('market_fee_percent', Uint16(kwargs["market_fee_percent"])),
