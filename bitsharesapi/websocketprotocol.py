@@ -44,12 +44,12 @@ class BitSharesWebsocketProtocol(WebSocketClientProtocol):
     onEventCallbacks = {}
 
     #: Registered APIs with corresponding API-IDs
-    api_ids    = {}
+    api_ids = {}
 
     #: Incremental Request ID and request storage (FIXME: request storage
     #: is not cleaned up)
     request_id = 0
-    requests   = {}
+    requests = {}
 
     def __init__(self):
         pass
@@ -67,7 +67,7 @@ class BitSharesWebsocketProtocol(WebSocketClientProtocol):
             :param fnt callback: Callback to be executed upon receiption
                                  of the answer (defaults to ``None``)
         """
-        request = {"request" : {}, "callback" : None}
+        request = {"request": {}, "callback": None}
         request["id"] = self._get_request_id()
         request["request"]["id"] = self.request_id
         request["request"]["method"] = "call"
@@ -92,7 +92,7 @@ class BitSharesWebsocketProtocol(WebSocketClientProtocol):
             :param int data: API id as returned by the server
 
         """
-        self.api_ids.update({name : data})
+        self.api_ids.update({name: data})
         if name == "database":
             self.eventcallback("registered-database")
         elif name == "history":
@@ -224,7 +224,7 @@ class BitSharesWebsocketProtocol(WebSocketClientProtocol):
         oid = notice["id"]
         [inst, _type, _id] = oid.split(".")
         account_ids = []
-        for a in self.accounts :
+        for a in self.accounts:
             account_ids.append("2.6.%s" % a.split(".")[2])  # account history
             account_ids.append("1.2.%s" % a.split(".")[2])  # account
         try:
@@ -365,12 +365,12 @@ class BitSharesWebsocketProtocol(WebSocketClientProtocol):
             "Use client.ws.get_account_history() instead",
             DeprecationWarning
         )
-        if account_id[0:4] == "1.2." :
+        if account_id[0:4] == "1.2.":
             self.wsexec([self.api_ids["history"],
                         "get_account_history",
                          [account_id, start, 100, stop]],
                         callback)
-        else :
+        else:
             raise ValueError("getAccountHistory expects an account" +
                              "id of the form '1.2.x'!")
 
