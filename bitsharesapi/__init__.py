@@ -1,6 +1,4 @@
-__all__ = ['graphenewsprotocol',
-           'graphenews',
-           'grapheneapi',
-           'grapheneclient',
-           'graphenewsrpc'
-           ]
+__all__ = [
+    "api",
+    "noderpc",
+]

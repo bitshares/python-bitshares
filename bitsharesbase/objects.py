@@ -56,6 +56,9 @@ class Operation(GPHOperation):
                 return key
         return "Unknown Operation ID %d" % i
 
+    def json(self):
+        return json.loads(str(self))
+
 
 class Asset(GrapheneObject):
     def __init__(self, *args, **kwargs):

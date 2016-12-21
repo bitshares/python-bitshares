@@ -14,7 +14,7 @@ except:
     from autobahn.websocket.util import parse_url as parseWsUrl
 
 from .websocketprotocol import BitSharesWebsocketProtocol
-from .noderpc import BitSharesWebsocketRPC
+from bitsharesapi.noderpc import BitSharesNodeRPC
 
 import logging
 log = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ class LimitedSizeDict(OrderedDict):
 #        return OrderedDict.__getitem__(self, key)
 
 
-class BitSharesWebsocket(BitSharesWebsocketRPC):
+class BitSharesWebsocket(BitSharesNodeRPC):
     """ This class serves as a management layer for the websocket
         connection and configuration of the websocket sub-protocol.
 
@@ -70,7 +70,7 @@ class BitSharesWebsocket(BitSharesWebsocketRPC):
 
     def __init__(self, url, username="", password="",
                  proto=BitSharesWebsocketProtocol):
-        """ Open A BitSharesWebsocketRPC connection that can handle
+        """ Open A BitSharesNodeRPC connection that can handle
             notifications though asynchronous calls.
 
             :param str url: Url to the websocket server
@@ -84,7 +84,7 @@ class BitSharesWebsocket(BitSharesWebsocketRPC):
         self.password = password
 
         # Open another RPC connection to execute calls
-        BitSharesWebsocketRPC.__init__(self, url, username, password)
+        BitSharesNodeRPC.__init__(self, url, username, password)
 
         # Parameters for another connection for asynchronous notifications
         self.ssl = ssl

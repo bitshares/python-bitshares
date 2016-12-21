@@ -357,6 +357,54 @@ class Testcases(unittest.TestCase):
                    "e34c9d2a563e67a8f4a227e4fadb4a3bb6ec91bfdf4e57b80efd")
         self.assertEqual(compare[:-130], txWire[:-130])
 
+    def test_update_account(self):
+        op = operations.Account_update(**{
+            "fee": {"amount": 1467634,
+                    "asset_id": "1.3.0"
+                    },
+            "account": "1.2.15",
+            "owner": {"weight_threshold": 1,
+                      "account_auths": [],
+                      'key_auths': [['BTS6pbVDAjRFiw6fkiKYCrkz7PFeL7XNAfefrsREwg8MKpJ9VYV9x',
+                                    1]],
+                      "address_auths": []
+                      },
+            "active": {"weight_threshold": 1,
+                       "account_auths": [],
+                       'key_auths': [['BTS8CemMDjdUWSV5wKotEimhK6c4dY7p2PdzC2qM1HpAP8aLtZfE7',
+                                     1]],
+                       "address_auths": []
+                       },
+            "new_options": {"memo_key": "BTS5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE",
+                            "voting_account": "1.2.5",
+                            "num_witness": 0,
+                            "num_committee": 0,
+                            "votes": [],
+                            "extensions": []
+                            },
+            "extensions": {}
+        })
+        ops = [Operation(op)]
+        tx = Signed_Transaction(ref_block_num=ref_block_num,
+                                ref_block_prefix=ref_block_prefix,
+                                expiration=expiration,
+                                operations=ops)
+        tx = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = ("f68585abf4dce7c804570106f264160000000000000"
+                   "f0101000000000102fe8cc11cc8251de6977636b55c"
+                   "1ab8a9d12b0b26154ac78e56e7c4257d8bcf6901000"
+                   "00101000000000103b453f46013fdbccb90b09ba169"
+                   "c388c34d84454a3b9fbec68d5a7819a734fca001000"
+                   "001024ab336b4b14ba6d881675d1c782912783c43db"
+                   "be31693aa710ac1896bd7c3d6105000000000000000"
+                   "0012006f7316b1fab08f7952a544aa8237a0b27d0e6"
+                   "c4b3ae79c4750fe20b76ac9ed54ddf78ef36637d3d0"
+                   "19cc24c7fec3e76894e36661dc804552c8b40d759db"
+                   "d605")
+        self.assertEqual(compare[:-130], txWire[:-130])
+
     def test_create_proposal(self):
         op = operations.Proposal_create(**{
             "fee": {"amount": 0,
@@ -439,31 +487,31 @@ class Testcases(unittest.TestCase):
     def compareConstructedTX(self):
         #    def test_online(self):
         #        self.maxDiff = None
-        op = operations.Asset_update(**{
-            "fee": {"amount": 0,
-                    "asset_id": "1.3.0"},
-            "issuer": "1.2.0",
-            "asset_to_update": "1.3.0",
-            "new_options": {
-                "max_supply": "1000000000000000",
-                "market_fee_percent": 0,
-                "max_market_fee": "1000000000000000",
-                "issuer_permissions": 79,
-                "flags": 0,
-                "core_exchange_rate": {
-                    "base": {"amount": 0,
-                             "asset_id": "1.3.0"},
-                    "quote": {"amount": 0,
-                              "asset_id": "1.3.0"}
-                },
-                "whitelist_authorities": ["1.2.12", "1.2.13"],
-                "blacklist_authorities": ["1.2.10", "1.2.11"],
-                "whitelist_markets": ["1.3.10", "1.3.11"],
-                "blacklist_markets": ["1.3.12", "1.3.13"],
-                "description": "Foobar",
-                "extensions": []
-            },
-            "extensions": []
+        op = operations.Account_update(** {
+            "fee": {"amount": 1467634,
+                    "asset_id": "1.3.0"
+                    },
+            "account": "1.2.15",
+            "owner": {"weight_threshold": 1,
+                      "account_auths": [],
+                      'key_auths': [['BTS6pbVDAjRFiw6fkiKYCrkz7PFeL7XNAfefrsREwg8MKpJ9VYV9x',
+                                    1]],
+                      "address_auths": []
+                      },
+            "active": {"weight_threshold": 1,
+                       "account_auths": [],
+                       'key_auths': [['BTS8CemMDjdUWSV5wKotEimhK6c4dY7p2PdzC2qM1HpAP8aLtZfE7',
+                                     1]],
+                       "address_auths": []
+                       },
+            "new_options": {"memo_key": "BTS5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE",
+                            "voting_account": "1.2.5",
+                            "num_witness": 0,
+                            "num_committee": 0,
+                            "votes": [],
+                            "extensions": []
+                            },
+            "extensions": {}
         })
         ops = [Operation(op)]
         tx = Signed_Transaction(

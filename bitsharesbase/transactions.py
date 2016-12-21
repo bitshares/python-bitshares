@@ -19,7 +19,7 @@ from .objects import Asset
 from graphenebase.transactions import getBlockParams, formatTimeFromNow
 
 
-def addRequiredFees(ws, ops, asset_id):
+def addRequiredFees(ws, ops, asset_id="1.3.0"):
     """ Auxiliary method to obtain the required fees for a set of
         operations. Requires a websocket connection to a witness node!
     """

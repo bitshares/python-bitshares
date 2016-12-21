@@ -261,3 +261,39 @@ class Account_create(GrapheneObject):
                 ('options', AccountOptions(kwargs["options"], prefix=prefix)),
                 ('extensions', Set([])),
             ]))
+
+
+class Account_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        # Allow for overwrite of prefix
+        prefix = kwargs.pop("prefix", default_prefix)
+
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            if "owner" in kwargs:
+                owner = Optional(Permission(kwargs["owner"], prefix=prefix))
+            else:
+                owner = Optional(None)
+
+            if "active" in kwargs:
+                active = Optional(Permission(kwargs["active"], prefix=prefix))
+            else:
+                active = Optional(None)
+
+            if "new_options" in kwargs:
+                options = Optional(AccountOptions(kwargs["new_options"], prefix=prefix))
+            else:
+                options = Optional(None)
+
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('account', ObjectId(kwargs["account"], "account")),
+                ('owner', owner),
+                ('active', active),
+                ('new_options', options),
+                ('extensions', Set([])),
+            ]))

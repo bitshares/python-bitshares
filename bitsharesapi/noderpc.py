@@ -18,10 +18,10 @@ class NumRetriesReached(Exception):
     pass
 
 
-class BitSharesWebsocketRPC(GrapheneWebsocketRPC):
+class BitSharesNodeRPC(GrapheneWebsocketRPC):
 
     def __init__(self, *args, **kwargs):
-        super(BitSharesWebsocketRPC, self).__init__(*args, **kwargs)
+        super(BitSharesNodeRPC, self).__init__(*args, **kwargs)
 
     def register_apis(self):
         self.api_id["database"] = self.database(api_id=1)

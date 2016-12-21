@@ -4,7 +4,8 @@ __all__ = [
     'chains',
     'memo',
     'objects',
-    'objecttypes'
+    'objecttypes',
+    'operationids',
     'operations',
     'signedtransactions',
     'transactions',
