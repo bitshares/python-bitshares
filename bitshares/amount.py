@@ -46,54 +46,51 @@ class Amount(object):
         return int(self.amount * 10 ** self.asset["precision"])
 
     def __add__(self, other):
-        a = Amount(self.amount, self.symbol)
+        a = Amount(str(self))
         if isinstance(other, Amount):
+            assert other.asset == self.asset
             a.amount += other.amount
         else:
             a.amount += float(other)
         return a
 
     def __sub__(self, other):
-        a = Amount(self.amount, self.symbol)
+        a = Amount(str(self))
         if isinstance(other, Amount):
+            assert other.asset == self.asset
             a.amount -= other.amount
         else:
             a.amount -= float(other)
         return a
 
     def __mul__(self, other):
-        a = Amount(self.amount, self.symbol)
+        a = Amount(str(self))
         a.amount *= other
         return a
 
     def __floordiv__(self, other):
-        if isinstance(other, Amount):
-            return self.amount // other.amount
-        else:
-            a = Amount(self.amount, self.symbol)
-            a.amount //= other
-            return a
+        a = Amount(str(self))
+        a.amount //= other
+        return a
 
     def __div__(self, other):
-        if isinstance(other, Amount):
-            return self.amount / other.amount
-        else:
-            a = Amount(self.amount, self.symbol)
-            a.amount /= other
-            return a
+        a = Amount(str(self))
+        a.amount /= other
+        return a
 
     def __mod__(self, other):
-        a = Amount(self.amount, self.symbol)
+        a = Amount(str(self))
         a.amount %= other
         return a
 
     def __pow__(self, other):
-        a = Amount(self.amount, self.symbol)
+        a = Amount(str(self))
         a.amount **= other
         return a
 
     def __iadd__(self, other):
         if isinstance(other, Amount):
+            assert other.asset == self.asset
             self.amount += other.amount
         else:
             self.amount += other
@@ -101,6 +98,7 @@ class Amount(object):
 
     def __isub__(self, other):
         if isinstance(other, Amount):
+            assert other.asset == self.asset
             self.amount -= other.amount
         else:
             self.amount -= other
@@ -112,6 +110,7 @@ class Amount(object):
 
     def __idiv__(self, other):
         if isinstance(other, Amount):
+            assert other.asset == self.asset
             return self.amount / other.amount
         else:
             self.amount /= other
@@ -131,39 +130,62 @@ class Amount(object):
 
     def __lt__(self, other):
         if isinstance(other, Amount):
+            assert other.asset == self.asset
             return self.amount < other.amount
         else:
             return self.amount < float(other)
 
     def __le__(self, other):
         if isinstance(other, Amount):
+            assert other.asset == self.asset
             return self.amount <= other.amount
         else:
             return self.amount <= float(other)
 
     def __eq__(self, other):
         if isinstance(other, Amount):
+            assert other.asset == self.asset
             return self.amount == other.amount
         else:
             return self.amount == float(other)
 
     def __ne__(self, other):
         if isinstance(other, Amount):
+            assert other.asset == self.asset
             return self.amount != other.amount
         else:
             return self.amount != float(other)
 
     def __ge__(self, other):
         if isinstance(other, Amount):
+            assert other.asset == self.asset
             return self.amount >= other.amount
         else:
             return self.amount >= float(other)
 
     def __gt__(self, other):
         if isinstance(other, Amount):
+            assert other.asset == self.asset
             return self.amount > other.amount
         else:
             return self.amount > float(other)
 
     __repr__ = __str__
     __truediv__ = __div__
+
+
+if __name__ == "__main__":
+    a = Amount("2 SBD")
+    b = Amount("9 SBD")
+    print(a + b)
+    print(b)
+    b **= 2
+    b += .5
+    print(b)
+    print(b > a)
+
+    c = Amount("100 STEEM")
+    print(c * .10)
+
+    #print(a + c)
+    #print(a < c)
