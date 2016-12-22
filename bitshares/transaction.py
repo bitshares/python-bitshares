@@ -12,7 +12,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class Transaction(object):
+class Transaction(dict):
     def __init__(self, bitshares_instance=None):
         if not bitshares_instance:
             bitshares_instance = bts.BitShares()
@@ -20,6 +20,9 @@ class Transaction(object):
 
         self.op = []
         self.wifs = []
+        if not isinstance(tx, dict):
+            raise ValueError("Invalid Transaction Format")
+        super(Transaction, self).__init__(tx)
 
     def appendOps(self, ops):
         if isinstance(ops, list):
@@ -27,6 +30,7 @@ class Transaction(object):
                 self.op.append(op)
         else:
             self.op.append(ops)
+        self.constructTx()
 
     def appendSigner(self, account, permission):
         account = Account(account, bitshares_instance=self.bitshares)
@@ -36,6 +40,9 @@ class Transaction(object):
             wif = self.bitshares.wallet.getOwnerKeyForAccount(account["name"])
         else:
             raise ValueError("Invalid permission")
+        self.wifs.append(wif)
+
+    def appendWif(self, wif):
         self.wifs.append(wif)
 
     def constructTx(self):
@@ -52,7 +59,7 @@ class Transaction(object):
             expiration=expiration,
             operations=ops
         )
-        self.tx = tx.json()
+        super(Transaction, self).__init__(tx.json())
 
     def sign(self):
         """ Sign a provided transaction witht he provided key(s)
@@ -64,12 +71,12 @@ class Transaction(object):
                 of the transactions.
         """
         try:
-            signedtx = Signed_Transaction(**self.tx)
+            signedtx = Signed_Transaction(**self.json())
         except:
             raise ValueError("Invalid Transaction Format")
 
         signedtx.sign(self.wifs)
-        self.tx["signatures"].extend(signedtx.json().get("signatures"))
+        self["signatures"].extend(signedtx.json().get("signatures"))
 
     def broadcast(self):
         """ Broadcast a transaction to the BitShares network
@@ -78,10 +85,10 @@ class Transaction(object):
         """
         if self.bitshares.nobroadcast:
             log.warning("Not broadcasting anything!")
-            return self.tx
+            return self
 
         try:
-            if not self.bitshares.rpc.verify_authority(self.tx):
+            if not self.steem.rpc.verify_authority(self.json()):
                 raise InsufficientAuthorityError
         except Exception as e:
             raise e
@@ -91,4 +98,44 @@ class Transaction(object):
         except Exception as e:
             raise e
 
-        return self.tx
+        return self
+
+    def addSigningInformation(self, account, permission):
+        """ This is a private method that adds side information to a
+            unsigned/partial transaction in order to simplify later
+            signing (e.g. for multisig or coldstorage)
+        """
+        accountObj = Account(account)
+        authority = accountObj[permission]
+        # We add a required_authorities to be able to identify
+        # how to sign later. This is an array, because we
+        # may later want to allow multiple operations per tx
+        self.update({"required_authorities": {
+            account: authority
+        }})
+        for account_auth in authority["account_auths"]:
+            account_auth_account = Account(account_auth[0])
+            self["required_authorities"].update({
+                account_auth[0]: account_auth_account.get(permission)
+            })
+
+        # Try to resolve required signatures for offline signing
+        self["missing_signatures"] = [
+            x[0] for x in authority["key_auths"]
+        ]
+        # Add one recursion of keys from account_auths:
+        for account_auth in authority["account_auths"]:
+            account_auth_account = Account(account_auth[0])
+            self["missing_signatures"].extend(
+                [x[0] for x in account_auth_account[permission]["key_auths"]]
+            )
+
+    def json(self):
+        return dict(self)
+
+    def appendMissingSignatures(self, wifs):
+        missing_signatures = self.get("missing_signatures", [])
+        for pub in missing_signatures:
+            wif = self.bitshares.wallet.getPrivateKeyForPublicKey(pub)
+            if wif:
+                self.appendWif(wif)

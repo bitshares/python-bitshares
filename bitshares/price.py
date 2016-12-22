@@ -7,3 +7,10 @@ class Price(dict):
         self.base = Amount(base)
         self.quote = Amount(quote)
         self.price = quote / base
+
+    def __repr__(self):
+        return "<Price %f %s/%s>" % (
+            self.price,
+            self.base,
+            self.quote
+        )
