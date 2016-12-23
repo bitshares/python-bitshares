@@ -1,3 +1,4 @@
+import re
 import sys
 import threading
 import websocket
@@ -6,12 +7,9 @@ import json
 import time
 from itertools import cycle
 from grapheneapi.graphenewsrpc import GrapheneWebsocketRPC
+from . import exceptions
 import logging
 log = logging.getLogger(__name__)
-
-
-class RPCError(Exception):
-    pass
 
 
 class NumRetriesReached(Exception):
@@ -246,3 +244,28 @@ class BitSharesNodeRPC(GrapheneWebsocketRPC):
                 for op in tx["operations"]:
                     if getOperationNameForId(op[0]) == opName:
                         yield op[1]
+
+    def rpcexec(self, payload):
+        """ Execute a call by sending the payload.
+            It makes use of the GrapheneRPC library.
+            In here, we mostly deal with Steem specific error handling
+
+            :param json payload: Payload data
+            :raises ValueError: if the server does not respond in proper JSON format
+            :raises RPCError: if the server returns an error
+        """
+        try:
+            # Forward call to GrapheneWebsocketRPC and catch+evaluate errors
+            return super(BitSharesNodeRPC, self).rpcexec(payload)
+        except exceptions.RPCError as e:
+            msg = exceptions.decodeRPCErrorMsg(e).strip()
+            if msg == "missing required active authority":
+                raise exceptions.MissingRequiredActiveAuthority
+            elif re.match("^no method with name.*", msg):
+                raise exceptions.NoMethodWithName(msg)
+            elif msg:
+                raise exceptions.UnhandledRPCError(msg)
+            else:
+                raise e
+        except Exception as e:
+            raise e

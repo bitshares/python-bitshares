@@ -297,3 +297,20 @@ class Account_update(GrapheneObject):
                 ('new_options', options),
                 ('extensions', Set([])),
             ]))
+
+
+class Account_whitelist(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('authorizing_account', ObjectId(kwargs["authorizing_account"], "account")),
+                ('account_to_list', ObjectId(kwargs["account_to_list"], "account")),
+                ('new_listing', Uint8(kwargs["new_listing"])),
+                ('extensions', Set([])),
+            ]))
