@@ -214,7 +214,7 @@ class BitSharesNodeRPC(GrapheneWebsocketRPC):
             # Sleep for one block
             time.sleep(block_interval)
 
-    def stream(self, opName, *args, **kwargs):
+    def stream(self, opName=None, *args, **kwargs):
         """ Yield specific operations (e.g. transfers) only
 
             :param str opName: Name of the operation, e.g.  transfer,
@@ -242,8 +242,13 @@ class BitSharesNodeRPC(GrapheneWebsocketRPC):
                 continue
             for tx in block["transactions"]:
                 for op in tx["operations"]:
-                    if getOperationNameForId(op[0]) == opName:
-                        yield op[1]
+                    if not opName or getOperationNameForId(op[0]) == opName:
+                        yield {
+                            **op[1],
+                            "type": op[0],
+                            "timestamp": block.get("timestamp"),
+                            # "block_num": block.get("block_num"),  # not part of the block data
+                        }
 
     def rpcexec(self, payload):
         """ Execute a call by sending the payload.
