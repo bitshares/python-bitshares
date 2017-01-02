@@ -18,7 +18,7 @@ from .exceptions import (
     MissingKeyError,
 )
 from .wallet import Wallet
-from .transaction import Transaction
+from .transactionbuilder import TransactionBuilder
 
 log = logging.getLogger(__name__)
 
@@ -148,7 +148,7 @@ class BitShares(object):
         self.wallet.newWallet()
 
     def finalizeOp(self, op, account, permission):
-        tx = Transaction()
+        tx = TransactionBuilder()
         tx.appendOps(op)
         tx.appendSigner(account, permission)
         tx.constructTx()

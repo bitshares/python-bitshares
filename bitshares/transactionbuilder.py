@@ -12,8 +12,9 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class Transaction(dict):
-    def __init__(self, bitshares_instance=None):
+class TransactionBuilder(dict):
+
+    def __init__(self, tx=None, bitshares_instance=None):
         if not bitshares_instance:
             bitshares_instance = bts.BitShares()
         self.bitshares = bitshares_instance
@@ -22,7 +23,7 @@ class Transaction(dict):
         self.wifs = []
         if not isinstance(tx, dict):
             raise ValueError("Invalid Transaction Format")
-        super(Transaction, self).__init__(tx)
+        super(TransactionBuilder, self).__init__(tx)
 
     def appendOps(self, ops):
         if isinstance(ops, list):
@@ -59,7 +60,7 @@ class Transaction(dict):
             expiration=expiration,
             operations=ops
         )
-        super(Transaction, self).__init__(tx.json())
+        super(TransactionBuilder, self).__init__(tx.json())
 
     def sign(self):
         """ Sign a provided transaction witht he provided key(s)
