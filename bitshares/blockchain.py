@@ -22,7 +22,7 @@ class Blockchain(object):
         if mode == "irreversible":
             self.mode = 'last_irreversible_block_num'
         elif mode == "head":
-            mode == "head_block_number"
+            self.mode = "head_block_number"
         else:
             raise ValueError("invalid value for 'mode'!")
 
