@@ -29,7 +29,7 @@ class Wallet():
     keys = {}  # struct with pubkey as key and wif as value
     keyMap = {}  # type:wif pairs to force certain keys
 
-    def __init__(self, rpc, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """ The wallet is meant to maintain access to private keys for
             your accounts. It either uses manually provided private keys
             or uses a SQLite database managed by storage.py.
@@ -54,7 +54,7 @@ class Wallet():
               any account. This mode is only used for *foreign*
               signatures!
         """
-        self.rpc = rpc
+        Wallet.rpc = stm.Steem.rpc
 
         # Compatibility after name change from wif->keys
         if "wif" in kwargs and "keys" not in kwargs:
@@ -95,7 +95,7 @@ class Wallet():
         """ Unlock the wallet database
         """
         if not self.created():
-            raise NoWallet("You don't have a wallet yet. Create one with BitShares().newWallet()")
+            self.newWallet()
 
         if (self.masterpassword is None and
                 self.configStorage[self.MasterPassword.config_key]):
@@ -126,20 +126,6 @@ class Wallet():
         newpwd = self.getPassword(confirm=True)
         # Change passphrase
         masterpwd.changePassword(newpwd)
-
-    def reencryptKeys(self, oldpassword, newpassword):
-        """ (deprecated!) Reencrypt keys in the wallet database
-        """
-        # remove encryption from database
-        allPubs = self.getPublicKeys()
-        for i, pub in enumerate(allPubs):
-            log.critical("Updating key %d of %d" % (i + 1, len(allPubs)))
-            self.masterpassword = oldpassword
-            wif = self.getPrivateKeyForPublicKey(pub)
-            self.masterpassword = newpassword
-            if self.keyStorage:
-                self.keyStorage.updateWif(pub, wif)
-        log.critical("Removing password complete")
 
     def created(self):
         """ Do we have a wallet database already?
@@ -222,6 +208,11 @@ class Wallet():
             pub = format(PrivateKey(wif).pubkey, prefix)
         except:
             raise InvalidWifError("Invalid Private Key Format. Please use WIF!")
+
+        # Test if wallet exists
+        if not self.created():
+            self.newWallet()
+
         if self.keyStorage:
             self.keyStorage.add(self.encrypt_wif(wif), pub)
 
@@ -231,6 +222,10 @@ class Wallet():
             :param str pub: Public Key
         """
         if self.keyStorage:
+            # Test if wallet exists
+            if not self.created():
+                self.newWallet()
+
             return self.decrypt_wif(self.keyStorage.getPrivateKeyForPublicKey(pub))
         else:
             if pub in self.keys:
@@ -244,6 +239,10 @@ class Wallet():
     def removePrivateKeyFromPublicKey(self, pub):
         """ Remove a key from the wallet database
         """
+        # Test if wallet exists
+        if not self.created():
+            self.newWallet()
+
         if self.keyStorage:
             self.keyStorage.delete(pub)
 
