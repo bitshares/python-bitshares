@@ -6,6 +6,7 @@ from bitsharesbase import transactions, operations
 from .exceptions import (
     InsufficientAuthorityError,
     MissingKeyError,
+    InvalidWifError
 )
 from . import bitshares as bts
 import logging
@@ -14,7 +15,7 @@ log = logging.getLogger(__name__)
 
 class TransactionBuilder(dict):
 
-    def __init__(self, tx=None, bitshares_instance=None):
+    def __init__(self, tx={}, bitshares_instance=None):
         if not bitshares_instance:
             bitshares_instance = bts.BitShares()
         self.bitshares = bitshares_instance
@@ -22,7 +23,7 @@ class TransactionBuilder(dict):
         self.op = []
         self.wifs = []
         if not isinstance(tx, dict):
-            raise ValueError("Invalid Transaction Format")
+            raise ValueError("Invalid TransactionBuilder Format")
         super(TransactionBuilder, self).__init__(tx)
 
     def appendOps(self, ops):
@@ -44,7 +45,12 @@ class TransactionBuilder(dict):
         self.wifs.append(wif)
 
     def appendWif(self, wif):
-        self.wifs.append(wif)
+        if wif:
+            try:
+                PrivateKey(wif)
+                self.wifs.append(wif)
+            except:
+                raise InvalidWifError
 
     def constructTx(self):
         if isinstance(self.op, list):
@@ -74,7 +80,10 @@ class TransactionBuilder(dict):
         try:
             signedtx = Signed_Transaction(**self.json())
         except:
-            raise ValueError("Invalid Transaction Format")
+            raise ValueError("Invalid TransactionBuilder Format")
+
+        if not any(self.wifs):
+            raise MissingKeyError
 
         signedtx.sign(self.wifs)
         self["signatures"].extend(signedtx.json().get("signatures"))
@@ -95,7 +104,7 @@ class TransactionBuilder(dict):
             raise e
 
         try:
-            self.bitshares.rpc.broadcast_transaction(self.tx, api="network_broadcast")
+            self.bitshares.rpc.broadcast_transaction(self.tx.json(), api="network_broadcast")
         except Exception as e:
             raise e
 
