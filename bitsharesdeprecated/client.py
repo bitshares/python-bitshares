@@ -1,5 +1,5 @@
 from bitsharesapi.api import BitSharesAPI
-from bitsharesapi.websocket import BitSharesWebsocket
+from .websocket import BitSharesWebsocket
 from collections import OrderedDict
 
 import logging

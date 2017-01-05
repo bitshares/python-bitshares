@@ -1,9 +1,7 @@
 import warnings
 warnings.warn(
-    "[DeprecationWarning] The % module will be deprecated and replaced soon" % __name__
+    "The %s module will be deprecated and replaced soon" % __name__,
+    DeprecationWarning
 )
 
-__all__ = [
-    "exchange",
-    "deep_eq"
-]
+__all__ = ["exchange", "deep_eq"]

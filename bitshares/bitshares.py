@@ -150,9 +150,22 @@ class BitShares(object):
     def finalizeOp(self, op, account, permission):
         tx = TransactionBuilder()
         tx.appendOps(op)
-        tx.appendSigner(account, permission)
-        tx.constructTx()
-        tx.sign()
+
+        if self.unsigned:
+            tx.addSigningInformation(account, permission)
+            return tx
+        else:
+            tx.appendSigner(account, permission)
+            tx.sign()
+
+        return tx.broadcast()
+
+    def broadcast(self, tx):
+        """ Broadcast a transaction to the Steem network
+
+            :param tx tx: Signed transaction to broadcast
+        """
+        tx = TransactionBuilder(tx)
         return tx.broadcast()
 
     def info(self):

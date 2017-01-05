@@ -98,7 +98,7 @@ class TransactionBuilder(dict):
             return self
 
         try:
-            if not self.steem.rpc.verify_authority(self.json()):
+            if not self.bitshares.rpc.verify_authority(self.json()):
                 raise InsufficientAuthorityError
         except Exception as e:
             raise e
@@ -121,7 +121,7 @@ class TransactionBuilder(dict):
         # how to sign later. This is an array, because we
         # may later want to allow multiple operations per tx
         self.update({"required_authorities": {
-            account: authority
+            account["name"]: authority
         }})
         for account_auth in authority["account_auths"]:
             account_auth_account = Account(account_auth[0])

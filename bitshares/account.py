@@ -1,4 +1,5 @@
 from . import bitshares as bts
+from .amount import Amount
 from .exceptions import AccountDoesNotExistsException
 
 
@@ -31,3 +32,8 @@ class Account(dict):
         if not self.cached:
             self.refresh()
         return super(Account, self).items()
+
+    @property
+    def balances(self):
+        balances = self.bitshares.rpc.get_account_balances(self["id"], [])
+        return [Amount(b) for b in balances if int(b["amount"]) > 0]

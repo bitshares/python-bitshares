@@ -11,6 +11,12 @@ class Amount(object):
         if len(args) == 1 and isinstance(args[0], Amount):
             amount = args[0].amount
             asset = args[0].symbol
+        elif (len(args) == 1 and
+                isinstance(args[0], dict) and 
+                "amount" in args[0] and
+                "asset_id" in args[0]):
+            asset = Asset(args[0]["asset_id"])
+            amount = int(args[0]["amount"]) / 10 ** asset["precision"]
         elif len(args) == 2:
             amount = args[0]
             asset = args[1]
@@ -133,59 +139,41 @@ class Amount(object):
             assert other.asset == self.asset
             return self.amount < other.amount
         else:
-            return self.amount < float(other)
+            return self.amount < float(other or 0)
 
     def __le__(self, other):
         if isinstance(other, Amount):
             assert other.asset == self.asset
             return self.amount <= other.amount
         else:
-            return self.amount <= float(other)
+            return self.amount <= float(other or 0)
 
     def __eq__(self, other):
         if isinstance(other, Amount):
             assert other.asset == self.asset
             return self.amount == other.amount
         else:
-            return self.amount == float(other)
+            return self.amount == float(other or 0)
 
     def __ne__(self, other):
         if isinstance(other, Amount):
             assert other.asset == self.asset
             return self.amount != other.amount
         else:
-            return self.amount != float(other)
+            return self.amount != float(other or 0)
 
     def __ge__(self, other):
         if isinstance(other, Amount):
             assert other.asset == self.asset
             return self.amount >= other.amount
         else:
-            return self.amount >= float(other)
+            return self.amount >= float(other or 0)
 
     def __gt__(self, other):
         if isinstance(other, Amount):
             assert other.asset == self.asset
             return self.amount > other.amount
         else:
-            return self.amount > float(other)
+            return self.amount > float(other or 0)
 
     __repr__ = __str__
-    __truediv__ = __div__
-
-
-if __name__ == "__main__":
-    a = Amount("2 SBD")
-    b = Amount("9 SBD")
-    print(a + b)
-    print(b)
-    b **= 2
-    b += .5
-    print(b)
-    print(b > a)
-
-    c = Amount("100 STEEM")
-    print(c * .10)
-
-    #print(a + c)
-    #print(a < c)

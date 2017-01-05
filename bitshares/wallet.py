@@ -1,4 +1,5 @@
 from bitsharesbase.account import PrivateKey, GPHPrivateKey
+from . import bitshares as bts
 from bitsharesbase import bip38
 from .exceptions import (
     NoWallet,
@@ -54,7 +55,7 @@ class Wallet():
               any account. This mode is only used for *foreign*
               signatures!
         """
-        Wallet.rpc = stm.Steem.rpc
+        Wallet.rpc = bts.BitShares.rpc
 
         # Compatibility after name change from wif->keys
         if "wif" in kwargs and "keys" not in kwargs:
@@ -310,7 +311,7 @@ class Wallet():
         # FIXME, this only returns the first associated key.
         # If the key is used by multiple accounts, this
         # will surely lead to undesired behavior
-        names = self.rpc.get_key_references([pub], api="account_by_key")[0]
+        names = self.rpc.get_key_references([pub])[0]
         if not names:
             return None
         else:
@@ -326,11 +327,13 @@ class Wallet():
                     "pubkey": pub
                     }
         else:
-            account = self.rpc.get_account(name)
-            if not account:
+            try:
+                account = Account(name)
+            except:
                 return
             keyType = self.getKeyType(account, pub)
-            return {"name": name,
+            return {"name": account["name"],
+                    "account": account,
                     "type": keyType,
                     "pubkey": pub
                     }
@@ -338,12 +341,12 @@ class Wallet():
     def getKeyType(self, account, pub):
         """ Get key type
         """
-        if pub == account["memo_key"]:
-            return "memo"
         for authority in ["owner", "active"]:
             for key in account[authority]["key_auths"]:
                 if pub == key[0]:
                     return authority
+        if pub == account["options"]["memo_key"]:
+            return "memo"
         return None
 
     def getAccounts(self):
