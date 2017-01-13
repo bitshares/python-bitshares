@@ -315,7 +315,7 @@ class Configuration(DataDir):
             return False
 
     def __setitem__(self, key, value):
-        if key in self:
+        if self._haveKey(key):
             query = ("UPDATE %s " % self.__tablename__ +
                      "SET value=? WHERE key=?",
                      (value, key))

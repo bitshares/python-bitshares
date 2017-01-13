@@ -151,7 +151,7 @@ class Permission(GrapheneObject):
                 reverse=False,
             )
             accountAuths = Map([
-                [String(e[0]), Uint16(e[1])]
+                [ObjectId(e[0], "account"), Uint16(e[1])]
                 for e in kwargs["account_auths"]
             ])
             keyAuths = Map([

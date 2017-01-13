@@ -357,6 +357,15 @@ class BitShares(object):
         })
         return self.finalizeOp(op, account, "active")
 
+    def _test_weights_treshold(self, authority):
+        weights = 0
+        for a in authority["account_auths"]:
+            weights += a[1]
+        for a in authority["key_auths"]:
+            weights += a[1]
+        if authority["weight_threshold"] > weights:
+            raise ValueError("Threshold too restrictive!")
+
     def allow(self, foreign, weight=None, permission="active",
               account=None, threshold=None):
         """ Give additional access to an account by some other public
@@ -384,9 +393,7 @@ class BitShares(object):
             raise ValueError(
                 "Permission needs to be either 'owner', or 'active"
             )
-        account = self.rpc.get_account(account)
-        if not account:
-            raise AccountDoesNotExistsException(account)
+        account = Account(account)
 
         if not weight:
             weight = account[permission]["weight_threshold"]
@@ -447,9 +454,7 @@ class BitShares(object):
             raise ValueError(
                 "Permission needs to be either 'owner', or 'active"
             )
-        account = self.rpc.get_account(account)
-        if not account:
-            raise AccountDoesNotExistsException(account)
+        account = Account(account)
         authority = account[permission]
 
         try:
@@ -463,12 +468,12 @@ class BitShares(object):
             ))
         except:
             try:
-                foreign_account = self.rpc.get_account(foreign)
+                foreign_account = Account(foreign)
                 affected_items = list(
-                    filter(lambda x: x[0] == foreign_account["name"],
+                    filter(lambda x: x[0] == foreign_account["id"],
                            authority["account_auths"]))
                 authority["account_auths"] = list(filter(
-                    lambda x: x[0] != foreign_account["name"],
+                    lambda x: x[0] != foreign_account["id"],
                     authority["account_auths"]
                 ))
             except:
@@ -523,9 +528,7 @@ class BitShares(object):
 
         PublicKey(key)  # raises exception if invalid
 
-        account = self.rpc.get_account(account)
-        if not account:
-            raise AccountDoesNotExistsException(account)
+        account = Account(account)
         account["options"].update({
             "memo_key": "BTS5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE"}
         )

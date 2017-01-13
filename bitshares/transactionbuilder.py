@@ -104,7 +104,7 @@ class TransactionBuilder(dict):
             raise e
 
         try:
-            self.bitshares.rpc.broadcast_transaction(self.tx.json(), api="network_broadcast")
+            self.bitshares.rpc.broadcast_transaction(self.json(), api="network_broadcast")
         except Exception as e:
             raise e
 
@@ -121,7 +121,7 @@ class TransactionBuilder(dict):
         # how to sign later. This is an array, because we
         # may later want to allow multiple operations per tx
         self.update({"required_authorities": {
-            account["name"]: authority
+            account: authority
         }})
         for account_auth in authority["account_auths"]:
             account_auth_account = Account(account_auth[0])

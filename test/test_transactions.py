@@ -364,13 +364,13 @@ class Testcases(unittest.TestCase):
                     },
             "account": "1.2.15",
             "owner": {"weight_threshold": 1,
-                      "account_auths": [],
+                      "account_auths": [["1.2.96086", 1]],
                       'key_auths': [['BTS6pbVDAjRFiw6fkiKYCrkz7PFeL7XNAfefrsREwg8MKpJ9VYV9x',
                                     1]],
                       "address_auths": []
                       },
             "active": {"weight_threshold": 1,
-                       "account_auths": [],
+                       "account_auths": [["1.2.96086", 1]],
                        'key_auths': [['BTS8CemMDjdUWSV5wKotEimhK6c4dY7p2PdzC2qM1HpAP8aLtZfE7',
                                      1]],
                        "address_auths": []
@@ -393,16 +393,16 @@ class Testcases(unittest.TestCase):
         tx.verify([PrivateKey(wif).pubkey], "BTS")
         txWire = hexlify(bytes(tx)).decode("ascii")
         compare = ("f68585abf4dce7c804570106f264160000000000000"
-                   "f0101000000000102fe8cc11cc8251de6977636b55c"
-                   "1ab8a9d12b0b26154ac78e56e7c4257d8bcf6901000"
-                   "00101000000000103b453f46013fdbccb90b09ba169"
-                   "c388c34d84454a3b9fbec68d5a7819a734fca001000"
-                   "001024ab336b4b14ba6d881675d1c782912783c43db"
-                   "be31693aa710ac1896bd7c3d6105000000000000000"
-                   "0012006f7316b1fab08f7952a544aa8237a0b27d0e6"
-                   "c4b3ae79c4750fe20b76ac9ed54ddf78ef36637d3d0"
-                   "19cc24c7fec3e76894e36661dc804552c8b40d759db"
-                   "d605")
+                   "f010100000001d6ee0501000102fe8cc11cc8251de6"
+                   "977636b55c1ab8a9d12b0b26154ac78e56e7c4257d8"
+                   "bcf69010000010100000001d6ee0501000103b453f4"
+                   "6013fdbccb90b09ba169c388c34d84454a3b9fbec68"
+                   "d5a7819a734fca001000001024ab336b4b14ba6d881"
+                   "675d1c782912783c43dbbe31693aa710ac1896bd7c3"
+                   "d61050000000000000000011f78b989df5ab29697a3"
+                   "311f8d7fa8599c548a93809e173ab550b7d8c5051fa"
+                   "432699d8e24ea82399990c43528ddaf2b3cd8cd2500"
+                   "1c91f8094d66ae2620effc25")
         self.assertEqual(compare[:-130], txWire[:-130])
 
     def test_create_proposal(self):
@@ -485,7 +485,7 @@ class Testcases(unittest.TestCase):
         self.assertEqual(compare[:-130], txWire[:-130])
 
     def test_whitelist(self):
-        op = transactions.Account_whitelist(**{
+        op = operations.Account_whitelist(**{
             "fee": {"amount": 0,
                     "asset_id": "1.3.0"},
             "authorizing_account": "1.2.0",
@@ -493,7 +493,7 @@ class Testcases(unittest.TestCase):
             "new_listing": 0x1,
             "extensions": []
         })
-        ops = [transactions.Operation(op)]
+        ops = [Operation(op)]
         tx = transactions.Signed_Transaction(ref_block_num=ref_block_num,
                                              ref_block_prefix=ref_block_prefix,
                                              expiration=expiration,
@@ -510,19 +510,19 @@ class Testcases(unittest.TestCase):
     def compareConstructedTX(self):
         #    def test_online(self):
         #        self.maxDiff = None
-        op = operations.Account_update(** {
+        op = operations.Account_update(**{
             "fee": {"amount": 1467634,
                     "asset_id": "1.3.0"
                     },
             "account": "1.2.15",
             "owner": {"weight_threshold": 1,
-                      "account_auths": [],
+                      "account_auths": [["1.2.96086", 1]],
                       'key_auths': [['BTS6pbVDAjRFiw6fkiKYCrkz7PFeL7XNAfefrsREwg8MKpJ9VYV9x',
                                     1]],
                       "address_auths": []
                       },
             "active": {"weight_threshold": 1,
-                       "account_auths": [],
+                      "account_auths": [["1.2.96086", 1]],
                        'key_auths': [['BTS8CemMDjdUWSV5wKotEimhK6c4dY7p2PdzC2qM1HpAP8aLtZfE7',
                                      1]],
                        "address_auths": []
