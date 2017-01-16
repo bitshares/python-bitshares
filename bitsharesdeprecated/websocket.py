@@ -14,7 +14,7 @@ except:
     from autobahn.websocket.util import parse_url as parseWsUrl
 
 from .websocketprotocol import BitSharesWebsocketProtocol
-from bitsharesapi.noderpc import BitSharesNodeRPC
+from bitsharesapi.bitsharesnoderpc import BitSharesNodeRPC
 
 import logging
 log = logging.getLogger(__name__)

@@ -1,4 +1,4 @@
 __all__ = [
-    "api",
-    "noderpc",
+    "bitsharesnoderpc",
+    "exceptions"
 ]

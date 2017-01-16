@@ -1,4 +1,4 @@
-from bitsharesapi.api import BitSharesAPI
+from grapheneapi.grapheneapi import GrapheneApi as BitSharesAPI
 from .websocket import BitSharesWebsocket
 from collections import OrderedDict
 

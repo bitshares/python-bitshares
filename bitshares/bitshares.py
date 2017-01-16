@@ -4,7 +4,7 @@ import random
 import re
 from datetime import datetime, timedelta
 
-from bitsharesapi.noderpc import BitSharesNodeRPC
+from bitsharesapi.bitsharesnoderpc import BitSharesNodeRPC
 from bitsharesbase.account import PrivateKey, PublicKey
 from bitsharesbase import transactions, operations
 from .asset import Asset
