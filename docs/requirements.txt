@@ -1,3 +1,4 @@
 autobahn>=0.14
 pycrypto==2.6.1
 graphenelib
+bitshares
