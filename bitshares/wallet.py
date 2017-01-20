@@ -13,7 +13,6 @@ import logging
 from .account import Account
 
 log = logging.getLogger(__name__)
-prefix = "BTS"
 
 
 class Wallet():
@@ -56,6 +55,7 @@ class Wallet():
               signatures!
         """
         Wallet.rpc = bts.BitShares.rpc
+        self.prefix = Wallet.rpc.chain_params["prefix"]
 
         # Compatibility after name change from wif->keys
         if "wif" in kwargs and "keys" not in kwargs:
@@ -90,7 +90,7 @@ class Wallet():
                 key = PrivateKey(wif)
             except:
                 raise InvalidWifError
-            self.keys[format(key.pubkey, prefix)] = str(key)
+            self.keys[format(key.pubkey, self.prefix)] = str(key)
 
     def unlock(self, pwd=None):
         """ Unlock the wallet database
@@ -206,7 +206,7 @@ class Wallet():
         if isinstance(wif, PrivateKey) or isinstance(wif, GPHPrivateKey):
             wif = str(wif)
         try:
-            pub = format(PrivateKey(wif).pubkey, prefix)
+            pub = format(PrivateKey(wif).pubkey, self.prefix)
         except:
             raise InvalidWifError("Invalid Private Key Format. Please use WIF!")
 
@@ -302,7 +302,7 @@ class Wallet():
     def getAccountFromPrivateKey(self, wif):
         """ Obtain account name from private key
         """
-        pub = format(PrivateKey(wif).pubkey, prefix)
+        pub = format(PrivateKey(wif).pubkey, self.prefix)
         return self.getAccountFromPublicKey(pub)
 
     def getAccountFromPublicKey(self, pub):
@@ -352,25 +352,13 @@ class Wallet():
     def getAccounts(self):
         """ Return all accounts installed in the wallet database
         """
-        return [self.getAccount(a) for a in self.getPublicKeys()]
-
-    def getAccountsWithPermissions(self):
-        """ Return a dictionary for all installed accounts with their
-            corresponding installed permissions
-        """
-        accounts = [self.getAccount(a) for a in self.getPublicKeys()]
-        r = {}
-        for account in accounts:
-            name = account["name"]
-            if not name:
-                continue
-            type = account["type"]
-            if name not in r:
-                r[name] = {"owner": False,
-                           "active": False,
-                           "memo": False}
-            r[name][type] = True
-        return r
+        pubkeys = self.getPublicKeys()
+        accounts = []
+        for pubkey in pubkeys:
+            # Filter those keys not for our network
+            if pubkey[:len(self.prefix)] == self.prefix:
+                accounts.append(self.getAccount(pubkey))
+        return accounts
 
     def getPublicKeys(self):
         """ Return all installed public keys

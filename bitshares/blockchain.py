@@ -35,6 +35,12 @@ class Blockchain(object):
     def chainParameters(self):
         return self.config()["parameters"]
 
+    def get_network(self):
+        return self.bitshares.rpc.get_network()
+
+    def get_chain_properties(self):
+        return self.bitshares.rpc.get_chain_properties()
+
     def config(self):
         """ Returns object 2.0.0
         """
