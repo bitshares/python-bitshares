@@ -16,6 +16,30 @@ log = logging.getLogger(__name__)
 
 
 class Wallet():
+    """ The wallet is meant to maintain access to private keys for
+        your accounts. It either uses manually provided private keys
+        or uses a SQLite database managed by storage.py.
+
+        :param SteemNodeRPC rpc: RPC connection to a Steem node
+        :param array,dict,string keys: Predefine the wif keys to shortcut the wallet database
+
+        Three wallet operation modes are possible:
+
+        * **Wallet Database**: Here, steemlibs loads the keys from the
+          locally stored wallet SQLite database (see ``storage.py``).
+          To use this mode, simply call ``Steem()`` without the
+          ``keys`` parameter
+        * **Providing Keys**: Here, you can provide the keys for
+          your accounts manually. All you need to do is add the wif
+          keys for the accounts you want to use as a simple array
+          using the ``keys`` parameter to ``Steem()``.
+        * **Force keys**: This more is for advanced users and
+          requires that you know what you are doing. Here, the
+          ``keys`` parameter is a dictionary that overwrite the
+          ``active``, ``owner``, ``posting`` or ``memo`` keys for
+          any account. This mode is only used for *foreign*
+          signatures!
+    """
     keys = []
     rpc = None
     masterpassword = None
@@ -30,30 +54,6 @@ class Wallet():
     keyMap = {}  # type:wif pairs to force certain keys
 
     def __init__(self, *args, **kwargs):
-        """ The wallet is meant to maintain access to private keys for
-            your accounts. It either uses manually provided private keys
-            or uses a SQLite database managed by storage.py.
-
-            :param BitSharesNodeRPC rpc: RPC connection to a BitShares node
-            :param array,dict,string keys: Predefine the wif keys to shortcut the wallet database
-
-            Three wallet operation modes are possible:
-
-            * **Wallet Database**: Here, bitshareslibs loads the keys from the
-              locally stored wallet SQLite database (see ``storage.py``).
-              To use this mode, simply call ``BitShares()`` without the
-              ``keys`` parameter
-            * **Providing Keys**: Here, you can provide the keys for
-              your accounts manually. All you need to do is add the wif
-              keys for the accounts you want to use as a simple array
-              using the ``keys`` parameter to ``BitShares()``.
-            * **Force keys**: This more is for advanced users and
-              requires that you know what you are doing. Here, the
-              ``keys`` parameter is a dictionary that overwrite the
-              ``active``, ``owner``, ``memo`` keys for
-              any account. This mode is only used for *foreign*
-              signatures!
-        """
         Wallet.rpc = bts.BitShares.rpc
         self.prefix = Wallet.rpc.chain_params["prefix"]
 
@@ -80,7 +80,7 @@ class Wallet():
         """
         log.debug("Force setting of private keys. Not using the wallet database!")
         if isinstance(loadkeys, dict):
-            self.keyMap = loadkeys
+            Wallet.keyMap = loadkeys
             loadkeys = list(loadkeys.values())
         elif not isinstance(loadkeys, list):
             loadkeys = [loadkeys]
@@ -210,11 +210,10 @@ class Wallet():
         except:
             raise InvalidWifError("Invalid Private Key Format. Please use WIF!")
 
-        # Test if wallet exists
-        if not self.created():
-            self.newWallet()
-
         if self.keyStorage:
+            # Test if wallet exists
+            if not self.created():
+                self.newWallet()
             self.keyStorage.add(self.encrypt_wif(wif), pub)
 
     def getPrivateKeyForPublicKey(self, pub):
@@ -240,11 +239,10 @@ class Wallet():
     def removePrivateKeyFromPublicKey(self, pub):
         """ Remove a key from the wallet database
         """
-        # Test if wallet exists
-        if not self.created():
-            self.newWallet()
-
         if self.keyStorage:
+            # Test if wallet exists
+            if not self.created():
+                self.newWallet()
             self.keyStorage.delete(pub)
 
     def removeAccount(self, account):
@@ -258,8 +256,8 @@ class Wallet():
     def getOwnerKeyForAccount(self, name):
         """ Obtain owner Private Key for an account from the wallet database
         """
-        if "owner" in self.keyMap:
-            return self.keyMap.get("owner")
+        if "owner" in Wallet.keyMap:
+            return Wallet.keyMap.get("owner")
         else:
             account = self.rpc.get_account(name)
             if not account:
@@ -273,8 +271,8 @@ class Wallet():
     def getMemoKeyForAccount(self, name):
         """ Obtain owner Memo Key for an account from the wallet database
         """
-        if "memo" in self.keyMap:
-            return self.keyMap.get("memo")
+        if "memo" in Wallet.keyMap:
+            return Wallet.keyMap.get("memo")
         else:
             account = self.rpc.get_account(name)
             if not account:
@@ -287,8 +285,8 @@ class Wallet():
     def getActiveKeyForAccount(self, name):
         """ Obtain owner Active Key for an account from the wallet database
         """
-        if "active" in self.keyMap:
-            return self.keyMap.get("active")
+        if "active" in Wallet.keyMap:
+            return Wallet.keyMap.get("active")
         else:
             account = self.rpc.get_account(name)
             if not account:
@@ -341,12 +339,12 @@ class Wallet():
     def getKeyType(self, account, pub):
         """ Get key type
         """
+        if pub == account["options"]["memo_key"]:
+            return "memo"
         for authority in ["owner", "active"]:
             for key in account[authority]["key_auths"]:
                 if pub == key[0]:
                     return authority
-        if pub == account["options"]["memo_key"]:
-            return "memo"
         return None
 
     def getAccounts(self):

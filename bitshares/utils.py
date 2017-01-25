@@ -1,17 +1,22 @@
 import time
 from datetime import datetime
 
+timeFormat = '%Y-%m-%dT%H:%M:%S'
+
 
 def formatTime(t):
     """ Properly Format Time for permlinks
     """
-    return datetime.utcfromtimestamp(t).strftime("%Y%m%dt%H%M%S%Z")
+    if isinstance(t, float):
+        return datetime.utcfromtimestamp(t).strftime(timeFormat)
+    if isinstance(t, datetime):
+        return t.strftime(timeFormat)
 
 
 def formatTimeString(t):
     """ Properly Format Time for permlinks
     """
-    return datetime.strptime(t, '%Y-%m-%dT%H:%M:%S')
+    return datetime.strptime(t, timeFormat)
 
 
 def formatTimeFromNow(secs=0):
@@ -23,14 +28,10 @@ def formatTimeFromNow(secs=0):
         :rtype: str
 
     """
-    return datetime.utcfromtimestamp(time.time() + int(secs)).strftime('%Y-%m-%dT%H:%M:%S')
+    return datetime.utcfromtimestamp(time.time() + int(secs)).strftime(timeFormat)
 
 
 def parse_time(block_time):
     """Take a string representation of time from the blockchain, and parse it into datetime object.
     """
-    return datetime.strptime(block_time, '%Y-%m-%dT%H:%M:%S')
-
-
-def time_diff(time1, time2):
-    return parse_time(time1) - parse_time(time2)
+    return datetime.strptime(block_time, timeFormat)

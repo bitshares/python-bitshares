@@ -32,3 +32,15 @@ class InvalidWifError(Exception):
 
 class BlockDoesNotExistsException(Exception):
     pass
+
+
+class NoWalletException(Exception):
+    pass
+
+
+class InvalidWifKey(Exception):
+    pass
+
+
+class WifNotActive(Exception):
+    pass

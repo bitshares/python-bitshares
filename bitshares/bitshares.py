@@ -53,6 +53,7 @@ class BitShares(object):
     """
 
     wallet = None
+    config = None
     rpc = None
     debug = None
     nobroadcast = None
@@ -125,6 +126,8 @@ class BitShares(object):
                 rpcpassword = config["rpcpassword"]
             BitShares.rpc = BitSharesNodeRPC(node, rpcuser, rpcpassword, **kwargs)
 
+        if BitShares.config is None:
+            BitShares.config = config
         if BitShares.debug is None:
             BitShares.debug = debug
         if BitShares.nobroadcast is None:

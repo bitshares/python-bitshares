@@ -48,14 +48,13 @@ class Blockchain(object):
 
     def get_current_block_num(self):
         """ This call returns the current block
-
         """
         return self.info().get(self.mode)
 
     def get_current_block(self):
         """ This call returns the current block
         """
-        return Block(self.get_current_block(self.mode))
+        return Block(self.get_current_block_num())
 
     def block_time(self, block_num):
         """ Returns a datetime of the block with the given block
@@ -158,3 +157,18 @@ class Blockchain(object):
         for op in self.ops(**kwargs):
             if not opNames or op["op"][0] in opNames:
                 yield op
+    def block_time(self, block_num):
+        """ Returns a datetime of the block with the given block
+            number.
+
+            :param int block_num: Block number
+        """
+        return Block(block_num).time()
+
+    def block_timestamp(self, block_num):
+        """ Returns the timestamp of the block with the given block
+            number.
+
+            :param int block_num: Block number
+        """
+        return int(Block(block_num).time().timestamp())
