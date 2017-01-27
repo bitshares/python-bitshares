@@ -68,7 +68,6 @@ class Price(dict):
                     price = float(obj)
                     base = Asset(base)
                     quote = Asset(quote)
-
             else:
                 raise ValueError("Invalid way of calling Price()")
 
@@ -98,11 +97,23 @@ class Price(dict):
             return float('Inf')
 
     def __repr__(self):
-        return "%f %s/%s" % (
+        t = ""
+        if "time" in self and self["time"]:
+            t += "(%s) " % self["time"]
+        if "type" in self and self["type"]:
+            t += "%s " % str(self["type"])
+        if "quote_amount" in self and self["quote_amount"]:
+            t += "%s " % str(self["quote_amount"])
+        if "base_amount" in self and self["base_amount"]:
+            t += "%s " % str(self["base_amount"])
+
+        return t + "@%f %s/%s " % (
             self["price"],
-            self["base"].symbol,
-            self["quote"].symbol
+            self["base"]["symbol"],
+            self["quote"]["symbol"]
         )
+
+    __str__ = __repr__
 
     def __float__(self):
         return self["price"]
@@ -143,27 +154,59 @@ class Price(dict):
     __truediv__ = __div__
     __str__ = __repr__
 
+    @property
+    def market(self):
+        from .market import Market
+        return Market(
+            base=self["base"],
+            quote=self["quote"]
+        )
+
 
 class Order(Price):
 
     def __init__(self, *args, **kwargs):
-        if isinstance(args[0], dict) and "sell_price" in args[0]:
+        if (
+            isinstance(args[0], dict) and
+            "sell_price" in args[0]
+        ):
             super(Order, self).__init__(args[0]["sell_price"])
             for k, v in args[0].items():
                 self[k] = v
+            self["price"] = Price(args[0]["sell_price"])
+            self["quote_amount"] = Amount(args[0]["sell_price"]["quote"])
+            self["base_amount"] = Amount(args[0]["sell_price"]["base"])
+            self["quote"] = self["quote_amount"]["asset"]
+            self["base"] = self["base_amount"]["asset"]
+
+        elif (
+            isinstance(args[0], dict) and
+            "min_to_receive" in args[0] and
+            "amount_to_sell" in args[0]
+        ):
+            super(Order, self).__init__(
+                Amount(args[0]["min_to_receive"]),
+                Amount(args[0]["amount_to_sell"]),
+            )
+            for k, v in args[0].items():
+                self[k] = v
+            self["price"] = Price(
+                Amount(args[0]["min_to_receive"]),
+                Amount(args[0]["amount_to_sell"])
+            )
+            self["quote_amount"] = Amount(args[0]["min_to_receive"])
+            self["base_amount"] = Amount(args[0]["amount_to_sell"])
+            self["quote"] = self["quote_amount"]["asset"]
+            self["base"] = self["base_amount"]["asset"]
+
+        elif isinstance(args[0], Amount) and isinstance(args[1], Amount):
+            self["price"] = Price(*args, **kwargs)
+            self["quote_amount"] = args[0]
+            self["base_amount"] = args[1]
+            self["quote"] = self["quote_amount"]["asset"]
+            self["base"] = self["base_amount"]["asset"]
         else:
-            super(Order, self).__init__(*args, **kwargs)
-
-    def __repr__(self):
-        return "%f %s/%s (%s|%s)" % (
-            self["price"],
-            self["base"].symbol,
-            self["quote"].symbol,
-            str(self["base"]),
-            str(self["quote"])
-        )
-
-    __str__ = __repr__
+            raise ValueError("Unkown format to load Order")
 
 
 class FilledOrder(Price):
@@ -183,7 +226,14 @@ class FilledOrder(Price):
                 order.get("value"),
                 kwargs.get("base")
             )
+            self["quote"] = self["quote_amount"]["asset"]
+            self["base"] = self["base_amount"]["asset"]
             self["time"] = formatTimeString(order["date"])
+            self["price"] = Price(
+                order.get("price"),
+                base=Asset(kwargs.get("base")),
+                quote=Asset(kwargs.get("quote")),
+            )
         elif isinstance(order, dict) and "op" in order:
             quote = kwargs.get("quote")
             base = kwargs.get("base")
@@ -202,29 +252,28 @@ class FilledOrder(Price):
                 self["quote_amount"] = Amount(order["op"]["pays"])
                 self["base_amount"] = Amount(order["op"]["receives"])
                 self["type"] = "sell"
+
+            self["quote"] = self["quote_amount"]["asset"]
+            self["base"] = self["base_amount"]["asset"]
             self["time"] = formatTimeString(self["time"])
-        else:
-            super(FilledOrder, self).__init__(order, **kwargs)
-
-    def __repr__(self):
-        if "type" in self:
-            return "(%s) %s %s for %s @%f %s/%s " % (
-                self["time"],
-                self["type"],
-                str(self["quote_amount"]),
-                str(self["base_amount"]),
-                self["price"],
-                self["base"].symbol,
-                self["quote"].symbol
+            self["price"] = Price(
+                order,
+                base=Asset(base),
+                quote=Asset(quote),
+            )
+        elif (
+            isinstance(order, dict) and
+            "receives" in order and
+            "pays" in order
+        ):
+            self["quote_amount"] = Amount(order["pays"])
+            self["base_amount"] = Amount(order["receives"])
+            self["quote"] = self["quote_amount"]["asset"]
+            self["base"] = self["base_amount"]["asset"]
+            self["time"] = None
+            self["price"] = Price(
+                self["base_amount"],
+                self["quote_amount"]
             )
         else:
-            return "(%s) %s for %s %f @%s/%s" % (
-                self["time"],
-                str(self["quote_amount"]),
-                str(self["base_amount"]),
-                self["price"],
-                self["base"].symbol,
-                self["quote"].symbol
-            )
-
-    __str__ = __repr__
+            raise

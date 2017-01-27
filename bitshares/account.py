@@ -12,7 +12,7 @@ class Account(dict):
         bitshares_instance=None
     ):
         self.cached = False
-        self.name = account
+        self.name = account.strip().lower()
         self.full = full
 
         if not bitshares_instance:
@@ -136,37 +136,55 @@ class Account(dict):
             i += batch_size
 
     def rawhistory(
-        self, first=99999999999,
-        limit=-1, only_ops=[], exclude_ops=[]
+        self, first=None,
+        last=1, limit=100,
+        only_ops=[], exclude_ops=[]
     ):
         """ Returns a generator for individual account transactions. The
             latest operation will be first. This call can be used in a
             ``for`` loop.
 
-            :param str account: account name to get history for
-            :param int first: sequence number of the first transaction to return
-            :param int limit: limit number of transactions to return
-            :param array only_ops: Limit generator by these operations
+            :param int first: sequence number of the first transaction to return (*optional*)
+            :param int limit: limit number of transactions to return (*optional*)
+            :param array only_ops: Limit generator by these operations (*optional*)
+            :param array exclude_ops: Exclude thse operations from generator (*optional*)
         """
+        _limit=100
         cnt = 0
-        _limit = 100
-        if _limit > first:
-            _limit = first
-        while first > 0:
+
+        mostrecent = self.bitshares.rpc.get_account_history(
+            self["id"],
+            "1.11.{}".format(0),
+            1,
+            "1.11.{}".format(9999999999999),
+            api="history"
+        )
+        if not mostrecent:
+            raise StopIteration
+
+        if not first:
+            first = int(mostrecent[0].get("id").split(".")[2]) + 1
+
+        while True:
             # RPC call
-            txs = self.bitshares.rpc.get_account_history(self.name, first, _limit)
-            for i in txs[::-1]:
+            txs = self.bitshares.rpc.get_account_history(
+                self["id"],
+                "1.11.{}".format(last),
+                _limit,
+                "1.11.{}".format(first - 1),
+                api="history"
+            )
+            for i in txs:
                 if exclude_ops and i[1]["op"][0] in exclude_ops:
                     continue
                 if not only_ops or i[1]["op"][0] in only_ops:
                     cnt += 1
                     yield i
                     if limit >= 0 and cnt >= limit:
-                        break
-            if limit >= 0 and cnt >= limit:
+                        raise StopIteration
+
+            if not txs:
                 break
             if len(txs) < _limit:
                 break
-            first = txs[0][0] - 1  # new first
-            if _limit > first:
-                _limit = first
+            first = int(txs[-1]["id"].split(".")[2])

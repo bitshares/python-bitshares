@@ -121,7 +121,7 @@ class TransactionBuilder(dict):
         # how to sign later. This is an array, because we
         # may later want to allow multiple operations per tx
         self.update({"required_authorities": {
-            account: authority
+            accountObj["name"]: authority
         }})
         for account_auth in authority["account_auths"]:
             account_auth_account = Account(account_auth[0])
@@ -143,7 +143,7 @@ class TransactionBuilder(dict):
     def json(self):
         return dict(self)
 
-    def appendMissingSignatures(self, wifs):
+    def appendMissingSignatures(self, wifs=[]):
         missing_signatures = self.get("missing_signatures", [])
         for pub in missing_signatures:
             wif = self.bitshares.wallet.getPrivateKeyForPublicKey(pub)

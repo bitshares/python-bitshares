@@ -10,7 +10,14 @@ from bitsharesbase.objects import Operation
 
 
 class Market(dict):
-    def __init__(self, *args, bitshares_instance=None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        base=None,
+        quote=None,
+        bitshares_instance=None,
+        **kwargs
+    ):
         if not bitshares_instance:
             bitshares_instance = bts.BitShares()
         self.bitshares = bitshares_instance
@@ -20,6 +27,8 @@ class Market(dict):
             quote_symbol, base_symbol = re.split("[/-:]", args[0])
             quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
             base = Asset(base_symbol, bitshares_instance=self.bitshares)
+            super(Market, self).__init__({"base": base, "quote": quote})
+        if len(args) == 0 and base and quote:
             super(Market, self).__init__({"base": base, "quote": quote})
 
     def ticker(self):
