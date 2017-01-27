@@ -1,6 +1,7 @@
 from . import bitshares as bts
 from .amount import Amount
 from .asset import Asset
+from .utils import formatTimeString
 
 
 class Price(dict):
@@ -168,27 +169,62 @@ class Order(Price):
 class FilledOrder(Price):
 
     def __init__(self, order, **kwargs):
-        super(FilledOrder, self).__init__(
-            order.get("price"),
-            base=Asset(kwargs.get("base")),
-            quote=Asset(kwargs.get("quote")),
-        )
-        self["quote_amount"] = Amount(
-            order.get("amount"),
-            kwargs.get("quote")
-        )
-        self["base_amount"] = Amount(
-            order.get("value"),
-            kwargs.get("base")
-        )
+        if isinstance(order, dict) and "price" in order:
+            super(FilledOrder, self).__init__(
+                order.get("price"),
+                base=Asset(kwargs.get("base")),
+                quote=Asset(kwargs.get("quote")),
+            )
+            self["quote_amount"] = Amount(
+                order.get("amount"),
+                kwargs.get("quote")
+            )
+            self["base_amount"] = Amount(
+                order.get("value"),
+                kwargs.get("base")
+            )
+            self["time"] = formatTimeString(order["date"])
+        elif isinstance(order, dict) and "op" in order:
+            quote = kwargs.get("quote")
+            base = kwargs.get("base")
+            super(FilledOrder, self).__init__(
+                order,
+                base=Asset(base),
+                quote=Asset(quote),
+            )
+            for k, v in order.items():
+                self[k] = v
+            if base["id"] == order["op"]["receives"]["asset_id"]:
+                self["quote_amount"] = Amount(order["op"]["receives"])
+                self["base_amount"] = Amount(order["op"]["pays"])
+                self["type"] = "buy"
+            else:
+                self["quote_amount"] = Amount(order["op"]["pays"])
+                self["base_amount"] = Amount(order["op"]["receives"])
+                self["type"] = "sell"
+            self["time"] = formatTimeString(self["time"])
+        else:
+            super(FilledOrder, self).__init__(order, **kwargs)
 
     def __repr__(self):
-        return "%f %s/%s (%s|%s)" % (
-            self["price"],
-            self["base"].symbol,
-            self["quote"].symbol,
-            str(self["quote_amount"]),
-            str(self["base_amount"]),
-        )
+        if "type" in self:
+            return "(%s) %s %s for %s @%f %s/%s " % (
+                self["time"],
+                self["type"],
+                str(self["quote_amount"]),
+                str(self["base_amount"]),
+                self["price"],
+                self["base"].symbol,
+                self["quote"].symbol
+            )
+        else:
+            return "(%s) %s for %s %f @%s/%s" % (
+                self["time"],
+                str(self["quote_amount"]),
+                str(self["base_amount"]),
+                self["price"],
+                self["base"].symbol,
+                self["quote"].symbol
+            )
 
     __str__ = __repr__

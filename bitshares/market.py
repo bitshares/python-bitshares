@@ -22,7 +22,7 @@ class Market(dict):
             base = Asset(base_symbol, bitshares_instance=self.bitshares)
             super(Market, self).__init__({"base": base, "quote": quote})
 
-    def returnTicker(self):
+    def ticker(self):
         """ Returns the ticker for all markets.
 
             Output Parameters:
@@ -36,18 +36,6 @@ class Market(dict):
             * ``settlement_price``: Settlement Price for borrow/settlement
             * ``core_exchange_rate``: Core exchange rate for payment of fee in non-BTS asset
             * ``price24h``: the price 24h ago
-
-            .. note::
-
-                All prices returned by ``returnTicker`` are in the **reveresed**
-                orientation as the market. I.e. in the BTC/BTS market, prices are
-                BTS per BTC. That way you can multiply prices with `1.05` to
-                get a +5%.
-
-                The prices in a `quote`/`base` market is denoted in `base` per
-                `quote`:
-
-                    market: USD_BTS - price 300 BTS per USD
 
             Sample Output:
 
@@ -107,7 +95,7 @@ class Market(dict):
 
         return data
 
-    def return24Volume(self):
+    def volume24h(self):
         """ Returns the 24-hour volume for all markets, plus totals for primary currencies.
 
             Sample output:
@@ -129,7 +117,7 @@ class Market(dict):
             self["quote"]["symbol"]: Amount(volume["quote_volume"], self["quote"])
         }
 
-    def returnOrderBook(self, limit=25):
+    def orderbook(self, limit=25):
         """ Returns the order book for a given market. You may also
             specify "all" to get the orderbooks of all markets.
 
@@ -173,35 +161,7 @@ class Market(dict):
         data = {"asks": asks, "bids": bids}
         return data
 
-    def returnOpenOrders(self, account=None):
-        """ Returns open Orders
-        """
-        if not account:
-            if "default_account" in self.bitshares.config:
-                account = self.bitshares.config["default_account"]
-        if not account:
-            raise ValueError("You need to provide an account")
-        account = Account(account, full=True, bitshares_instance=self.bitshares)
-
-        r = []
-        orders = account["limit_orders"]
-        for o in orders:
-            if ((
-                o["sell_price"]["base"]["asset_id"] == self["base"]["id"] and
-                o["sell_price"]["quote"]["asset_id"] == self["quote"]["id"]
-            ) or (
-                o["sell_price"]["base"]["asset_id"] == self["quote"]["id"] and
-                o["sell_price"]["quote"]["asset_id"] == self["base"]["id"]
-            )):
-                r.append(Order(o))
-        return r
-
-    def returnOpenOrderIds(self, account=None):
-        """ Returns only the ids of open Orders
-        """
-        return [x["id"] for x in self.returnOpenOrders(account)]
-
-    def returnTrades(self, limit=25, start=None, stop=None):
+    def trades(self, limit=25, start=None, stop=None):
         """ Returns your trade history for a given market.
 
             :param int limit: Limit the amount of orders (default: 25)
@@ -226,10 +186,10 @@ class Market(dict):
                 x,
                 base=self["base"],
                 quote=self["quote"]
-            ) , orders
+            ), orders
         ))
 
-    def returnAccountTrades(self, account=None, limit=25):
+    def accounttrades(self, account=None, limit=25):
         """ Returns your trade history for a given market, specified by
             the "currencyPair" parameter. You may also specify "all" to
             get the orderbooks of all markets.
@@ -244,8 +204,11 @@ class Market(dict):
                 - `amount`: amount of quote
                 - `total`: amount of base at asked price (amount/price)
 
-        """
-        raise NotImplementedError("This call is not yet fully implemented")
+            .. note:: This call goes through the trade history and
+                      searches for your account, if there are no orders
+                      within ``limit`` trades, this call will return an
+                      empty array.
+
         """
         if not account:
             if "default_account" in self.bitshares.config:
@@ -253,7 +216,7 @@ class Market(dict):
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self.bitshares)
-        
+
         filled = self.bitshares.rpc.get_fill_order_history(
             self["base"]["id"],
             self["quote"]["id"],
@@ -262,20 +225,37 @@ class Market(dict):
         )
         trades = []
         for f in filled:
-            data = {}
             if f["op"]["account_id"] == account["id"]:
-                data["date"] = formatTimeString(f["time"])
-                data["price"] = Price(f, base=self["base"], quote=self["quote"])
-                if f["op"]["pays"]["asset_id"] == m["base"]:
-                    data["type"] = "buy"
-                    data["amount"] = int(f["op"]["receives"]["amount"]) / 10 ** quote["precision"]
-                else:
-                    data["type"] = "sell"
-                    data["amount"] = int(f["op"]["pays"]["amount"]) / 10 ** quote["precision"]
-                data["total"] = data["amount"] * data["rate"]
-                trades.append(data)
+                trades.append(
+                    FilledOrder(
+                        f,
+                        base=self["base"],
+                        quote=self["quote"]
+                    ))
         return trades
+
+    def accountopenorders(self, account=None):
+        """ Returns open Orders
         """
+        if not account:
+            if "default_account" in self.bitshares.config:
+                account = self.bitshares.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, full=True, bitshares_instance=self.bitshares)
+
+        r = []
+        orders = account["limit_orders"]
+        for o in orders:
+            if ((
+                o["sell_price"]["base"]["asset_id"] == self["base"]["id"] and
+                o["sell_price"]["quote"]["asset_id"] == self["quote"]["id"]
+            ) or (
+                o["sell_price"]["base"]["asset_id"] == self["quote"]["id"] and
+                o["sell_price"]["quote"]["asset_id"] == self["base"]["id"]
+            )):
+                r.append(Order(o))
+        return r
 
     def buy(self,
             price,
@@ -284,7 +264,7 @@ class Market(dict):
             killfill=False,
             account=None
             ):
-        """ Places a buy order in a given market 
+        """ Places a buy order in a given market
 
             :param float price: price denoted in ``base``/``quote``
             :param number amount: Amount of ``quote`` to buy
@@ -311,7 +291,7 @@ class Market(dict):
             raise ValueError("You need to provide an account")
         if isinstance(price, Price):
             assert (
-                price["quote"]["symbol"] == self["quote"]["symbol"] and 
+                price["quote"]["symbol"] == self["quote"]["symbol"] and
                 price["base"]["symbol"] == self["base"]["symbol"]
             )
         if isinstance(amount, Amount):
@@ -334,14 +314,15 @@ class Market(dict):
         })
         return self.bitshares.finalizeOp(order, account["name"], "active")
 
-    def sell(self,
-            price,
-            amount,
-            expiration=7 * 24 * 60 * 60,
-            killfill=False,
-            account=None
-            ):
-        """ Places a sell order in a given market 
+    def sell(
+        self,
+        price,
+        amount,
+        expiration=7 * 24 * 60 * 60,
+        killfill=False,
+        account=None
+    ):
+        """ Places a sell order in a given market
 
             :param float price: price denoted in ``base``/``quote``
             :param number amount: Amount of ``quote`` to sell
@@ -369,7 +350,7 @@ class Market(dict):
         account = Account(account, bitshares_instance=self.bitshares)
         if isinstance(price, Price):
             assert (
-                price["quote"]["symbol"] == self["quote"]["symbol"] and 
+                price["quote"]["symbol"] == self["quote"]["symbol"] and
                 price["base"]["symbol"] == self["base"]["symbol"]
             )
         if isinstance(amount, Amount):

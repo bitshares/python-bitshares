@@ -76,6 +76,16 @@ class Account(dict):
         dex = Dex(bitshares_instance=self.bitshares)
         return dex.list_debt_positions(self["name"])
 
+    @property
+    def openorders(self):
+        """ Returns open Orders
+        """
+        from .price import Order
+        if not self.full:
+            self.full = True
+            self.refresh()
+        return [Order(o) for o in self["limit_orders"]]
+
     def history(self, filter_by=None, start=0):
         """ Take all elements from start to last from history, oldest first.
         """
