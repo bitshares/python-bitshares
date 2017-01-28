@@ -172,3 +172,22 @@ class Blockchain(object):
             :param int block_num: Block number
         """
         return int(Block(block_num).time().timestamp())
+
+    def awaitTxConfirmation(self, transaction, limit=50):
+        """ Returns the transction as seen by the blockchain after being included into a block
+
+            .. note:: If you want instant confirmation, you need to instanciate
+                      class:`bitshares.blockchain.Blockchain` with
+                      ``mode="head"``, otherwise, the call will wait until
+                      connfirmed in an irreversible block.
+        """
+        blocknum = self.get_current_block_num() - 2
+        counter = 10
+        for block in self.blocks():
+            print(block.get("block_num"))
+            counter += 1
+            for tx in block["transactions"]:
+                if sorted(tx["signatures"]) == sorted(transaction["signatures"]):
+                    return tx
+            if counter > limit:
+                raise Exception("The operation has not been added after 10 blocks!")
