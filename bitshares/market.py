@@ -5,6 +5,7 @@ from .asset import Asset
 from .amount import Amount
 from .price import Price, Order, FilledOrder
 from .account import Account
+from .blockchain import Blockchain
 from bitsharesbase import operations
 from bitsharesbase.objects import Operation
 
@@ -266,14 +267,15 @@ class Market(dict):
                 r.append(Order(o))
         return r
 
-    def buy(self,
-            price,
-            amount,
-            expiration=7 * 24 * 60 * 60,
-            killfill=False,
-            account=None,
-            returnOrderId=False
-            ):
+    def buy(
+        self,
+        price,
+        amount,
+        expiration=7 * 24 * 60 * 60,
+        killfill=False,
+        account=None,
+        returnOrderId=False
+    ):
         """ Places a buy order in a given market
 
             :param float price: price denoted in ``base``/``quote``
@@ -281,6 +283,8 @@ class Market(dict):
             :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
             :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
             :param string account: Account name that executes that order
+            :param string returnOrderId: If set to "head" or "irreversible" the call will wait for the tx to appear in
+                                        the head/irreversible block and add the key "orderid" to the tx output
 
             Prices/Rates are denoted in 'base', i.e. the USD_BTS market
             is priced in BTS per USD.
@@ -293,12 +297,25 @@ class Market(dict):
                 All prices returned are in the **reversed** orientation as the
                 market. I.e. in the BTC/BTS market, prices are BTS per BTC.
                 That way you can multiply prices with `1.05` to get a +5%.
+
+            .. warning::
+
+                Since buy orders are placed as
+                limit-sell orders for the base asset,
+                you may end up obtaining more of the
+                buy asset than you placed the order
+                for. Example:
+
+                    * You place and order to buy 10 USD for 100 BTS/USD
+                    * This means that you actually place a sell order for 1000 BTS in order to obtain **at least** 10 USD
+                    * If an order on the market exists that sells USD for cheaper, you will end up with more than 10 USD
         """
         if not account:
             if "default_account" in self.bitshares.config:
                 account = self.bitshares.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self.bitshares)
         if isinstance(price, Price):
             assert (
                 price["quote"]["symbol"] == self["quote"]["symbol"] and
@@ -307,7 +324,6 @@ class Market(dict):
         amount = Amount(amount)
         assert(amount["asset"]["symbol"] == self["quote"]["symbol"])
 
-        account = Account(account, bitshares_instance=self.bitshares)
         order = operations.Limit_order_create(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "seller": account["id"],
@@ -322,7 +338,12 @@ class Market(dict):
             "expiration": formatTimeFromNow(expiration),
             "fill_or_kill": killfill,
         })
-        return self.bitshares.finalizeOp(order, account["name"], "active")
+        tx = self.bitshares.finalizeOp(order, account["name"], "active")
+        if returnOrderId:
+            chain = Blockchain(mode=("head" if returnOrderId == "head" else "irreversible"))
+            tx = chain.awaitTxConfirmation(tx)
+            tx["orderid"] = tx["operation_results"][0][1]
+        return tx
 
     def sell(
         self,
@@ -330,7 +351,8 @@ class Market(dict):
         amount,
         expiration=7 * 24 * 60 * 60,
         killfill=False,
-        account=None
+        account=None,
+        returnOrderId=False
     ):
         """ Places a sell order in a given market
 
@@ -339,6 +361,8 @@ class Market(dict):
             :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
             :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
             :param string account: Account name that executes that order
+            :param string returnOrderId: If set to "head" or "irreversible" the call will wait for the tx to appear in
+                                        the head/irreversible block and add the key "orderid" to the tx output
 
             Prices/Rates are denoted in 'base', i.e. the USD_BTS market
             is priced in BTS per USD.
@@ -363,8 +387,9 @@ class Market(dict):
                 price["quote"]["symbol"] == self["quote"]["symbol"] and
                 price["base"]["symbol"] == self["base"]["symbol"]
             )
-        if isinstance(amount, Amount):
-            assert(amount["asset"]["symbol"] == self["quote"]["symbol"])
+        amount = Amount(amount)
+        assert(amount["asset"]["symbol"] == self["quote"]["symbol"])
+
         order = operations.Limit_order_create(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "seller": account["id"],
@@ -379,4 +404,9 @@ class Market(dict):
             "expiration": formatTimeFromNow(expiration),
             "fill_or_kill": killfill,
         })
-        return self.bitshares.finalizeOp(order, account["name"], "active")
+        tx = self.bitshares.finalizeOp(order, account["name"], "active")
+        if returnOrderId:
+            chain = Blockchain(mode=("head" if returnOrderId == "head" else "irreversible"))
+            tx = chain.awaitTxConfirmation(tx)
+            tx["orderid"] = tx["operation_results"][0][1]
+        return tx

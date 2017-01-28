@@ -184,7 +184,6 @@ class Blockchain(object):
         blocknum = self.get_current_block_num() - 2
         counter = 10
         for block in self.blocks():
-            print(block.get("block_num"))
             counter += 1
             for tx in block["transactions"]:
                 if sorted(tx["signatures"]) == sorted(transaction["signatures"]):
