@@ -3,6 +3,9 @@ from .exceptions import AssetDoesNotExistsException
 
 
 class Asset(dict):
+
+    assets_cache = dict()
+
     def __init__(
         self,
         asset,
@@ -21,7 +24,10 @@ class Asset(dict):
             super(Asset, self).__init__(asset)
             self.cached = True
 
-        if not lazy and not self.cached:
+        if self.asset in Asset.assets_cache:
+            super(Asset, self).__init__(Asset.assets_cache[self.asset])
+            self.cached = True
+        elif not lazy and not self.cached:
             self.refresh()
 
     def refresh(self):
@@ -32,6 +38,9 @@ class Asset(dict):
         if self.is_bitasset:
             self["bitasset_data"] = self.bitshares.rpc.get_object(asset["bitasset_data_id"])
         self.cached = True
+
+        # store in cache
+        Asset.assets_cache[asset["symbol"]] = asset
 
     @property
     def is_bitasset(self):
