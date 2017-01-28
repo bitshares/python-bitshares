@@ -4,6 +4,9 @@ from .exceptions import AccountDoesNotExistsException
 
 
 class Account(dict):
+
+    accounts_cache = dict()
+
     def __init__(
         self,
         account,
@@ -24,8 +27,11 @@ class Account(dict):
             self.cached = True
         elif isinstance(account, str):
             self.name = account.strip().lower()
-            if not lazy:
+            if self.name in Account.accounts_cache:
+                super(Account, self).__init__(Account.accounts_cache[self.name])
+            elif not lazy and not self.cached:
                 self.refresh()
+            self.cached = True
         else:
             raise ValueError("Account() expects an account name, id or an instance of Account")
 
@@ -42,6 +48,9 @@ class Account(dict):
         else:
             super(Account, self).__init__(account)
         self.cached = True
+
+        # store in cache
+        Account.accounts_cache[account["name"]] = account
 
     def __getitem__(self, key):
         if not self.cached:
