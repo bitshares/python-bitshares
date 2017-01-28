@@ -271,7 +271,8 @@ class Market(dict):
             amount,
             expiration=7 * 24 * 60 * 60,
             killfill=False,
-            account=None
+            account=None,
+            returnOrderId=False
             ):
         """ Places a buy order in a given market
 
@@ -303,8 +304,8 @@ class Market(dict):
                 price["quote"]["symbol"] == self["quote"]["symbol"] and
                 price["base"]["symbol"] == self["base"]["symbol"]
             )
-        if isinstance(amount, Amount):
-            assert(amount["asset"]["symbol"] == self["quote"]["symbol"])
+        amount = Amount(amount)
+        assert(amount["asset"]["symbol"] == self["quote"]["symbol"])
 
         account = Account(account, bitshares_instance=self.bitshares)
         order = operations.Limit_order_create(**{
