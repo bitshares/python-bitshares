@@ -10,8 +10,8 @@ class Account(dict):
     def __init__(
         self,
         account,
-        full=False,
         lazy=False,
+        full=False,
         bitshares_instance=None
     ):
         self.cached = False
@@ -25,13 +25,15 @@ class Account(dict):
             super(Account, self).__init__(account)
             self.name = account["name"]
             self.cached = True
+            self._cache(account)
         elif isinstance(account, str):
             self.name = account.strip().lower()
             if self.name in Account.accounts_cache:
                 super(Account, self).__init__(Account.accounts_cache[self.name])
+                self.cached = True
             elif not lazy and not self.cached:
                 self.refresh()
-            self.cached = True
+                self.cached = True
         else:
             raise ValueError("Account() expects an account name, id or an instance of Account")
 
@@ -48,7 +50,9 @@ class Account(dict):
         else:
             super(Account, self).__init__(account)
         self.cached = True
+        self._cache(account)
 
+    def _cache(self, account):
         # store in cache
         Account.accounts_cache[account["name"]] = account
 
