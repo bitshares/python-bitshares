@@ -44,3 +44,7 @@ class InvalidWifKey(Exception):
 
 class WifNotActive(Exception):
     pass
+
+
+class WitnessDoesNotExistsException(Exception):
+    pass
