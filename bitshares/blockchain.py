@@ -1,6 +1,6 @@
 import time
 from .block import Block
-from . import bitshares as bts
+import bitshares as bts
 from .utils import parse_time
 
 
@@ -97,11 +97,8 @@ class Blockchain(object):
             for blocknum in range(start, head_block + 1):
                 # Get full block
                 block = self.bitshares.rpc.get_block(blocknum)
-                yield {
-                    **block,
-                    "block_num": blocknum
-                }
-
+                block.update({"block_num": blocknum})
+                yield block
             # Set new start
             start = head_block + 1
 

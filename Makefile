@@ -18,7 +18,7 @@ clean-pyc:
 	find . -name '*~' -exec rm -f {} +
 
 lint:
-	flake8 steemapi/ steembase/
+	flake8 bitsharesapi/ bitsharesbase/ bitshares/
 
 test:
 	python3 setup.py test

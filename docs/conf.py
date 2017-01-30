@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# python-graphenelib documentation build configuration file, created by
+# python-bitshares documentation build configuration file, created by
 # sphinx-quickstart on Fri Jun  5 14:06:38 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -48,8 +48,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'python-graphenelib'
-copyright = '2015, Fabian Schuh'
+project = 'python-bitshares'
+copyright = '2017, ChainSquad GmbH'
 author = 'Fabian Schuh'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -202,7 +202,7 @@ html_static_path = ['_static']
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'python-graphenelibdoc'
+htmlhelp_basename = 'python-bitsharesdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -224,8 +224,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'python-graphenelib.tex', 'python-graphenelib Documentation',
-   'Fabian Schuh', 'manual'),
+  (master_doc, 'python-bitshares.tex', 'python-bitshares Documentation',
+   author, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -254,7 +254,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'python-graphenelib', 'python-graphenelib Documentation',
+    (master_doc, 'python-bitshares', 'python-bitshares Documentation',
      [author], 1)
 ]
 
@@ -268,8 +268,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'python-graphenelib', 'python-graphenelib Documentation',
-   author, 'python-graphenelib', 'One line description of project.',
+  (master_doc, 'python-bitshares', 'python-bitshares Documentation',
+   author, 'python-bitshares', 'One line description of project.',
    'Miscellaneous'),
 ]
 

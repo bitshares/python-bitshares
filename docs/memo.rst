@@ -5,7 +5,7 @@ Memo
 Memo Keys
 #########
 
-In Graphene, memos are AES-256 encrypted with a shared secret between sender and
+In BitShares, memos are AES-256 encrypted with a shared secret between sender and
 receiver. It is derived from the memo private key of the sender and the memo
 publick key of the receiver. 
 
@@ -52,7 +52,8 @@ Example
 
 .. code-block:: python
 
-    from graphenebase import Memo, PrivateKey, PublicKey
+    from bitsharesbase.memo import Memo
+    from bitsharesbase.account import PrivateKey, PublicKey
 
     wifkey = "5....<wif>"
     memo         = {
@@ -71,5 +72,5 @@ Example
 Definitions
 ###########
 
-.. automodule:: graphenebase.memo
+.. automodule:: bitsharesbase.memo
     :members:

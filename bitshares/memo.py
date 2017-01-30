@@ -1,4 +1,4 @@
-from . import bitshares as bts
+import bitshares as bts
 import random
 from bitsharesbase import memo as BtsMemo
 from bitsharesbase.account import PrivateKey, PublicKey

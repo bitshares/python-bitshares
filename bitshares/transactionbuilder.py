@@ -8,7 +8,7 @@ from .exceptions import (
     MissingKeyError,
     InvalidWifError
 )
-from . import bitshares as bts
+import bitshares as bts
 import logging
 log = logging.getLogger(__name__)
 

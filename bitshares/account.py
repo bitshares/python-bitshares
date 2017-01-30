@@ -1,4 +1,4 @@
-from . import bitshares as bts
+import bitshares as bts
 from .amount import Amount
 from .exceptions import AccountDoesNotExistsException
 

@@ -1,4 +1,4 @@
-from . import bitshares as bts
+import bitshares as bts
 from datetime import datetime, timedelta
 from .utils import formatTimeFromNow, formatTime, formatTimeString
 from .asset import Asset

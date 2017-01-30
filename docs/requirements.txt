@@ -1,4 +1,5 @@
 autobahn>=0.14
 pycrypto==2.6.1
-graphenelib
-bitshares
+appdirs==1.4.0
+-e git://github.com/xeroc/python-graphenelib@minimal#egg=graphenelib
+-e git://github.com/xeroc/python-bitshares@develop#egg=bitshares

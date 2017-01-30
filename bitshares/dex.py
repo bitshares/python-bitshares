@@ -1,5 +1,5 @@
 # from .storage import config
-from . import bitshares as bts
+import bitshares as bts
 from .account import Account
 from .asset import Asset
 from .amount import Amount

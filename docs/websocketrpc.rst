@@ -1,13 +1,11 @@
-************
-WebsocketRPC
-************
-
-.. note:: This is a low level class that can be used in combination with
-          GrapheneClient
+****************
+BitSharesNodeRPC
+****************
 
 This class allows to call API methods exposed by the witness node via
-websockets. It does **not** support notifications and is not run
-asynchronously.
+websockets.
 
-.. autoclass:: grapheneapi.graphenewsrpc.GrapheneWebsocketRPC
-     :members:
+Defintion
+=========
+.. autoclass:: bitsharesapi.bitsharesnoderpc.BitSharesNodeRPC
+    :members: rpcexec, __getattr__

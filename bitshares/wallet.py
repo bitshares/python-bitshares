@@ -1,5 +1,5 @@
 from bitsharesbase.account import PrivateKey, GPHPrivateKey
-from . import bitshares as bts
+import bitshares as bts
 from bitsharesbase import bip38
 from .exceptions import (
     NoWallet,
@@ -20,19 +20,19 @@ class Wallet():
         your accounts. It either uses manually provided private keys
         or uses a SQLite database managed by storage.py.
 
-        :param SteemNodeRPC rpc: RPC connection to a Steem node
+        :param BitSharesNodeRPC rpc: RPC connection to a BitShares node
         :param array,dict,string keys: Predefine the wif keys to shortcut the wallet database
 
         Three wallet operation modes are possible:
 
-        * **Wallet Database**: Here, steemlibs loads the keys from the
+        * **Wallet Database**: Here, pybitshares loads the keys from the
           locally stored wallet SQLite database (see ``storage.py``).
-          To use this mode, simply call ``Steem()`` without the
+          To use this mode, simply call ``BitShares()`` without the
           ``keys`` parameter
         * **Providing Keys**: Here, you can provide the keys for
           your accounts manually. All you need to do is add the wif
           keys for the accounts you want to use as a simple array
-          using the ``keys`` parameter to ``Steem()``.
+          using the ``keys`` parameter to ``BitShares()``.
         * **Force keys**: This more is for advanced users and
           requires that you know what you are doing. Here, the
           ``keys`` parameter is a dictionary that overwrite the

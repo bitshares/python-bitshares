@@ -164,7 +164,7 @@ class BitShares(object):
         return tx.broadcast()
 
     def broadcast(self, tx):
-        """ Broadcast a transaction to the Steem network
+        """ Broadcast a transaction to the BitShares network
 
             :param tx tx: Signed transaction to broadcast
         """
