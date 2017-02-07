@@ -258,7 +258,7 @@ class Account_create(GrapheneObject):
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
-            prefix = kwargs.pop("prefix", default_prefix)
+            prefix = kwargs.get("prefix", default_prefix)
 
             super().__init__(OrderedDict([
                 ('fee', Asset(kwargs["fee"])),
@@ -281,7 +281,7 @@ class Account_update(GrapheneObject):
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
-            prefix = kwargs.pop("prefix", default_prefix)
+            prefix = kwargs.get("prefix", default_prefix)
 
             if "owner" in kwargs:
                 owner = Optional(Permission(kwargs["owner"], prefix=prefix))

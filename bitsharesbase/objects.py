@@ -134,6 +134,7 @@ class PriceFeed(GrapheneObject):
 
 class Permission(GrapheneObject):
     def __init__(self, *args, **kwargs):
+
         # Allow for overwrite of prefix
         prefix = kwargs.pop("prefix", default_prefix)
 
@@ -176,6 +177,7 @@ class AccountOptions(GrapheneObject):
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
+
             super().__init__(OrderedDict([
                 ('memo_key', PublicKey(kwargs["memo_key"], prefix=prefix)),
                 ('voting_account', ObjectId(kwargs["voting_account"], "account")),

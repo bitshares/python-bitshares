@@ -22,8 +22,6 @@ from .transactionbuilder import TransactionBuilder
 
 log = logging.getLogger(__name__)
 
-prefix = "BTS"
-
 
 class BitShares(object):
     """ The purpose of this class it to simplify interaction with
@@ -136,6 +134,8 @@ class BitShares(object):
             BitShares.unsigned = kwargs.pop("unsigned", False)
         if BitShares.expiration is None:
             BitShares.expiration = int(kwargs.pop("expires", 30))
+
+        self.rpc = BitShares.rpc
 
         # Compatibility after name change from wif->keys
         if "wif" in kwargs and "keys" not in kwargs:
@@ -303,17 +303,16 @@ class BitShares(object):
                 self.wallet.addPrivateKey(active_privkey)
                 self.wallet.addPrivateKey(memo_privkey)
         elif (owner_key and active_key and memo_key):
-            active_pubkey = PublicKey(active_key, prefix=prefix)
-            owner_pubkey = PublicKey(owner_key, prefix=prefix)
-            memo_pubkey = PublicKey(memo_key, prefix=prefix)
+            active_pubkey = PublicKey(active_key, prefix=self.rpc.chain_params["prefix"])
+            owner_pubkey = PublicKey(owner_key, prefix=self.rpc.chain_params["prefix"])
+            memo_pubkey = PublicKey(memo_key, prefix=self.rpc.chain_params["prefix"])
         else:
             raise ValueError(
                 "Call incomplete! Provide either a password or public keys!"
             )
-
-        owner = format(owner_pubkey, prefix)
-        active = format(active_pubkey, prefix)
-        memo = format(memo_pubkey, prefix)
+        owner = format(owner_pubkey, self.rpc.chain_params["prefix"])
+        active = format(active_pubkey, self.rpc.chain_params["prefix"])
+        memo = format(memo_pubkey, self.rpc.chain_params["prefix"])
 
         owner_key_authority = [[owner, 1]]
         active_key_authority = [[active, 1]]
@@ -352,8 +351,11 @@ class BitShares(object):
                         "votes": [],
                         "extensions": []
                         },
-            "extensions": {}
+            "extensions": {},
+            "prefix": self.rpc.chain_params["prefix"]
         }
+        from pprint import pprint
+        pprint(op)
         op = operations.Account_create(**op)
         return self.finalizeOp(op, registrar, "active")
 
