@@ -14,6 +14,9 @@ log = logging.getLogger(__name__)
 
 
 class TransactionBuilder(dict):
+    """ This class simplifies the creation of transactions by adding
+        operations and signers.
+    """
 
     def __init__(self, tx={}, bitshares_instance=None):
         if not bitshares_instance:
@@ -77,9 +80,14 @@ class TransactionBuilder(dict):
                 from the wallet as defined in "missing_signatures" key
                 of the transactions.
         """
+
         # We need to set the default prefix, otherwise pubkeys are
         # presented wrongly!
-        operations.default_prefix = self.bitshares.rpc.chain_params["prefix"]
+        if self.bitshares.rpc:
+            operations.default_prefix = self.bitshares.rpc.chain_params["prefix"]
+        elif "blockchain" in self:
+            operations.default_prefix = self["blockchain"]["prefix"]
+
         try:
             signedtx = Signed_Transaction(**self.json())
         except:
@@ -142,6 +150,7 @@ class TransactionBuilder(dict):
             self["missing_signatures"].extend(
                 [x[0] for x in account_auth_account[permission]["key_auths"]]
             )
+        self["blockchain"] = self.bitshares.rpc.chain_params
 
     def json(self):
         return dict(self)

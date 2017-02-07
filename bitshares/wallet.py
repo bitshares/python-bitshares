@@ -54,8 +54,18 @@ class Wallet():
     keyMap = {}  # type:wif pairs to force certain keys
 
     def __init__(self, *args, **kwargs):
+        from .storage import configStorage
+        self.configStorage = configStorage
+
+        # RPC
         Wallet.rpc = bts.BitShares.rpc
-        self.prefix = Wallet.rpc.chain_params["prefix"]
+
+        # Prefix?
+        if Wallet.rpc:
+            self.prefix = Wallet.rpc.chain_params["prefix"]
+        else:
+            # If not connected, load prefix from config
+            self.prefix = self.configStorage["prefix"]
 
         # Compatibility after name change from wif->keys
         if "wif" in kwargs and "keys" not in kwargs:
@@ -68,9 +78,7 @@ class Wallet():
                 keyStorage
             """
             from .storage import (keyStorage,
-                                  MasterPassword,
-                                  configStorage)
-            self.configStorage = configStorage
+                                  MasterPassword)
             self.MasterPassword = MasterPassword
             self.keyStorage = keyStorage
 
@@ -221,20 +229,20 @@ class Wallet():
 
             :param str pub: Public Key
         """
-        if self.keyStorage:
+        if(Wallet.keys):
+            if pub in Wallet.keys:
+                return Wallet.keys[pub]
+            elif len(Wallet.keys) == 1:
+                # If there is only one key in my overwrite-storage, then
+                # use that one! Whether it will has sufficient
+                # authorization is left to ensure by the developer
+                return list(self.keys.values())[0]
+        else:
             # Test if wallet exists
             if not self.created():
                 self.newWallet()
 
             return self.decrypt_wif(self.keyStorage.getPrivateKeyForPublicKey(pub))
-        else:
-            if pub in self.keys:
-                return self.keys[pub]
-            elif len(self.keys) == 1:
-                # If there is only one key in my overwrite-storage, then
-                # use that one! Feather it will has sufficient
-                # authorization is left to ensure by the developer
-                return list(self.keys.values())[0]
 
     def removePrivateKeyFromPublicKey(self, pub):
         """ Remove a key from the wallet database
@@ -364,4 +372,4 @@ class Wallet():
         if self.keyStorage:
             return self.keyStorage.getPublicKeys()
         else:
-            return list(self.keys.keys())
+            return list(Wallet.keys.keys())

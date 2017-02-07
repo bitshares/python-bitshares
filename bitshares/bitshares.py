@@ -151,6 +151,24 @@ class BitShares(object):
         self.wallet.newWallet()
 
     def finalizeOp(self, op, account, permission):
+        """ This method obtains the required private keys if present in
+            the wallet, finalizes the transaction, signs it and
+            broadacasts it
+
+            :param operation ops: The operation (or list of operaions) to broadcast
+            :param operation account: The account that authorizes the
+                operation
+            :param string permission: The required permission for
+                signing (active, owner, posting)
+
+            ... note::
+
+                If ``ops`` is a list of operation, they all need to be
+                signable by the same key! Thus, you cannot combine ops
+                that require active permission with ops that require
+                posting permission. Neither can you use different
+                accounts for different operations!
+        """
         tx = TransactionBuilder()
         tx.appendOps(op)
 
@@ -162,6 +180,20 @@ class BitShares(object):
             tx.sign()
 
         return tx.broadcast()
+
+    def sign(self, tx, wifs=[]):
+        """ Sign a provided transaction witht he provided key(s)
+
+            :param dict tx: The transaction to be signed and returned
+            :param string wifs: One or many wif keys to use for signing
+                a transaction. If not present, the keys will be loaded
+                from the wallet as defined in "missing_signatures" key
+                of the transactions.
+        """
+        tx = TransactionBuilder(tx)
+        tx.appendMissingSignatures(wifs)
+        tx.sign()
+        return tx.json()
 
     def broadcast(self, tx):
         """ Broadcast a transaction to the BitShares network

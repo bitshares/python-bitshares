@@ -253,13 +253,13 @@ class Override_transfer(GrapheneObject):
 class Account_create(GrapheneObject):
     def __init__(self, *args, **kwargs):
         # Allow for overwrite of prefix
-        prefix = kwargs.pop("prefix", default_prefix)
-
         if isArgsThisClass(self, args):
                 self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
+            prefix = kwargs.pop("prefix", default_prefix)
+
             super().__init__(OrderedDict([
                 ('fee', Asset(kwargs["fee"])),
                 ('registrar', ObjectId(kwargs["registrar"], "account")),
@@ -276,13 +276,12 @@ class Account_create(GrapheneObject):
 class Account_update(GrapheneObject):
     def __init__(self, *args, **kwargs):
         # Allow for overwrite of prefix
-        prefix = kwargs.pop("prefix", default_prefix)
-
         if isArgsThisClass(self, args):
                 self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
+            prefix = kwargs.pop("prefix", default_prefix)
 
             if "owner" in kwargs:
                 owner = Optional(Permission(kwargs["owner"], prefix=prefix))
