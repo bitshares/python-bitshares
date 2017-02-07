@@ -2,6 +2,7 @@ import time
 from .block import Block
 import bitshares as bts
 from .utils import parse_time
+from bitsharesbase.operationids import operations, getOperationNameForId
 
 
 class Blockchain(object):
@@ -142,7 +143,7 @@ class Blockchain(object):
                  * "irreversible": the block that is confirmed by 2/3 of all block producers and is thus irreversible!
         """
         for op in self.ops(**kwargs):
-            if not opNames or op["op"][0] in opNames:
+            if not opNames or getOperationNameForId(op["op"][0]) in opNames:
                 yield op
 
     def awaitTxConfirmation(self, transaction, limit=50):

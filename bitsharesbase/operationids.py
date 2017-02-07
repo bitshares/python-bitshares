@@ -44,3 +44,12 @@ operations["blind_transfer"] = 40
 operations["transfer_from_blind"] = 41
 operations["asset_settle_cancel"] = 42
 operations["asset_claim_fees"] = 43
+
+
+def getOperationNameForId(i):
+    """ Convert an operation id into the corresponding string
+    """
+    for key in operations:
+        if int(operations[key]) is int(i):
+            return key
+    return "Unknown Operation ID %d" % i
