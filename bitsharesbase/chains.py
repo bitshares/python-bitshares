@@ -1,4 +1,3 @@
-default_prefix = "BTS"
 known_chains = {"BTS": {"chain_id": "4018d7844c78f6a6c41c6a552b898022310fc5dec06da467ee7905a8dad512c8",
                         "core_symbol": "BTS",
                         "prefix": "BTS"},

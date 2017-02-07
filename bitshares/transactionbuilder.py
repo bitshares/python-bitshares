@@ -77,6 +77,9 @@ class TransactionBuilder(dict):
                 from the wallet as defined in "missing_signatures" key
                 of the transactions.
         """
+        # We need to set the default prefix, otherwise pubkeys are
+        # presented wrongly!
+        operations.default_prefix = self.bitshares.rpc.chain_params["prefix"]
         try:
             signedtx = Signed_Transaction(**self.json())
         except:

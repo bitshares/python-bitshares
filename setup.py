@@ -43,6 +43,7 @@ setup(
     install_requires=[
         "graphenelib",
         "websockets==2.0",
+        "appdirs",
     ],
     dependency_links=[
         "git+https://github.com/xeroc/python-graphenelib@minimal#egg=graphenelib"

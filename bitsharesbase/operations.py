@@ -9,7 +9,6 @@ from graphenebase.types import (
 )
 from .objects import GrapheneObject, isArgsThisClass
 from .account import PublicKey
-from .chains import default_prefix
 from .operationids import operations
 from .objects import (
     Operation,
@@ -22,6 +21,8 @@ from .objects import (
     AssetOptions,
     ObjectId
 )
+
+default_prefix = "BTS"
 
 
 def getOperationNameForId(i):

@@ -118,25 +118,15 @@ class Blockchain(object):
                  * "irreversible": the block that is confirmed by 2/3 of all block producers and is thus irreversible!
             :param bool only_virtual_ops: Only yield virtual operations
 
-            This call returns a list with elements that look like
-            this and carries only one operation each:::
-
-                {'block': 8411453,
-                 'op': ['vote',
-                        {'author': 'dana-edwards',
-                         'permlink': 'church-encoding-numbers-defined-as-functions',
-                         'voter': 'juanmiguelsalas',
-                         'weight': 6000}],
-                 'timestamp': '2017-01-12T12:26:03',
-                }
-
+            This call returns a list that only carries one operation and
+            its type!
         """
 
         for block in self.blocks(start=start, stop=stop, **kwargs):
             for tx in block["transactions"]:
                 for op in tx["operations"]:
                     yield {
-                        "block": block["block_num"],
+                        "block_num": block["block_num"],
                         "op": op,
                         "timestamp": block["timestamp"]
                     }
@@ -154,21 +144,6 @@ class Blockchain(object):
         for op in self.ops(**kwargs):
             if not opNames or op["op"][0] in opNames:
                 yield op
-    def block_time(self, block_num):
-        """ Returns a datetime of the block with the given block
-            number.
-
-            :param int block_num: Block number
-        """
-        return Block(block_num).time()
-
-    def block_timestamp(self, block_num):
-        """ Returns the timestamp of the block with the given block
-            number.
-
-            :param int block_num: Block number
-        """
-        return int(Block(block_num).time().timestamp())
 
     def awaitTxConfirmation(self, transaction, limit=50):
         """ Returns the transction as seen by the blockchain after being included into a block
@@ -178,7 +153,6 @@ class Blockchain(object):
                       ``mode="head"``, otherwise, the call will wait until
                       connfirmed in an irreversible block.
         """
-        blocknum = self.get_current_block_num() - 2
         counter = 10
         for block in self.blocks():
             counter += 1

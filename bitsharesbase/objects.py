@@ -12,9 +12,9 @@ from graphenebase.objects import GrapheneObject, isArgsThisClass
 from .chains import known_chains
 from .objecttypes import object_type
 from .account import PublicKey
-from .chains import default_prefix
 from graphenebase.objects import Operation as GPHOperation
 from .operationids import operations
+default_prefix = "BTS"
 
 
 class ObjectId(GPHObjectId):
