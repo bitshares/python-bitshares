@@ -155,8 +155,8 @@ class Blockchain(object):
                     "type": op["op"][0],
                     "timestamp": op.get("timestamp"),
                     "block_num": op.get("block_num"),
-                    **op["op"][1]
                 }
+                r.update(op["op"][1])
                 yield r
 
     def awaitTxConfirmation(self, transaction, limit=50):
