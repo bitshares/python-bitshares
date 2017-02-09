@@ -126,6 +126,8 @@ class Blockchain(object):
         for block in self.blocks(start=start, stop=stop, **kwargs):
             for tx in block["transactions"]:
                 for op in tx["operations"]:
+                    # Replace opid by op name
+                    op[0] = getOperationNameForId(op[0])
                     yield {
                         "block_num": block["block_num"],
                         "op": op,
@@ -141,10 +143,21 @@ class Blockchain(object):
             :param str mode: We here have the choice between
                  * "head": the last block
                  * "irreversible": the block that is confirmed by 2/3 of all block producers and is thus irreversible!
+
+            The dict output is formated such that ``type`` caries the
+            operation type, timestamp and block_num are taken from the
+            block the operation was stored in and the other key depend
+            on the actualy operation.
         """
         for op in self.ops(**kwargs):
-            if not opNames or getOperationNameForId(op["op"][0]) in opNames:
-                yield op
+            if not opNames or op["op"][0] in opNames:
+                r = {
+                    "type": op["op"][0],
+                    "timestamp": op.get("timestamp"),
+                    "block_num": op.get("block_num"),
+                    **op["op"][1]
+                }
+                yield r
 
     def awaitTxConfirmation(self, transaction, limit=50):
         """ Returns the transction as seen by the blockchain after being included into a block
