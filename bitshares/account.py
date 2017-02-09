@@ -24,18 +24,17 @@ class Account(dict):
         if isinstance(account, Account):
             super(Account, self).__init__(account)
             self.name = account["name"]
-            self.cached = True
-            self._cache(account)
         elif isinstance(account, str):
             self.name = account.strip().lower()
-            if self.name in Account.accounts_cache:
-                super(Account, self).__init__(Account.accounts_cache[self.name])
-                self.cached = True
-            elif not lazy and not self.cached:
-                self.refresh()
-                self.cached = True
         else:
             raise ValueError("Account() expects an account name, id or an instance of Account")
+
+        if self.name in Account.accounts_cache:
+            super(Account, self).__init__(Account.accounts_cache[self.name])
+            self.cached = True
+        elif not lazy and not self.cached:
+            self.refresh()
+            self.cached = True
 
     def refresh(self):
         account = self.bitshares.rpc.get_account(self.name)
@@ -44,13 +43,14 @@ class Account(dict):
         if self.full:
             account = self.bitshares.rpc.get_full_accounts([account["id"]], False)[0][1]
             super(Account, self).__init__(account["account"])
+            self._cache(account["account"])
             for k, v in account.items():
                 if k != "account":
                     self[k] = v
         else:
             super(Account, self).__init__(account)
+            self._cache(account)
         self.cached = True
-        self._cache(account)
 
     def _cache(self, account):
         # store in cache
