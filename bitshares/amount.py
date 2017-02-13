@@ -104,18 +104,22 @@ class Amount(dict):
         return a
 
     def __floordiv__(self, other):
+        a = Amount(self)
         if isinstance(other, Amount):
             from .price import Price
             return Price(self, other)
         else:
-            return self["amount"] // other
+            a["amount"] //= other
+        return a
 
     def __div__(self, other):
+        a = Amount(self)
         if isinstance(other, Amount):
             from .price import Price
             return Price(self, other)
         else:
-            return self["amount"] / other
+            a["amount"] /= other
+        return a
 
     def __mod__(self, other):
         a = Amount(self)

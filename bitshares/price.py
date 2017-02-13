@@ -107,10 +107,14 @@ class Price(dict):
         if "base_amount" in self and self["base_amount"]:
             t += "%s " % str(self["base_amount"])
 
-        return t + "@%f %s/%s " % (
-            self["price"],
-            self["base"]["symbol"],
-            self["quote"]["symbol"]
+        return t + "{price:.{precision}f} {base}/{quote} ".format(
+            price=self["price"],
+            base=self["base"]["symbol"],
+            quote=self["quote"]["symbol"],
+            precision=(
+                self["base"]["asset"]["precision"] +
+                self["quote"]["asset"]["precision"]
+            )
         )
 
     __str__ = __repr__
