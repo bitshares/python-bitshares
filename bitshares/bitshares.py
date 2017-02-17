@@ -222,6 +222,7 @@ class BitShares(object):
                        additional_active_keys=[],
                        additional_owner_accounts=[],
                        additional_active_accounts=[],
+                       proxy_account="proxy-to-self",
                        storekeys=True,
                        ):
         """ Create new account on BitShares
@@ -330,6 +331,9 @@ class BitShares(object):
         for k in additional_active_accounts:
             active_accounts_authority.append([k, 1])
 
+        # voting account
+        voting_account = Account(proxy_account)
+
         op = {
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "registrar": registrar["id"],
@@ -345,7 +349,7 @@ class BitShares(object):
                        "address_auths": [],
                        'weight_threshold': 1},
             "options": {"memo_key": memo,
-                        "voting_account": "1.2.5",
+                        "voting_account": voting_account["id"],
                         "num_witness": 0,
                         "num_committee": 0,
                         "votes": [],
