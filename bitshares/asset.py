@@ -1,3 +1,4 @@
+import json
 import bitshares as bts
 from .exceptions import AssetDoesNotExistsException
 
@@ -43,6 +44,8 @@ class Asset(dict):
             raise ValueError("Asset() expects a symbol, id or an instance of Asset")
 
     def refresh(self):
+        from bitsharesbase import asset_permissions
+
         asset = self.bitshares.rpc.get_asset(self.asset)
         if not asset:
             raise AssetDoesNotExistsException
@@ -51,6 +54,12 @@ class Asset(dict):
             if self.is_bitasset:
                 self["bitasset_data"] = self.bitshares.rpc.get_object(asset["bitasset_data_id"])
             self["dynamic_asset_data"] = self.bitshares.rpc.get_object(asset["dynamic_asset_data_id"])
+
+        # Permissions and flags
+        self["permissions"] = asset_permissions.todict(asset["options"]["issuer_permissions"])
+        self["flags"] = asset_permissions.todict(asset["options"]["flags"])
+        self["description"] = json.loads(asset["options"]["description"])
+
         self.cached = True
         self._cache(asset)
 
@@ -61,6 +70,14 @@ class Asset(dict):
     @property
     def is_bitasset(self):
         return ("bitasset_data_id" in self)
+
+    @property
+    def permissions(self):
+        return self["permissions"]
+
+    @property
+    def flags(self):
+        return self["flags"]
 
     def __getitem__(self, key):
         if not self.cached:

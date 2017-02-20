@@ -15,38 +15,32 @@ class Price(dict):
                 if ("price" in obj and
                         "base" in obj and
                         "quote" in obj):
-                    base = obj["base"]
-                    quote = obj["quote"]
-                    price = obj["price"]
+                    self["base"] = obj["base"]
+                    self["quote"] = obj["quote"]
 
                 # Regular 'price' objects according to bitshares-core
                 elif "base" in obj and "quote" in obj:
-                    if base:
-                        base_id = Asset(base)
-                    else:
-                        base_id = obj["base"]["asset_id"]
+                    base_id = obj["base"]["asset_id"]
                     if obj["base"]["asset_id"] == base_id:
-                        base = Amount(obj["base"])
-                        quote = Amount(obj["quote"])
+                        self["base"] = Amount(obj["base"])
+                        self["quote"] = Amount(obj["quote"])
                     else:
-                        quote = Amount(obj["base"])
-                        base = Amount(obj["quote"])
-                    price = self._safedivide(base["amount"], quote["amount"])
+                        self["quote"] = Amount(obj["base"])
+                        self["base"] = Amount(obj["quote"])
 
                 # Filled order
                 elif "op" in obj:
                     assert base, "Need a 'base' asset"
-                    base = Asset(base)
+                    self["base"] = Asset(base)
                     if obj["op"]["receives"]["asset_id"] == base["id"]:
                         # If the seller received "base" in a quote_base market, than
                         # it has been a sell order of quote
-                        base = Amount(obj["op"]["receives"])
-                        quote = Amount(obj["op"]["pays"])
+                        self["base"] = Amount(obj["op"]["receives"])
+                        self["quote"] = Amount(obj["op"]["pays"])
                     else:
                         # buy order
-                        base = Amount(obj["op"]["pays"])
-                        quote = Amount(obj["op"]["receives"])
-                    price = self._safedivide(base["amount"], quote["amount"])
+                        self["base"] = Amount(obj["op"]["pays"])
+                        self["quote"] = Amount(obj["op"]["receives"])
 
                 else:
                     raise ValueError("Invalid json format for Price()")
@@ -54,41 +48,51 @@ class Price(dict):
             elif (isinstance(base, Asset) and isinstance(quote, Asset)):
                     qp = quote["precision"]
                     bp = base["precision"]
-                    quote = Amount({
+                    self["quote"] = Amount({
                         "amount": 10 ** qp,
                         "asset": quote
                     })
-                    base = Amount({
+                    self["base"] = Amount({
                         "amount": float(obj) * 10 ** bp,
                         "asset": base
                     })
-                    price = self._safedivide(base["amount"], quote["amount"])
 
             elif (isinstance(base, str) and isinstance(quote, str)):
-                    price = float(obj)
-                    base = Asset(base)
-                    quote = Asset(quote)
+                    self["base"] = Asset(base)
+                    self["quote"] = Asset(quote)
             else:
                 raise ValueError("Invalid way of calling Price()")
 
         elif len(args) == 2:
             if isinstance(args[0], str) and isinstance(args[1], str):
-                quote, base = args[0], args[1]
-                base = Amount(base)
-                quote = Amount(quote)
-                price = self._safedivide(base["amount"], quote["amount"])
+                self["quote"], self["base"] = args[0], args[1]
+                self["base"] = Amount(base)
+                self["quote"] = Amount(quote)
 
             if isinstance(args[0], Amount) and isinstance(args[1], Amount):
-                quote, base = args[0], args[1]
-                price = self._safedivide(base["amount"], quote["amount"])
+                self["quote"], self["base"] = args[0], args[1]
+
+            else:
+                raise ValueError("Invalid way of calling Price()")
+
+        elif base and quote:
+            self["base"] = base
+            self["quote"] = quote
+
         else:
             raise Exception
 
-        super(Price, self).__init__({
-            "base": base,
-            "quote": quote,
-            "price": price
-        })
+    def __setitem__(self, key, value):
+        dict.__setitem__(self, key, value)
+        if "quote" in self and "base" in self:
+            dict.__setitem__(self, "price", self._safedivide(
+                self["base"]["amount"],
+                self["quote"]["amount"]))
+
+    def copy(self):
+        return Price(
+            base=self["base"].copy(),
+            quote=self["quote"].copy())
 
     def _safedivide(self, a, b):
         if b != 0.0:
@@ -96,16 +100,28 @@ class Price(dict):
         else:
             return float('Inf')
 
+    def invert(self):
+        tmp = self["quote"]
+        self["quote"] = self["base"]
+        self["base"] = tmp
+        self["price"] = self._safedivide(
+            self["base"]["amount"],
+            self["quote"]["amount"]
+        )
+        return self
+
     def __repr__(self):
         t = ""
         if "time" in self and self["time"]:
             t += "(%s) " % self["time"]
         if "type" in self and self["type"]:
             t += "%s " % str(self["type"])
-        if "quote_amount" in self and self["quote_amount"]:
-            t += "%s " % str(self["quote_amount"])
-        if "base_amount" in self and self["base_amount"]:
-            t += "%s " % str(self["base_amount"])
+
+        if isinstance(self, Order) or isinstance(self, FilledOrder):
+            if "quote" in self and self["quote"]:
+                t += "%s " % str(self["quote"])
+            if "base" in self and self["base"]:
+                t += "%s " % str(self["base"])
 
         return t + "{price:.{precision}f} {base}/{quote} ".format(
             price=self["price"],
@@ -117,8 +133,6 @@ class Price(dict):
             )
         )
 
-    __str__ = __repr__
-
     def __float__(self):
         return self["price"]
 
@@ -128,32 +142,121 @@ class Price(dict):
             10 ** (self["base"]["precision"] - self["quote"]["precision"])
         ))
 
-    def __div__(self, other):
+    def __mul__(self, other):
+        a = self.copy()
         if isinstance(other, Price):
-            return self["price"] / other["price"]
+            raise ValueError("Multiplication of two prices!?")
         else:
-            return self["price"] / other
+            a["quote"]["amount"] *= other
+            a["price"] *= other
+#            a["price"] = self._safedivide(
+#                a["base"]["amount"],
+#                a["quote"]["amount"]
+#            )
+        return a
 
-    def __floordiv__(self, other):
+    def __imul__(self, other):
         if isinstance(other, Price):
-            return self["price"] // other["price"]
+            raise ValueError("Multiplication of two prices!?")
         else:
-            return self["price"] // other
+            self["quote"]["amount"] *= other
+            self["price"] = self._safedivide(
+                self["base"]["amount"],
+                self["quote"]["amount"]
+            )
+        return self
+
+    def __div__(self, other):
+        a = self.copy()
+        if isinstance(other, Price):
+            raise ValueError("Division of two prices!?")
+        else:
+            a["quote"]["amount"] /= other
+            a["price"] = self._safedivide(
+                a["base"]["amount"],
+                a["quote"]["amount"]
+            )
 
     def __idiv__(self, other):
         if isinstance(other, Price):
-            assert other["asset"] == self["asset"]
-            return self["price"] / other["price"]
+            raise ValueError("Division of two prices!?")
         else:
-            self["price"] /= other
-            return self
+            self["quote"]["amount"] /= other
+            self["price"] = self._safedivide(
+                self["base"]["amount"],
+                self["quote"]["amount"]
+            )
+        return self
+
+    def __floordiv__(self, other):
+        a = self.copy()
+        if isinstance(other, Price):
+            raise ValueError("Division of two prices!?")
+        else:
+            a["quote"]["amount"] //= other
+            a["price"] = self._safedivide(
+                a["base"]["amount"],
+                a["quote"]["amount"]
+            )
 
     def __ifloordiv__(self, other):
         if isinstance(other, Price):
-            self["price"] //= other["price"]
+            raise ValueError("Division of two prices!?")
         else:
-            self["price"] //= other
+            self["quote"]["amount"] //= other
+            self["price"] = self._safedivide(
+                self["base"]["amount"],
+                self["quote"]["amount"]
+            )
         return self
+
+    def __lt__(self, other):
+        if isinstance(other, Price):
+            assert other["base"]["symbol"] == self["base"]["symbol"]
+            assert other["quote"]["symbol"] == self["base"]["symbol"]
+            return self["price"] < other["price"]
+        else:
+            return self["price"] < float(other or 0)
+
+    def __le__(self, other):
+        if isinstance(other, Price):
+            assert other["base"]["symbol"] == self["base"]["symbol"]
+            assert other["quote"]["symbol"] == self["base"]["symbol"]
+            return self["price"] <= other["price"]
+        else:
+            return self["price"] <= float(other or 0)
+
+    def __eq__(self, other):
+        if isinstance(other, Price):
+            assert other["base"]["symbol"] == self["base"]["symbol"]
+            assert other["quote"]["symbol"] == self["base"]["symbol"]
+            return self["price"] == other["price"]
+        else:
+            return self["price"] == float(other or 0)
+
+    def __ne__(self, other):
+        if isinstance(other, Price):
+            assert other["base"]["symbol"] == self["base"]["symbol"]
+            assert other["quote"]["symbol"] == self["base"]["symbol"]
+            return self["price"] != other["price"]
+        else:
+            return self["price"] != float(other or 0)
+
+    def __ge__(self, other):
+        if isinstance(other, Price):
+            assert other["base"]["symbol"] == self["base"]["symbol"]
+            assert other["quote"]["symbol"] == self["base"]["symbol"]
+            return self["price"] >= other["price"]
+        else:
+            return self["price"] >= float(other or 0)
+
+    def __gt__(self, other):
+        if isinstance(other, Price):
+            assert other["base"]["symbol"] == self["base"]["symbol"]
+            assert other["quote"]["symbol"] == self["base"]["symbol"]
+            return self["price"] > other["price"]
+        else:
+            return self["price"] > float(other or 0)
 
     __truediv__ = __div__
     __str__ = __repr__
@@ -178,10 +281,8 @@ class Order(Price):
             for k, v in args[0].items():
                 self[k] = v
             self["price"] = Price(args[0]["sell_price"])
-            self["quote_amount"] = Amount(args[0]["sell_price"]["quote"])
-            self["base_amount"] = Amount(args[0]["sell_price"]["base"])
-            self["quote"] = self["quote_amount"]["asset"]
-            self["base"] = self["base_amount"]["asset"]
+            self["quote"] = Amount(args[0]["sell_price"]["quote"])
+            self["base"] = Amount(args[0]["sell_price"]["base"])
 
         elif (
             isinstance(args[0], dict) and
@@ -198,17 +299,13 @@ class Order(Price):
                 Amount(args[0]["min_to_receive"]),
                 Amount(args[0]["amount_to_sell"])
             )
-            self["quote_amount"] = Amount(args[0]["min_to_receive"])
-            self["base_amount"] = Amount(args[0]["amount_to_sell"])
-            self["quote"] = self["quote_amount"]["asset"]
-            self["base"] = self["base_amount"]["asset"]
+            self["quote"] = Amount(args[0]["min_to_receive"])
+            self["base"] = Amount(args[0]["amount_to_sell"])
 
         elif isinstance(args[0], Amount) and isinstance(args[1], Amount):
             self["price"] = Price(*args, **kwargs)
-            self["quote_amount"] = args[0]
-            self["base_amount"] = args[1]
-            self["quote"] = self["quote_amount"]["asset"]
-            self["base"] = self["base_amount"]["asset"]
+            self["quote"] = args[0]
+            self["base"] = args[1]
         else:
             raise ValueError("Unkown format to load Order")
 
@@ -222,16 +319,14 @@ class FilledOrder(Price):
                 base=Asset(kwargs.get("base")),
                 quote=Asset(kwargs.get("quote")),
             )
-            self["quote_amount"] = Amount(
+            self["quote"] = Amount(
                 order.get("amount"),
                 kwargs.get("quote")
             )
-            self["base_amount"] = Amount(
+            self["base"] = Amount(
                 order.get("value"),
                 kwargs.get("base")
             )
-            self["quote"] = self["quote_amount"]["asset"]
-            self["base"] = self["base_amount"]["asset"]
             self["time"] = formatTimeString(order["date"])
             self["price"] = Price(
                 order.get("price"),
@@ -249,16 +344,14 @@ class FilledOrder(Price):
             for k, v in order.items():
                 self[k] = v
             if base["id"] == order["op"]["receives"]["asset_id"]:
-                self["quote_amount"] = Amount(order["op"]["receives"])
-                self["base_amount"] = Amount(order["op"]["pays"])
+                self["quote"] = Amount(order["op"]["receives"])
+                self["base"] = Amount(order["op"]["pays"])
                 self["type"] = "buy"
             else:
-                self["quote_amount"] = Amount(order["op"]["pays"])
-                self["base_amount"] = Amount(order["op"]["receives"])
+                self["quote"] = Amount(order["op"]["pays"])
+                self["base"] = Amount(order["op"]["receives"])
                 self["type"] = "sell"
 
-            self["quote"] = self["quote_amount"]["asset"]
-            self["base"] = self["base_amount"]["asset"]
             self["time"] = formatTimeString(self["time"])
             self["price"] = Price(
                 order,
@@ -270,14 +363,12 @@ class FilledOrder(Price):
             "receives" in order and
             "pays" in order
         ):
-            self["quote_amount"] = Amount(order["pays"])
-            self["base_amount"] = Amount(order["receives"])
-            self["quote"] = self["quote_amount"]["asset"]
-            self["base"] = self["base_amount"]["asset"]
+            self["quote"] = Amount(order["pays"])
+            self["base"] = Amount(order["receives"])
             self["time"] = None
             self["price"] = Price(
-                self["base_amount"],
-                self["quote_amount"]
+                self["base"],
+                self["quote"]
             )
         else:
             raise

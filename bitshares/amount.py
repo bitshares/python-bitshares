@@ -3,7 +3,7 @@ from .asset import Asset
 
 
 class Amount(dict):
-    def __init__(self, *args, bitshares_instance=None):
+    def __init__(self, *args, amount=None, asset=None, bitshares_instance=None):
         self["asset"] = {}
 
         if not bitshares_instance:
@@ -13,8 +13,8 @@ class Amount(dict):
         if len(args) == 1 and isinstance(args[0], Amount):
             # Copy Asset object
             self["amount"] = args[0]["amount"]
-            self["symbol"] = args[0].symbol
-            self["asset"] = args[0].asset
+            self["symbol"] = args[0]["symbol"]
+            self["asset"] = args[0]["asset"]
 
         elif len(args) == 1 and isinstance(args[0], str):
             self["amount"], self["symbol"] = args[0].split(" ")
@@ -36,19 +36,31 @@ class Amount(dict):
             self["symbol"] = self["asset"]["symbol"]
             self["amount"] = int(args[0]["amount"]) / 10 ** self["asset"]["precision"]
 
-        elif len(args) == 2:
+        elif len(args) == 2 and isinstance(args[1], Asset):
             self["amount"] = args[0]
-            if isinstance(args[1], Asset):
-                self["symbol"] = args[1]["symbol"]
-                self["asset"] = args[1]
-            else:
-                self["symbol"] = args[1]
-                self["asset"] = Asset(args[1])
+            self["symbol"] = args[1]["symbol"]
+            self["asset"] = args[1]
+
+        elif len(args) == 2 and isinstance(args[1], str):
+            self["amount"] = args[0]
+            self["asset"] = Asset(args[1])
+            self["symbol"] = self["asset"]["symbol"]
+
+        elif amount and asset:
+            self["amount"] = amount
+            self["asset"] = asset
+            self["symbol"] = self["asset"]["symbol"]
+
         else:
             raise
 
         # make sure amount is a float
         self["amount"] = float(self["amount"])
+
+    def copy(self):
+        return Amount(
+            amount=self["amount"],
+            asset=self["asset"].copy())
 
     @property
     def amount(self):
@@ -80,7 +92,7 @@ class Amount(dict):
     def __add__(self, other):
         a = Amount(self)
         if isinstance(other, Amount):
-            assert other.asset == self["asset"]
+            assert other["asset"] == self["asset"]
             a["amount"] += other["amount"]
         else:
             a["amount"] += float(other)
@@ -89,7 +101,7 @@ class Amount(dict):
     def __sub__(self, other):
         a = Amount(self)
         if isinstance(other, Amount):
-            assert other.asset == self["asset"]
+            assert other["asset"] == self["asset"]
             a["amount"] -= other["amount"]
         else:
             a["amount"] -= float(other)
@@ -139,7 +151,7 @@ class Amount(dict):
 
     def __iadd__(self, other):
         if isinstance(other, Amount):
-            assert other.asset == self["asset"]
+            assert other["asset"] == self["asset"]
             self["amount"] += other["amount"]
         else:
             self["amount"] += other
@@ -147,7 +159,7 @@ class Amount(dict):
 
     def __isub__(self, other):
         if isinstance(other, Amount):
-            assert other.asset == self["asset"]
+            assert other["asset"] == self["asset"]
             self["amount"] -= other["amount"]
         else:
             self["amount"] -= other
@@ -162,7 +174,7 @@ class Amount(dict):
 
     def __idiv__(self, other):
         if isinstance(other, Amount):
-            assert other.asset == self["asset"]
+            assert other["asset"] == self["asset"]
             return self["amount"] / other["amount"]
         else:
             self["amount"] /= other
@@ -188,42 +200,42 @@ class Amount(dict):
 
     def __lt__(self, other):
         if isinstance(other, Amount):
-            assert other.asset == self["asset"]
+            assert other["asset"] == self["asset"]
             return self["amount"] < other["amount"]
         else:
             return self["amount"] < float(other or 0)
 
     def __le__(self, other):
         if isinstance(other, Amount):
-            assert other.asset == self["asset"]
+            assert other["asset"] == self["asset"]
             return self["amount"] <= other["amount"]
         else:
             return self["amount"] <= float(other or 0)
 
     def __eq__(self, other):
         if isinstance(other, Amount):
-            assert other.asset == self["asset"]
+            assert other["asset"] == self["asset"]
             return self["amount"] == other["amount"]
         else:
             return self["amount"] == float(other or 0)
 
     def __ne__(self, other):
         if isinstance(other, Amount):
-            assert other.asset == self["asset"]
+            assert other["asset"] == self["asset"]
             return self["amount"] != other["amount"]
         else:
             return self["amount"] != float(other or 0)
 
     def __ge__(self, other):
         if isinstance(other, Amount):
-            assert other.asset == self["asset"]
+            assert other["asset"] == self["asset"]
             return self["amount"] >= other["amount"]
         else:
             return self["amount"] >= float(other or 0)
 
     def __gt__(self, other):
         if isinstance(other, Amount):
-            assert other.asset == self["asset"]
+            assert other["asset"] == self["asset"]
             return self["amount"] > other["amount"]
         else:
             return self["amount"] > float(other or 0)

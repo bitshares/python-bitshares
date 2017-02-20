@@ -228,27 +228,3 @@ class Dex():
 
         """
         return self.adjust_debt(amount, collateral_ratio, account)
-
-    def cancel(self, orderNumber, account=None):
-        """ Cancels an order you have placed in a given market. Requires
-            only the "orderNumber". An order number takes the form
-            ``1.7.xxx``.
-
-            :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
-        """
-        if not account:
-            if "default_account" in self.bitshares.config:
-                account = self.bitshares.config["default_account"]
-        if not account:
-            raise ValueError("You need to provide an account")
-        account = Account(account, full=True, bitshares_instance=self.bitshares)
-        assert any(
-            [order["id"] == orderNumber for order in account["limit_orders"]]
-        ), ValueError("Unkown order! Sure it belongs to %s?" % account["name"])
-        op = operations.Limit_order_cancel(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "fee_paying_account": account["id"],
-            "order": orderNumber,
-            "extensions": []
-        })
-        return self.bitshares.finalizeOp(op, account["name"], "active")

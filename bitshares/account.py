@@ -37,9 +37,15 @@ class Account(dict):
             self.cached = True
 
     def refresh(self):
-        account = self.bitshares.rpc.get_account(self.name)
+        import re
+        if re.match("^1\.2\.[0-9]*$", self.name):
+            account = self.bitshares.rpc.get_objects([self.name])
+        else:
+            account = self.bitshares.rpc.lookup_account_names([self.name])
         if not account:
             raise AccountDoesNotExistsException
+        else:
+            account = account[0]
         if self.full:
             account = self.bitshares.rpc.get_full_accounts([account["id"]], False)[0][1]
             super(Account, self).__init__(account["account"])
@@ -51,6 +57,7 @@ class Account(dict):
             super(Account, self).__init__(account)
             self._cache(account)
         self.cached = True
+        self.name = self["name"]
 
     def _cache(self, account):
         # store in cache
@@ -73,6 +80,10 @@ class Account(dict):
             return 0
         else:
             return last_item
+
+    @property
+    def is_ltm(self):
+        return self["id"] == self["lifetime_referrer"]
 
     @property
     def balances(self):
@@ -164,7 +175,7 @@ class Account(dict):
             :param array only_ops: Limit generator by these operations (*optional*)
             :param array exclude_ops: Exclude thse operations from generator (*optional*)
         """
-        _limit=100
+        _limit = 100
         cnt = 0
 
         mostrecent = self.bitshares.rpc.get_account_history(
