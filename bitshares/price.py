@@ -1,11 +1,13 @@
-import bitshares as bts
+from bitshares.instance import shared_bitshares_instance
 from .amount import Amount
 from .asset import Asset
 from .utils import formatTimeString
 
 
 class Price(dict):
-    def __init__(self, *args, base=None, quote=None):
+    def __init__(self, *args, base=None, quote=None, bitshares_instance=None):
+
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
 
         if len(args) == 1:
             obj = args[0]
@@ -22,11 +24,11 @@ class Price(dict):
                 elif "base" in obj and "quote" in obj:
                     base_id = obj["base"]["asset_id"]
                     if obj["base"]["asset_id"] == base_id:
-                        self["base"] = Amount(obj["base"])
-                        self["quote"] = Amount(obj["quote"])
+                        self["base"] = Amount(obj["base"], bitshares_instance=self.bitshares)
+                        self["quote"] = Amount(obj["quote"], bitshares_instance=self.bitshares)
                     else:
-                        self["quote"] = Amount(obj["base"])
-                        self["base"] = Amount(obj["quote"])
+                        self["quote"] = Amount(obj["base"], bitshares_instance=self.bitshares)
+                        self["base"] = Amount(obj["quote"], bitshares_instance=self.bitshares)
 
                 # Filled order
                 elif "op" in obj:
@@ -35,12 +37,12 @@ class Price(dict):
                     if obj["op"]["receives"]["asset_id"] == base["id"]:
                         # If the seller received "base" in a quote_base market, than
                         # it has been a sell order of quote
-                        self["base"] = Amount(obj["op"]["receives"])
-                        self["quote"] = Amount(obj["op"]["pays"])
+                        self["base"] = Amount(obj["op"]["receives"], bitshares_instance=self.bitshares)
+                        self["quote"] = Amount(obj["op"]["pays"], bitshares_instance=self.bitshares)
                     else:
                         # buy order
-                        self["base"] = Amount(obj["op"]["pays"])
-                        self["quote"] = Amount(obj["op"]["receives"])
+                        self["base"] = Amount(obj["op"]["pays"], bitshares_instance=self.bitshares)
+                        self["quote"] = Amount(obj["op"]["receives"], bitshares_instance=self.bitshares)
 
                 else:
                     raise ValueError("Invalid json format for Price()")
@@ -51,11 +53,11 @@ class Price(dict):
                     self["quote"] = Amount({
                         "amount": 10 ** qp,
                         "asset": quote
-                    })
+                    }, bitshares_instance=self.bitshares)
                     self["base"] = Amount({
                         "amount": float(obj) * 10 ** bp,
                         "asset": base
-                    })
+                    }, bitshares_instance=self.bitshares)
 
             elif (isinstance(base, str) and isinstance(quote, str)):
                     self["base"] = Asset(base)
@@ -66,8 +68,8 @@ class Price(dict):
         elif len(args) == 2:
             if isinstance(args[0], str) and isinstance(args[1], str):
                 self["quote"], self["base"] = args[0], args[1]
-                self["base"] = Amount(base)
-                self["quote"] = Amount(quote)
+                self["base"] = Amount(base, bitshares_instance=self.bitshares)
+                self["quote"] = Amount(quote, bitshares_instance=self.bitshares)
 
             if isinstance(args[0], Amount) and isinstance(args[1], Amount):
                 self["quote"], self["base"] = args[0], args[1]
@@ -272,7 +274,10 @@ class Price(dict):
 
 class Order(Price):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, bitshares_instance=None, **kwargs):
+
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
+
         if (
             isinstance(args[0], dict) and
             "sell_price" in args[0]
@@ -281,8 +286,8 @@ class Order(Price):
             for k, v in args[0].items():
                 self[k] = v
             self["price"] = Price(args[0]["sell_price"])
-            self["quote"] = Amount(args[0]["sell_price"]["quote"])
-            self["base"] = Amount(args[0]["sell_price"]["base"])
+            self["quote"] = Amount(args[0]["sell_price"]["quote"], bitshares_instance=self.bitshares)
+            self["base"] = Amount(args[0]["sell_price"]["base"], bitshares_instance=self.bitshares)
 
         elif (
             isinstance(args[0], dict) and
@@ -290,17 +295,17 @@ class Order(Price):
             "amount_to_sell" in args[0]
         ):
             super(Order, self).__init__(
-                Amount(args[0]["min_to_receive"]),
-                Amount(args[0]["amount_to_sell"]),
+                Amount(args[0]["min_to_receive"], bitshares_instance=self.bitshares),
+                Amount(args[0]["amount_to_sell"], bitshares_instance=self.bitshares),
             )
             for k, v in args[0].items():
                 self[k] = v
             self["price"] = Price(
-                Amount(args[0]["min_to_receive"]),
-                Amount(args[0]["amount_to_sell"])
+                Amount(args[0]["min_to_receive"], bitshares_instance=self.bitshares),
+                Amount(args[0]["amount_to_sell"], bitshares_instance=self.bitshares)
             )
-            self["quote"] = Amount(args[0]["min_to_receive"])
-            self["base"] = Amount(args[0]["amount_to_sell"])
+            self["quote"] = Amount(args[0]["min_to_receive"], bitshares_instance=self.bitshares)
+            self["base"] = Amount(args[0]["amount_to_sell"], bitshares_instance=self.bitshares)
 
         elif isinstance(args[0], Amount) and isinstance(args[1], Amount):
             self["price"] = Price(*args, **kwargs)
@@ -312,7 +317,10 @@ class Order(Price):
 
 class FilledOrder(Price):
 
-    def __init__(self, order, **kwargs):
+    def __init__(self, order, bitshares_instance=None, **kwargs):
+
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
+
         if isinstance(order, dict) and "price" in order:
             super(FilledOrder, self).__init__(
                 order.get("price"),
@@ -321,11 +329,13 @@ class FilledOrder(Price):
             )
             self["quote"] = Amount(
                 order.get("amount"),
-                kwargs.get("quote")
+                kwargs.get("quote"),
+                bitshares_instance=self.bitshares
             )
             self["base"] = Amount(
                 order.get("value"),
-                kwargs.get("base")
+                kwargs.get("base"),
+                bitshares_instance=self.bitshares
             )
             self["time"] = formatTimeString(order["date"])
             self["price"] = Price(
@@ -344,12 +354,12 @@ class FilledOrder(Price):
             for k, v in order.items():
                 self[k] = v
             if base["id"] == order["op"]["receives"]["asset_id"]:
-                self["quote"] = Amount(order["op"]["receives"])
-                self["base"] = Amount(order["op"]["pays"])
+                self["quote"] = Amount(order["op"]["receives"], bitshares_instance=self.bitshares)
+                self["base"] = Amount(order["op"]["pays"], bitshares_instance=self.bitshares)
                 self["type"] = "buy"
             else:
-                self["quote"] = Amount(order["op"]["pays"])
-                self["base"] = Amount(order["op"]["receives"])
+                self["quote"] = Amount(order["op"]["pays"], bitshares_instance=self.bitshares)
+                self["base"] = Amount(order["op"]["receives"], bitshares_instance=self.bitshares)
                 self["type"] = "sell"
 
             self["time"] = formatTimeString(self["time"])
@@ -363,8 +373,8 @@ class FilledOrder(Price):
             "receives" in order and
             "pays" in order
         ):
-            self["quote"] = Amount(order["pays"])
-            self["base"] = Amount(order["receives"])
+            self["quote"] = Amount(order["pays"], bitshares_instance=self.bitshares)
+            self["base"] = Amount(order["receives"], bitshares_instance=self.bitshares)
             self["time"] = None
             self["price"] = Price(
                 self["base"],

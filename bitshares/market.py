@@ -1,4 +1,4 @@
-import bitshares as bts
+from bitshares.instance import shared_bitshares_instance
 from datetime import datetime, timedelta
 from .utils import formatTimeFromNow, formatTime, formatTimeString
 from .asset import Asset
@@ -19,9 +19,7 @@ class Market(dict):
         bitshares_instance=None,
         **kwargs
     ):
-        if not bitshares_instance:
-            bitshares_instance = bts.BitShares()
-        self.bitshares = bitshares_instance
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
 
         if len(args) == 1 and isinstance(args[0], str):
             import re

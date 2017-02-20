@@ -1,6 +1,6 @@
 import time
 from .block import Block
-import bitshares as bts
+from bitshares.instance import shared_bitshares_instance
 from .utils import parse_time
 from bitsharesbase.operationids import operations, getOperationNameForId
 
@@ -18,9 +18,8 @@ class Blockchain(object):
             :param str mode: (default) Irreversible block
                     (``irreversible``) or actual head block (``head``)
         """
-        if not bitshares_instance:
-            bitshares_instance = bts.BitShares()
-        self.bitshares = bitshares_instance
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
+
         if mode == "irreversible":
             self.mode = 'last_irreversible_block_num'
         elif mode == "head":

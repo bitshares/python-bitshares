@@ -1,4 +1,4 @@
-import bitshares as bts
+from bitshares.instance import shared_bitshares_instance
 import random
 from bitsharesbase import memo as BtsMemo
 from bitsharesbase.account import PrivateKey, PublicKey
@@ -9,9 +9,7 @@ from .exceptions import MissingKeyError
 class Memo(object):
     def __init__(self, from_account, to_account, memo, bitshares_instance=None):
 
-        if not bitshares_instance:
-            bitshares_instance = bts.BitShares()
-        self.bitshares = bitshares_instance
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
 
         memo_wif = self.bitshares.wallet.getPrivateKeyForPublicKey(
             from_account["options"]["memo_key"]

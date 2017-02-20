@@ -1,4 +1,4 @@
-import bitshares as bts
+from bitshares.instance import shared_bitshares_instance
 from .exceptions import BlockDoesNotExistsException
 
 
@@ -7,9 +7,7 @@ class Block(dict):
         self.cached = False
         self.block = block
 
-        if not bitshares_instance:
-            bitshares_instance = bts.BitShares()
-        self.bitshares = bitshares_instance
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
 
         if isinstance(block, Block):
             super(Block, self).__init__(block)

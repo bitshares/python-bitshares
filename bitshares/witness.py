@@ -1,4 +1,4 @@
-import bitshares as bts
+from bitshares.instance import shared_bitshares_instance
 from .account import Account
 from .exceptions import WitnessDoesNotExistsException
 
@@ -20,9 +20,7 @@ class Witness(dict):
         self.cached = False
         self.witness = witness
 
-        if not bitshares_instance:
-            bitshares_instance = bts.BitShares()
-        self.bitshares = bitshares_instance
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
 
         if not lazy:
             self.refresh()

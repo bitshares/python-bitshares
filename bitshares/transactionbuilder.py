@@ -8,7 +8,7 @@ from .exceptions import (
     MissingKeyError,
     InvalidWifError
 )
-import bitshares as bts
+from bitshares.instance import shared_bitshares_instance
 import logging
 log = logging.getLogger(__name__)
 
@@ -19,9 +19,7 @@ class TransactionBuilder(dict):
     """
 
     def __init__(self, tx={}, bitshares_instance=None):
-        if not bitshares_instance:
-            bitshares_instance = bts.BitShares()
-        self.bitshares = bitshares_instance
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
 
         self.op = []
         self.wifs = []

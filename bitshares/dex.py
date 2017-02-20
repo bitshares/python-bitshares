@@ -1,5 +1,5 @@
 # from .storage import config
-import bitshares as bts
+from bitshares.instance import shared_bitshares_instance
 from .account import Account
 from .asset import Asset
 from .amount import Amount
@@ -17,10 +17,7 @@ from bitsharesbase.objects import Operation
 
 class Dex():
     def __init__(self, bitshares_instance=None, **kwargs):
-
-        if not bitshares_instance:
-            bitshares_instance = bts.BitShares()
-        self.bitshares = bitshares_instance
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
 
     def returnFees(self):
         """ Returns a dictionary of all fees that apply through the

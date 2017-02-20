@@ -1,5 +1,5 @@
 import json
-import bitshares as bts
+from bitshares.instance import shared_bitshares_instance
 from .exceptions import AssetDoesNotExistsException
 
 
@@ -23,9 +23,7 @@ class Asset(dict):
         self.full = full
         self.asset = None
 
-        if not bitshares_instance:
-            bitshares_instance = bts.BitShares()
-        self.bitshares = bitshares_instance
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
 
         if isinstance(asset, Asset):
             self.asset = asset.get("symbol")

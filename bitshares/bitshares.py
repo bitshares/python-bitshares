@@ -24,7 +24,44 @@ log = logging.getLogger(__name__)
 
 
 class BitShares(object):
-    """ The purpose of this class it to simplify interaction with
+    """ Connect to the BitShares network.
+
+        :param str node: Node to connect to *(optional)*
+        :param str rpcuser: RPC user *(optional)*
+        :param str rpcpassword: RPC password *(optional)*
+        :param bool nobroadcast: Do **not** broadcast a transaction! *(optional)*
+        :param bool debug: Enable Debugging *(optional)*
+        :param array,dict,string keys: Predefine the wif keys to shortcut the wallet database
+        :param bool offline: Boolean to prevent connecting to network (defaults to ``False``)
+
+        Three wallet operation modes are possible:
+
+        * **Wallet Database**: Here, the bitshareslibs load the keys from the
+          locally stored wallet SQLite database (see ``storage.py``).
+          To use this mode, simply call ``BitShares()`` without the
+          ``keys`` parameter
+        * **Providing Keys**: Here, you can provide the keys for
+          your accounts manually. All you need to do is add the wif
+          keys for the accounts you want to use as a simple array
+          using the ``keys`` parameter to ``BitShares()``.
+        * **Force keys**: This more is for advanced users and
+          requires that you know what you are doing. Here, the
+          ``keys`` parameter is a dictionary that overwrite the
+          ``active``, ``owner``, or ``memo`` keys for
+          any account. This mode is only used for *foreign*
+          signatures!
+
+        If no node is provided, it will connect to the node of
+        http://uptick.rocks. It is **highly** recommended that you pick your own
+        node instead. Default settings can be changed with:
+
+        .. code-block:: python
+
+            uptick set node <host>
+
+        where ``<host>`` starts with ``ws://`` or ``wss://``.
+
+        The purpose of this class it to simplify interaction with
         BitShares.
 
         The idea is to have a class that allows to do this:
@@ -50,107 +87,61 @@ class BitShares(object):
         This class also deals with edits, votes and reading content.
     """
 
-    wallet = None
-    config = None
-    rpc = None
-    debug = None
-    nobroadcast = None
-    unsigned = None
-    expiration = None
-
     def __init__(self,
                  node="",
                  rpcuser="",
                  rpcpassword="",
                  debug=False,
                  **kwargs):
-        """ Connect to the BitShares network.
 
-            :param str node: Node to connect to *(optional)*
-            :param str rpcuser: RPC user *(optional)*
-            :param str rpcpassword: RPC password *(optional)*
-            :param bool nobroadcast: Do **not** broadcast a transaction! *(optional)*
-            :param bool debug: Enable Debugging *(optional)*
-            :param array,dict,string keys: Predefine the wif keys to shortcut the wallet database
-            :param bool skipcreatewallet: Skip creation of a wallet
-
-            Three wallet operation modes are possible:
-
-            * **Wallet Database**: Here, the bitshareslibs load the keys from the
-              locally stored wallet SQLite database (see ``storage.py``).
-              To use this mode, simply call ``BitShares()`` without the
-              ``keys`` parameter
-            * **Providing Keys**: Here, you can provide the keys for
-              your accounts manually. All you need to do is add the wif
-              keys for the accounts you want to use as a simple array
-              using the ``keys`` parameter to ``BitShares()``.
-            * **Force keys**: This more is for advanced users and
-              requires that you know what you are doing. Here, the
-              ``keys`` parameter is a dictionary that overwrite the
-              ``active``, ``owner``, or ``memo`` keys for
-              any account. This mode is only used for *foreign*
-              signatures!
-
-            If no node is provided, it will connect to the node of
-            http://uptick.rocks. It is **highly** recommended that you pick your own
-            node instead. Default settings can be changed with:
-
-            .. code-block:: python
-
-                uptick set node <host>
-
-            where ``<host>`` starts with ``ws://`` or ``wss://``.
-        """
         # More specific set of APIs to register to
         if "apis" not in kwargs:
             kwargs["apis"] = [
                 "database",
                 "network_broadcast",
-                "account_by_key",
-                "follow",
             ]
 
-        if not BitShares.rpc:
-            """ Connect to BitShares network
-            """
-            if not node:
-                if "node" in config:
-                    node = config["node"]
-                else:
-                    raise ValueError("A BitShares node needs to be provided!")
-            if not rpcuser and "rpcuser" in config:
-                rpcuser = config["rpcuser"]
-            if not rpcpassword and "rpcpassword" in config:
-                rpcpassword = config["rpcpassword"]
-            BitShares.rpc = BitSharesNodeRPC(node, rpcuser, rpcpassword, **kwargs)
+        self.rpc = None
+        self.debug = debug
 
-        if BitShares.config is None:
-            BitShares.config = config
-        if BitShares.debug is None:
-            BitShares.debug = debug
-        if BitShares.nobroadcast is None:
-            BitShares.nobroadcast = kwargs.get("nobroadcast", False)
-        if BitShares.unsigned is None:
-            BitShares.unsigned = kwargs.pop("unsigned", False)
-        if BitShares.expiration is None:
-            BitShares.expiration = int(kwargs.pop("expires", 30))
+        self.offline = kwargs.get("offline", False)
+        self.nobroadcast = kwargs.get("nobroadcast", False)
+        self.unsigned = kwargs.get("unsigned", False)
+        self.expiration = int(kwargs.get("expiration", 30))
 
-        self.rpc = BitShares.rpc
+        if not self.offline:
+            self._connect(node=node,
+                          rpcuser=rpcuser,
+                          rpcpassword=rpcpassword,
+                          **kwargs)
 
-        # Compatibility after name change from wif->keys
-        if "wif" in kwargs and "keys" not in kwargs:
-            kwargs["keys"] = kwargs["wif"]
+        self.wallet = Wallet(self.rpc, **kwargs)
 
-        if self.wallet is None:
-            if "keys" in kwargs:
-                BitShares.wallet = Wallet(self.rpc, keys=kwargs["keys"])
+    def _connect(self,
+                 node="",
+                 rpcuser="",
+                 rpcpassword="",
+                 **kwargs):
+        """ Connect to Steem network (internal use only)
+        """
+        if not node:
+            if "node" in config:
+                node = config["node"]
             else:
-                BitShares.wallet = Wallet(self.rpc)
+                raise ValueError("A Steem node needs to be provided!")
+
+        if not rpcuser and "rpcuser" in config:
+            rpcuser = config["rpcuser"]
+
+        if not rpcpassword and "rpcpassword" in config:
+            rpcpassword = config["rpcpassword"]
+
+        self.rpc = BitSharesNodeRPC(node, rpcuser, rpcpassword, **kwargs)
 
     def newWallet(self):
         self.wallet.newWallet()
 
-    def finalizeOp(self, op, account, permission):
+    def finalizeOp(self, ops, account, permission):
         """ This method obtains the required private keys if present in
             the wallet, finalizes the transaction, signs it and
             broadacasts it
@@ -169,8 +160,8 @@ class BitShares(object):
                 posting permission. Neither can you use different
                 accounts for different operations!
         """
-        tx = TransactionBuilder()
-        tx.appendOps(op)
+        tx = TransactionBuilder(bitshares_instance=self)
+        tx.appendOps(ops)
 
         if self.unsigned:
             tx.addSigningInformation(account, permission)
@@ -190,7 +181,7 @@ class BitShares(object):
                 from the wallet as defined in "missing_signatures" key
                 of the transactions.
         """
-        tx = TransactionBuilder(tx)
+        tx = TransactionBuilder(tx, bitshares_instance=self)
         tx.appendMissingSignatures(wifs)
         tx.sign()
         return tx.json()
@@ -278,13 +269,13 @@ class BitShares(object):
             )
 
         try:
-            Account(account_name)
+            Account(account_name, bitshares_instance=self)
             raise AccountExistsException
         except:
             pass
 
-        referrer = Account(referrer)
-        registrar = Account(registrar)
+        referrer = Account(referrer, bitshares_instance=self)
+        registrar = Account(registrar, bitshares_instance=self)
 
         " Generate new keys from password"
         from bitsharesbase.account import PasswordKey, PublicKey
@@ -434,7 +425,7 @@ class BitShares(object):
             raise ValueError(
                 "Permission needs to be either 'owner', or 'active"
             )
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
 
         if not weight:
             weight = account[permission]["weight_threshold"]
@@ -448,7 +439,7 @@ class BitShares(object):
             ])
         except:
             try:
-                foreign_account = Account(foreign)
+                foreign_account = Account(foreign, bitshares_instance=self)
                 authority["account_auths"].append([
                     foreign_account["id"],
                     weight
@@ -495,7 +486,7 @@ class BitShares(object):
             raise ValueError(
                 "Permission needs to be either 'owner', or 'active"
             )
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         authority = account[permission]
 
         try:
@@ -509,7 +500,7 @@ class BitShares(object):
             ))
         except:
             try:
-                foreign_account = Account(foreign)
+                foreign_account = Account(foreign, bitshares_instance=self)
                 affected_items = list(
                     filter(lambda x: x[0] == foreign_account["id"],
                            authority["account_auths"]))
@@ -569,7 +560,7 @@ class BitShares(object):
 
         PublicKey(key)  # raises exception if invalid
 
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         account["options"].update({
             "memo_key": "BTS5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE"}
         )

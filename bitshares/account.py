@@ -1,4 +1,4 @@
-import bitshares as bts
+from bitshares.instance import shared_bitshares_instance
 from .amount import Amount
 from .exceptions import AccountDoesNotExistsException
 
@@ -16,10 +16,7 @@ class Account(dict):
     ):
         self.cached = False
         self.full = full
-
-        if not bitshares_instance:
-            bitshares_instance = bts.BitShares()
-        self.bitshares = bitshares_instance
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
 
         if isinstance(account, Account):
             super(Account, self).__init__(account)
