@@ -323,7 +323,7 @@ class BitShares(object):
             active_accounts_authority.append([k, 1])
 
         # voting account
-        voting_account = Account(proxy_account)
+        voting_account = Account(proxy_account or "proxy-to-self")
 
         op = {
             "fee": {"amount": 0, "asset_id": "1.3.0"},
