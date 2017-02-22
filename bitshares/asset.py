@@ -56,7 +56,10 @@ class Asset(dict):
         # Permissions and flags
         self["permissions"] = asset_permissions.todict(asset["options"]["issuer_permissions"])
         self["flags"] = asset_permissions.todict(asset["options"]["flags"])
-        self["description"] = json.loads(asset["options"]["description"])
+        try:
+            self["description"] = json.loads(asset["options"]["description"])
+        except:
+            self["description"] = asset["options"]["description"]
 
         self.cached = True
         self._cache(asset)

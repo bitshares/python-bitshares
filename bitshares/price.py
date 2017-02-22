@@ -5,7 +5,14 @@ from .utils import formatTimeString
 
 
 class Price(dict):
-    def __init__(self, *args, base=None, quote=None, bitshares_instance=None):
+    def __init__(
+        self,
+        *args,
+        base=None,   # base amount
+        quote=None,  # quote amount
+        base_asset=None,  # to identify sell/buy
+        bitshares_instance=None
+    ):
 
         self.bitshares = bitshares_instance or shared_bitshares_instance()
 
@@ -31,18 +38,20 @@ class Price(dict):
                         self["base"] = Amount(obj["quote"], bitshares_instance=self.bitshares)
 
                 # Filled order
-                elif "op" in obj:
-                    assert base, "Need a 'base' asset"
-                    self["base"] = Asset(base)
-                    if obj["op"]["receives"]["asset_id"] == base["id"]:
+                elif "receives" in obj:
+                    assert base_asset, "Need a 'base_asset' asset"
+                    base_asset = Asset(base_asset)
+                    if obj["receives"]["asset_id"] == base_asset["id"]:
                         # If the seller received "base" in a quote_base market, than
                         # it has been a sell order of quote
-                        self["base"] = Amount(obj["op"]["receives"], bitshares_instance=self.bitshares)
-                        self["quote"] = Amount(obj["op"]["pays"], bitshares_instance=self.bitshares)
+                        self["base"] = Amount(obj["receives"], bitshares_instance=self.bitshares)
+                        self["quote"] = Amount(obj["pays"], bitshares_instance=self.bitshares)
+                        self["type"] = "sell"
                     else:
                         # buy order
-                        self["base"] = Amount(obj["op"]["pays"], bitshares_instance=self.bitshares)
-                        self["quote"] = Amount(obj["op"]["receives"], bitshares_instance=self.bitshares)
+                        self["base"] = Amount(obj["pays"], bitshares_instance=self.bitshares)
+                        self["quote"] = Amount(obj["receives"], bitshares_instance=self.bitshares)
+                        self["type"] = "buy"
 
                 else:
                     raise ValueError("Invalid json format for Price()")
@@ -60,8 +69,21 @@ class Price(dict):
                     }, bitshares_instance=self.bitshares)
 
             elif (isinstance(base, str) and isinstance(quote, str)):
-                    self["base"] = Asset(base)
-                    self["quote"] = Asset(quote)
+                    quote = Asset(quote, bitshares_instance=self.bitshares)
+                    base = Asset(base, bitshares_instance=self.bitshares)
+                    self["quote"] = Amount({
+                        "amount": 10 ** quote["precision"],
+                        "asset": quote
+                    }, bitshares_instance=self.bitshares)
+                    self["base"] = Amount({
+                        "amount": float(obj) * 10 ** base["precision"],
+                        "asset": base
+                    }, bitshares_instance=self.bitshares)
+
+            elif (isinstance(base, Amount) and isinstance(quote, Amount)):
+                    self["quote"] = quote
+                    self["base"] = base
+
             else:
                 raise ValueError("Invalid way of calling Price()")
 
@@ -113,19 +135,7 @@ class Price(dict):
         return self
 
     def __repr__(self):
-        t = ""
-        if "time" in self and self["time"]:
-            t += "(%s) " % self["time"]
-        if "type" in self and self["type"]:
-            t += "%s " % str(self["type"])
-
-        if isinstance(self, Order) or isinstance(self, FilledOrder):
-            if "quote" in self and self["quote"]:
-                t += "%s " % str(self["quote"])
-            if "base" in self and self["base"]:
-                t += "%s " % str(self["base"])
-
-        return t + "{price:.{precision}f} {base}/{quote} ".format(
+        return "{price:.{precision}f} {base}/{quote} ".format(
             price=self["price"],
             base=self["base"]["symbol"],
             quote=self["quote"]["symbol"],
@@ -268,7 +278,8 @@ class Price(dict):
         from .market import Market
         return Market(
             base=self["base"],
-            quote=self["quote"]
+            quote=self["quote"],
+            bitshares_instance=self.bitshares
         )
 
 
@@ -283,12 +294,6 @@ class Order(Price):
             "sell_price" in args[0]
         ):
             super(Order, self).__init__(args[0]["sell_price"])
-            for k, v in args[0].items():
-                self[k] = v
-            self["price"] = Price(args[0]["sell_price"])
-            self["quote"] = Amount(args[0]["sell_price"]["quote"], bitshares_instance=self.bitshares)
-            self["base"] = Amount(args[0]["sell_price"]["base"], bitshares_instance=self.bitshares)
-
         elif (
             isinstance(args[0], dict) and
             "min_to_receive" in args[0] and
@@ -298,23 +303,29 @@ class Order(Price):
                 Amount(args[0]["min_to_receive"], bitshares_instance=self.bitshares),
                 Amount(args[0]["amount_to_sell"], bitshares_instance=self.bitshares),
             )
-            for k, v in args[0].items():
-                self[k] = v
-            self["price"] = Price(
-                Amount(args[0]["min_to_receive"], bitshares_instance=self.bitshares),
-                Amount(args[0]["amount_to_sell"], bitshares_instance=self.bitshares)
-            )
-            self["quote"] = Amount(args[0]["min_to_receive"], bitshares_instance=self.bitshares)
-            self["base"] = Amount(args[0]["amount_to_sell"], bitshares_instance=self.bitshares)
-
         elif isinstance(args[0], Amount) and isinstance(args[1], Amount):
-            self["price"] = Price(*args, **kwargs)
-            self["quote"] = args[0]
-            self["base"] = args[1]
+            super(Order, self).__init__(*args, **kwargs)
         else:
             raise ValueError("Unkown format to load Order")
 
+    def __repr__(self):
+        t = ""
+        if "time" in self and self["time"]:
+            t += "(%s) " % self["time"]
+        if "type" in self and self["type"]:
+            t += "%s " % str(self["type"])
+        if "quote" in self and self["quote"]:
+            t += "%s " % str(self["quote"])
+        if "base" in self and self["base"]:
+            t += "%s " % str(self["base"])
+        return t + "@ " + Price.__repr__(self)
 
+    __str__ = __repr__
+
+
+# TODO: fix this in combination with `openorders`
+# FilledOrder should just be a wrapper to Price and not have Price as value of
+# a key!
 class FilledOrder(Price):
 
     def __init__(self, order, bitshares_instance=None, **kwargs):
@@ -324,61 +335,36 @@ class FilledOrder(Price):
         if isinstance(order, dict) and "price" in order:
             super(FilledOrder, self).__init__(
                 order.get("price"),
-                base=Asset(kwargs.get("base")),
-                quote=Asset(kwargs.get("quote")),
-            )
-            self["quote"] = Amount(
-                order.get("amount"),
-                kwargs.get("quote"),
-                bitshares_instance=self.bitshares
-            )
-            self["base"] = Amount(
-                order.get("value"),
-                kwargs.get("base"),
-                bitshares_instance=self.bitshares
+                base=kwargs.get("base"),
+                quote=kwargs.get("quote"),
             )
             self["time"] = formatTimeString(order["date"])
-            self["price"] = Price(
-                order.get("price"),
-                base=Asset(kwargs.get("base")),
-                quote=Asset(kwargs.get("quote")),
-            )
-        elif isinstance(order, dict) and "op" in order:
-            quote = kwargs.get("quote")
-            base = kwargs.get("base")
+
+        elif isinstance(order, dict):
+            # filled orders from account history
+            if "op" in order:
+                order = order["op"]
+            base_asset = kwargs.get("base_asset", order["receives"]["asset_id"])
             super(FilledOrder, self).__init__(
                 order,
-                base=Asset(base),
-                quote=Asset(quote),
+                base_asset=base_asset,
             )
-            for k, v in order.items():
-                self[k] = v
-            if base["id"] == order["op"]["receives"]["asset_id"]:
-                self["quote"] = Amount(order["op"]["receives"], bitshares_instance=self.bitshares)
-                self["base"] = Amount(order["op"]["pays"], bitshares_instance=self.bitshares)
-                self["type"] = "buy"
-            else:
-                self["quote"] = Amount(order["op"]["pays"], bitshares_instance=self.bitshares)
-                self["base"] = Amount(order["op"]["receives"], bitshares_instance=self.bitshares)
-                self["type"] = "sell"
+            if "time" in order:
+                self["time"] = formatTimeString(order["time"])
 
-            self["time"] = formatTimeString(self["time"])
-            self["price"] = Price(
-                order,
-                base=Asset(base),
-                quote=Asset(quote),
-            )
-        elif (
-            isinstance(order, dict) and
-            "receives" in order and
-            "pays" in order
-        ):
-            self["quote"] = Amount(order["pays"], bitshares_instance=self.bitshares)
-            self["base"] = Amount(order["receives"], bitshares_instance=self.bitshares)
-            self["time"] = None
-            self["price"] = Price(
-                self["base"],
-                self["quote"]
-            )
         else:
             raise
+
+    def __repr__(self):
+        t = ""
+        if "time" in self and self["time"]:
+            t += "(%s) " % self["time"]
+        if "type" in self and self["type"]:
+            t += "%s " % str(self["type"])
+        if "quote" in self and self["quote"]:
+            t += "%s " % str(self["quote"])
+        if "base" in self and self["base"]:
+            t += "%s " % str(self["base"])
+        return t + "@ " + Price.__repr__(self)
+
+    __str__ = __repr__

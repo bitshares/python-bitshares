@@ -98,7 +98,7 @@ class Wallet():
                 raise InvalidWifError
             Wallet.keys[format(key.pubkey, self.prefix)] = str(key)
 
-    def unlock(self, pwd=None):
+    def unlock(self, pwd):
         """ Unlock the wallet database
         """
         if not self.created():
@@ -106,10 +106,8 @@ class Wallet():
 
         if (self.masterpassword is None and
                 self.configStorage[self.MasterPassword.config_key]):
-            if pwd is None:
-                pwd = self.getPassword()
-            masterpwd = self.MasterPassword(pwd)
-            self.masterpassword = masterpwd.decrypted_master
+            self.masterpwd = self.MasterPassword(pwd)
+            self.masterpassword = self.masterpwd.decrypted_master
 
     def lock(self):
         """ Lock the wallet database
@@ -119,20 +117,13 @@ class Wallet():
     def locked(self):
         """ Is the wallet database locked?
         """
-        return False if self.masterpassword else True
+        return not bool(self.masterpassword)
 
-    def changePassphrase(self):
+    def changePassphrase(self, new_pwd):
         """ Change the passphrase for the wallet database
         """
-        # Open Existing Wallet
-        pwd = self.getPassword()
-        masterpwd = self.MasterPassword(pwd)
-        self.masterpassword = masterpwd.decrypted_master
-        # Provide new passphrase
-        print("Please provide the new password")
-        newpwd = self.getPassword(confirm=True)
-        # Change passphrase
-        masterpwd.changePassword(newpwd)
+        assert not self.locked()
+        self.masterpwd.changePassword(new_pwd)
 
     def created(self):
         """ Do we have a wallet database already?
@@ -146,20 +137,18 @@ class Wallet():
         else:
             return False
 
-    def newWallet(self):
+    def newWallet(self, pwd):
         """ Create a new wallet database
         """
         if self.created():
             raise WalletExists("You already have created a wallet!")
-        print("Please provide a password for the new wallet")
-        pwd = self.getPassword(confirm=True)
-        masterpwd = self.MasterPassword(pwd)
-        self.masterpassword = masterpwd.decrypted_master
+        self.masterpwd = self.MasterPassword(pwd)
+        self.masterpassword = self.masterpwd.decrypted_master
 
     def encrypt_wif(self, wif):
         """ Encrypt a wif key
         """
-        self.unlock()
+        assert not self.locked()
         return format(bip38.encrypt(PrivateKey(wif), self.masterpassword), "encwif")
 
     def decrypt_wif(self, encwif):
@@ -171,39 +160,8 @@ class Wallet():
             return encwif
         except:
             pass
-        self.unlock()
+        assert not self.locked()
         return format(bip38.decrypt(encwif, self.masterpassword), "wif")
-
-    def getPassword(self, confirm=False, text='Passphrase: '):
-        """ Obtain a password from the user
-        """
-        import getpass
-        if "UNLOCK" in os.environ:
-            # overwrite password from environmental variable
-            return os.environ.get("UNLOCK")
-        if confirm:
-            # Loop until both match
-            while True:
-                pw = self.getPassword(confirm=False)
-                if not pw:
-                    print(
-                        "You cannot chosen an empty password! " +
-                        "If you want to automate the use of the libs, " +
-                        "please use the `UNLOCK` environmental variable!"
-                    )
-                    continue
-                else:
-                    pwck = self.getPassword(
-                        confirm=False,
-                        text="Confirm Passphrase: "
-                    )
-                    if (pw == pwck):
-                        return(pw)
-                    else:
-                        print("Given Passphrases do not match!")
-        else:
-            # return just one password
-            return getpass.getpass(text)
 
     def addPrivateKey(self, wif):
         """ Add a private key to the wallet database

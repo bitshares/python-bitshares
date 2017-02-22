@@ -36,13 +36,12 @@ class Account(dict):
     def refresh(self):
         import re
         if re.match("^1\.2\.[0-9]*$", self.name):
-            account = self.bitshares.rpc.get_objects([self.name])
+            account = self.bitshares.rpc.get_objects([self.name])[0]
         else:
-            account = self.bitshares.rpc.lookup_account_names([self.name])
+            account = self.bitshares.rpc.lookup_account_names([self.name])[0]
         if not account:
             raise AccountDoesNotExistsException
-        else:
-            account = account[0]
+
         if self.full:
             account = self.bitshares.rpc.get_full_accounts([account["id"]], False)[0][1]
             super(Account, self).__init__(account["account"])

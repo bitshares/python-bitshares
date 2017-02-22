@@ -192,8 +192,8 @@ class Market(dict):
         return list(map(
             lambda x: FilledOrder(
                 x,
-                base=self["base"],
-                quote=self["quote"]
+                quote=Amount(x["amount"], self["quote"]),
+                base=Amount(float(x["amount"]) * float(x["price"]), self["base"]),
             ), orders
         ))
 
@@ -338,12 +338,12 @@ class Market(dict):
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "seller": account["id"],
             "amount_to_sell": {
-                "amount": int(float(amount) * float(price) * 10 ** self["base"]["precision"]),
-                "asset_id": self["base"]["id"]
+                "amount": int(float(amount) * float(price) * 10 ** self["base"]["asset"]["precision"]),
+                "asset_id": self["base"]["asset"]["id"]
             },
             "min_to_receive": {
-                "amount": int(float(amount) * 10 ** self["quote"]["precision"]),
-                "asset_id": self["quote"]["id"]
+                "amount": int(float(amount) * 10 ** self["quote"]["asset"]["precision"]),
+                "asset_id": self["quote"]["asset"]["id"]
             },
             "expiration": formatTimeFromNow(expiration),
             "fill_or_kill": killfill,
@@ -416,12 +416,12 @@ class Market(dict):
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "seller": account["id"],
             "amount_to_sell": {
-                "amount": int(float(amount) * 10 ** self["quote"]["precision"]),
-                "asset_id": self["quote"]["id"]
+                "amount": int(float(amount) * 10 ** self["quote"]["asset"]["precision"]),
+                "asset_id": self["quote"]["asset"]["id"]
             },
             "min_to_receive": {
-                "amount": int(float(amount) * float(price) * 10 ** self["base"]["precision"]),
-                "asset_id": self["base"]["id"]
+                "amount": int(float(amount) * float(price) * 10 ** self["base"]["asset"]["precision"]),
+                "asset_id": self["base"]["asset"]["id"]
             },
             "expiration": formatTimeFromNow(expiration),
             "fill_or_kill": killfill,

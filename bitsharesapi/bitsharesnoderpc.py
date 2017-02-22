@@ -89,4 +89,4 @@ class BitSharesNodeRPC(GrapheneWebsocketRPC):
         for k, v in known_chains.items():
             if v["chain_id"] == chain_id:
                 return v
-        raise ValueError("Connecting to unknown network!")
+        log.critical("Connecting to unknown network!")

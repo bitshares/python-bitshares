@@ -1,17 +1,32 @@
 from bitshares.instance import shared_bitshares_instance
+
 from .exceptions import BlockDoesNotExistsException
+from .utils import parse_time
 
 
 class Block(dict):
-    def __init__(self, block, bitshares_instance=None):
+    """ Read a single block from the chain
+
+        :param int block: block number
+        :param BitShares bitshares_instance: BitShares() instance to use when accesing a RPC
+        :param bool lazy: Use lazy loading
+
+    """
+    def __init__(
+        self,
+        block,
+        bitshares_instance=None,
+        lazy=False
+    ):
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
         self.cached = False
         self.block = block
-
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
 
         if isinstance(block, Block):
             super(Block, self).__init__(block)
             self.cached = True
+        elif not lazy:
+            self.refresh()
 
     def refresh(self):
         block = self.bitshares.rpc.get_block(self.block)
@@ -29,3 +44,6 @@ class Block(dict):
         if not self.cached:
             self.refresh()
         return super(Block, self).items()
+
+    def time(self):
+        return parse_time(self['timestamp'])
