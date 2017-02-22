@@ -318,9 +318,11 @@ class BitShares(object):
             active_key_authority.append([k, 1])
 
         for k in additional_owner_accounts:
-            owner_accounts_authority.append([k, 1])
+            addaccount = Account(k, bitshares_instance=self)
+            owner_accounts_authority.append([addaccount["id"], 1])
         for k in additional_active_accounts:
-            active_accounts_authority.append([k, 1])
+            addaccount = Account(k, bitshares_instance=self)
+            active_accounts_authority.append([addaccount["id"], 1])
 
         # voting account
         voting_account = Account(proxy_account or "proxy-to-self")
