@@ -59,6 +59,7 @@ Low Level Classes
    utils
    transactionbuilder
    wallet
+   websocket
    websocketrpc
    transactions
    memo

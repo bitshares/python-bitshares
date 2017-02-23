@@ -1,4 +1,5 @@
 __all__ = [
     "bitsharesnoderpc",
-    "exceptions"
+    "exceptions",
+    "websocket",
 ]
