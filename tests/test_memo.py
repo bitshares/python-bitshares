@@ -1,8 +1,8 @@
 import unittest
 import os
 from pprint import pprint
-from graphenebase.account import BrainKey, Address, PublicKey, PrivateKey
-from graphenebase.memo import (
+from bitsharesbase.account import BrainKey, Address, PublicKey, PrivateKey
+from bitsharesbase.memo import (
     get_shared_secret,
     _pad,
     _unpad,

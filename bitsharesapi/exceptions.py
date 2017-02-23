@@ -30,3 +30,7 @@ class NoMethodWithName(RPCError):
 
 class UnhandledRPCError(RPCError):
     pass
+
+
+class NumRetriesReached(Exception):
+    pass

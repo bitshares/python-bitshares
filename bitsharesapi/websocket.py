@@ -5,17 +5,12 @@ import json
 import logging
 from itertools import cycle
 from threading import Thread
-
+from .exceptions import NumRetriesReached
 from events import Events
 import websocket
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
-
-
-
-class NumRetriesReached(Exception):
-    pass
 
 
 class BitSharesWebsocket(Events):
