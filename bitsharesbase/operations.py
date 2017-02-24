@@ -41,7 +41,7 @@ class Transfer(GrapheneObject):
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
-            if "memo" in kwargs:
+            if "memo" in kwargs and kwargs["memo"]:
                 memo = Optional(Memo(kwargs["memo"]))
             else:
                 memo = Optional(None)

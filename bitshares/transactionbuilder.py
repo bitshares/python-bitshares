@@ -20,9 +20,7 @@ class TransactionBuilder(dict):
 
     def __init__(self, tx={}, bitshares_instance=None):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
-
-        self.op = []
-        self.wifs = []
+        self.clear()
         if not isinstance(tx, dict):
             raise ValueError("Invalid TransactionBuilder Format")
         super(TransactionBuilder, self).__init__(tx)
@@ -33,7 +31,6 @@ class TransactionBuilder(dict):
                 self.op.append(op)
         else:
             self.op.append(ops)
-        self.constructTx()
 
     def appendSigner(self, account, permission):
         assert permission in ["active", "owner"], "Invalid permission"
@@ -93,6 +90,7 @@ class TransactionBuilder(dict):
                 from the wallet as defined in "missing_signatures" key
                 of the transactions.
         """
+        self.constructTx()
 
         # We need to set the default prefix, otherwise pubkeys are
         # presented wrongly!
@@ -112,27 +110,35 @@ class TransactionBuilder(dict):
         signedtx.sign(self.wifs, chain=self.bitshares.rpc.chain_params)
         self["signatures"].extend(signedtx.json().get("signatures"))
 
-    def broadcast(self):
-        """ Broadcast a transaction to the BitShares network
-
-            :param tx tx: Signed transaction to broadcast
-        """
-        if self.bitshares.nobroadcast:
-            log.warning("Not broadcasting anything!")
-            return self
-
+    def verify_authority(self):
         try:
             if not self.bitshares.rpc.verify_authority(self.json()):
                 raise InsufficientAuthorityError
         except Exception as e:
             raise e
 
+    def broadcast(self):
+        """ Broadcast a transaction to the BitShares network
+
+            :param tx tx: Signed transaction to broadcast
+        """
+        self.sign()
+
+        if self.bitshares.nobroadcast:
+            log.warning("Not broadcasting anything!")
+            return self
+
+        # Broadcast
         try:
             self.bitshares.rpc.broadcast_transaction(self.json(), api="network_broadcast")
         except Exception as e:
             raise e
 
         return self
+
+    def clear(self):
+        self.op = []
+        self.wifs = []
 
     def addSigningInformation(self, account, permission):
         """ This is a private method that adds side information to a
