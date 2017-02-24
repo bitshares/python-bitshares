@@ -201,7 +201,6 @@ class BitShares(object):
 
     def create_account(self,
                        account_name,
-                       json_meta={},
                        registrar=None,
                        referrer="1.2.35641",
                        referrer_percent=50,
@@ -240,7 +239,6 @@ class BitShares(object):
                       your password!
 
             :param str account_name: (**required**) new account name
-            :param str json_meta: Optional meta data for the account
             :param str registrar: which account should pay the registration fee
                                 (defaults to ``default_account``)
             :param str owner_key: Main owner key
@@ -417,6 +415,7 @@ class BitShares(object):
             :param int threshold: The threshold that needs to be reached
                 by signatures to be able to interact
         """
+        from copy import deepcopy
         if not account:
             if "default_account" in config:
                 account = config["default_account"]
@@ -432,9 +431,9 @@ class BitShares(object):
         if not weight:
             weight = account[permission]["weight_threshold"]
 
-        authority = account[permission]
+        authority = deepcopy(account[permission])
         try:
-            pubkey = PublicKey(foreign)
+            pubkey = PublicKey(foreign, prefix=self.rpc.chain_params["prefix"])
             authority["key_auths"].append([
                 str(pubkey),
                 weight
@@ -448,7 +447,7 @@ class BitShares(object):
                 ])
             except:
                 raise ValueError(
-                    "Unknown foreign account or unvalid public key"
+                    "Unknown foreign account or invalid public key"
                 )
         if threshold:
             authority["weight_threshold"] = threshold
@@ -458,7 +457,8 @@ class BitShares(object):
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "account": account["id"],
             permission: authority,
-            "extensions": {}
+            "extensions": {},
+            "prefix": self.rpc.chain_params["prefix"]
         })
         if permission == "owner":
             return self.finalizeOp(op, account["name"], "owner")
@@ -492,7 +492,7 @@ class BitShares(object):
         authority = account[permission]
 
         try:
-            pubkey = PublicKey(foreign)
+            pubkey = PublicKey(foreign, prefix=self.rpc.chain_params["prefix"])
             affected_items = list(
                 filter(lambda x: x[0] == str(pubkey),
                        authority["key_auths"]))
@@ -560,7 +560,7 @@ class BitShares(object):
         if not account:
             raise ValueError("You need to provide an account")
 
-        PublicKey(key)  # raises exception if invalid
+        PublicKey(key, prefix=self.rpc.chain_params["prefix"])
 
         account = Account(account, bitshares_instance=self)
         account["options"].update({

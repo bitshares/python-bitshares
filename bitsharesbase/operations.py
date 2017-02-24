@@ -78,6 +78,7 @@ class Asset_update(GrapheneObject):
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
+
             if "new_issuer" in kwargs:
                 new_issuer = Optional(ObjectId(kwargs["new_issuer"], "account"))
             else:
