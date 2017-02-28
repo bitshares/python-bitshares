@@ -48,3 +48,7 @@ class WifNotActive(Exception):
 
 class WitnessDoesNotExistsException(Exception):
     pass
+
+
+class WrongMasterPasswordException(Exception):
+    pass

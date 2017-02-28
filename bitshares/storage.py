@@ -9,6 +9,7 @@ import logging
 from binascii import hexlify
 import random
 import hashlib
+from .exceptions import WrongMasterPasswordException
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 log.addHandler(logging.StreamHandler())
@@ -355,10 +356,6 @@ class Configuration(DataDir):
         cursor = connection.cursor()
         cursor.execute(query)
         return len(cursor.fetchall())
-
-
-class WrongMasterPasswordException(Exception):
-    pass
 
 
 class MasterPassword(object):

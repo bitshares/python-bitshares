@@ -7,7 +7,9 @@ from bitsharesbase.account import PrivateKey, GPHPrivateKey
 from .account import Account
 from .exceptions import (
     InvalidWifError,
-    WalletExists
+    WalletExists,
+    WrongMasterPasswordException,
+    NoWalletException
 )
 
 log = logging.getLogger(__name__)
@@ -98,16 +100,24 @@ class Wallet():
                 raise InvalidWifError
             Wallet.keys[format(key.pubkey, self.prefix)] = str(key)
 
-    def unlock(self, pwd):
+    def unlock(self, pwd=None):
         """ Unlock the wallet database
         """
         if not self.created():
-            self.newWallet()
+            raise NoWalletException
 
-        if (self.masterpassword is None and
-                self.configStorage[self.MasterPassword.config_key]):
-            self.masterpwd = self.MasterPassword(pwd)
-            self.masterpassword = self.masterpwd.decrypted_master
+        if not pwd:
+            self.tryUnlockFromEnv()
+        else:
+            if (self.masterpassword is None and
+                    self.configStorage[self.MasterPassword.config_key]):
+                self.masterpwd = self.MasterPassword(pwd)
+                self.masterpassword = self.masterpwd.decrypted_master
+
+    def tryUnlockFromEnv(self):
+        if "UNLOCK" in os.environ:
+            log.debug("Trying to use environmental variable to unlock wallet")
+            self.unlock(os.environ.get("UNLOCK"))
 
     def lock(self):
         """ Lock the wallet database
@@ -117,6 +127,7 @@ class Wallet():
     def locked(self):
         """ Is the wallet database locked?
         """
+        self.tryUnlockFromEnv()
         return not bool(self.masterpassword)
 
     def changePassphrase(self, new_pwd):
@@ -136,6 +147,11 @@ class Wallet():
             return True
         else:
             return False
+
+    def create(self, pwd):
+        """ Alias for newWallet()
+        """
+        self.newWallet(pwd)
 
     def newWallet(self, pwd):
         """ Create a new wallet database
@@ -177,7 +193,7 @@ class Wallet():
         if self.keyStorage:
             # Test if wallet exists
             if not self.created():
-                self.newWallet()
+                raise NoWalletException
             self.keyStorage.add(self.encrypt_wif(wif), pub)
 
     def getPrivateKeyForPublicKey(self, pub):
@@ -196,7 +212,7 @@ class Wallet():
         else:
             # Test if wallet exists
             if not self.created():
-                self.newWallet()
+                raise NoWalletException
 
             return self.decrypt_wif(self.keyStorage.getPrivateKeyForPublicKey(pub))
 
@@ -206,7 +222,7 @@ class Wallet():
         if self.keyStorage:
             # Test if wallet exists
             if not self.created():
-                self.newWallet()
+                raise NoWalletException
             self.keyStorage.delete(pub)
 
     def removeAccount(self, account):
