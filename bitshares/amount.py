@@ -16,13 +16,13 @@ class Amount(dict):
 
         elif len(args) == 1 and isinstance(args[0], str):
             self["amount"], self["symbol"] = args[0].split(" ")
-            self["asset"] = Asset(self["symbol"])
+            self["asset"] = Asset(self["symbol"], bitshares_instance=self.bitshares)
 
         elif (len(args) == 1 and
                 isinstance(args[0], dict) and
                 "amount" in args[0] and
                 "asset_id" in args[0]):
-            self["asset"] = Asset(args[0]["asset_id"])
+            self["asset"] = Asset(args[0]["asset_id"], bitshares_instance=self.bitshares)
             self["symbol"] = self["asset"]["symbol"]
             self["amount"] = int(args[0]["amount"]) / 10 ** self["asset"]["precision"]
 
@@ -30,7 +30,7 @@ class Amount(dict):
                 isinstance(args[0], dict) and
                 "amount" in args[0] and
                 "asset" in args[0]):
-            self["asset"] = Asset(args[0]["asset"])
+            self["asset"] = Asset(args[0]["asset"], bitshares_instance=self.bitshares)
             self["symbol"] = self["asset"]["symbol"]
             self["amount"] = int(args[0]["amount"]) / 10 ** self["asset"]["precision"]
 
@@ -41,7 +41,7 @@ class Amount(dict):
 
         elif len(args) == 2 and isinstance(args[1], str):
             self["amount"] = args[0]
-            self["asset"] = Asset(args[1])
+            self["asset"] = Asset(args[1], bitshares_instance=self.bitshares)
             self["symbol"] = self["asset"]["symbol"]
 
         elif amount and asset:
@@ -58,7 +58,8 @@ class Amount(dict):
     def copy(self):
         return Amount(
             amount=self["amount"],
-            asset=self["asset"].copy())
+            asset=self["asset"].copy(),
+            bitshares_instance=self.bitshares)
 
     @property
     def amount(self):
@@ -88,7 +89,7 @@ class Amount(dict):
         return int(self["amount"] * 10 ** self["asset"]["precision"])
 
     def __add__(self, other):
-        a = Amount(self)
+        a = self.copy()
         if isinstance(other, Amount):
             assert other["asset"] == self["asset"]
             a["amount"] += other["amount"]
@@ -97,7 +98,7 @@ class Amount(dict):
         return a
 
     def __sub__(self, other):
-        a = Amount(self)
+        a = self.copy()
         if isinstance(other, Amount):
             assert other["asset"] == self["asset"]
             a["amount"] -= other["amount"]
@@ -106,7 +107,7 @@ class Amount(dict):
         return a
 
     def __mul__(self, other):
-        a = Amount(self)
+        a = self.copy()
         if isinstance(other, Amount):
             a["amount"] *= other["amount"]
         else:
@@ -114,7 +115,7 @@ class Amount(dict):
         return a
 
     def __floordiv__(self, other):
-        a = Amount(self)
+        a = self.copy()
         if isinstance(other, Amount):
             from .price import Price
             return Price(self, other)
@@ -123,7 +124,7 @@ class Amount(dict):
         return a
 
     def __div__(self, other):
-        a = Amount(self)
+        a = self.copy()
         if isinstance(other, Amount):
             from .price import Price
             return Price(self, other)
@@ -132,7 +133,7 @@ class Amount(dict):
         return a
 
     def __mod__(self, other):
-        a = Amount(self)
+        a = self.copy()
         if isinstance(other, Amount):
             a["amount"] %= other["amount"]
         else:
@@ -140,7 +141,7 @@ class Amount(dict):
         return a
 
     def __pow__(self, other):
-        a = Amount(self)
+        a = self.copy()
         if isinstance(other, Amount):
             a["amount"] **= other["amount"]
         else:

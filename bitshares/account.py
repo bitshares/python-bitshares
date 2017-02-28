@@ -76,7 +76,10 @@ class Account(dict):
     @property
     def balances(self):
         balances = self.bitshares.rpc.get_account_balances(self["id"], [])
-        return [Amount(b) for b in balances if int(b["amount"]) > 0]
+        return [
+            Amount(b, bitshares_instance=self.bitshares)
+            for b in balances if int(b["amount"]) > 0
+        ]
 
     def balance(self, symbol):
         balances = self.balances
