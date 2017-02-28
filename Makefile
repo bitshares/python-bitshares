@@ -10,7 +10,7 @@ clean-build:
 	rm -fr build/
 	rm -fr dist/
 	rm -fr *.egg-info
-	rm -fr __pycache__/
+	rm -fr __pycache__/ .eggs/ .cache/
 
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
@@ -18,7 +18,7 @@ clean-pyc:
 	find . -name '*~' -exec rm -f {} +
 
 lint:
-	flake8 steemapi/ steembase/
+	flake8 bitsharesapi/ bitsharesbase/ bitshares/
 
 test:
 	python3 setup.py test
