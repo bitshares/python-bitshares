@@ -12,7 +12,7 @@ except LookupError:
     ascii = codecs.lookup('ascii')
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == 'mbcs'))
 
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 
 setup(
     name='bitshares',
@@ -41,13 +41,10 @@ setup(
         'Topic :: Office/Business :: Financial',
     ],
     install_requires=[
-        "graphenelib",
+        "graphenelib==0.5.0",
         "websockets==2.0",
         "appdirs",
         "Events==0.2.2",
-    ],
-    dependency_links=[
-        "git+https://github.com/xeroc/python-graphenelib@minimal#egg=graphenelib"
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
