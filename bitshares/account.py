@@ -69,14 +69,6 @@ class Account(dict):
             self.refresh()
         return super(Account, self).items()
 
-    def virtual_op_count(self):
-        try:
-            last_item = self.bitshares.rpc.get_account_history(self.name, -1, 0)[0][0]
-        except IndexError:
-            return 0
-        else:
-            return last_item
-
     @property
     def is_ltm(self):
         return self["id"] == self["lifetime_referrer"]
@@ -108,56 +100,7 @@ class Account(dict):
             self.refresh()
         return [Order(o) for o in self["limit_orders"]]
 
-    def history(self, filter_by=None, start=0):
-        """ Take all elements from start to last from history, oldest first.
-        """
-        batch_size = 1000
-        max_index = self.virtual_op_count()
-        if not max_index:
-            return
-
-        start_index = start + batch_size
-        i = start_index
-        while True:
-            if i == start_index:
-                limit = batch_size
-            else:
-                limit = batch_size - 1
-            history = self.bitshares.rpc.get_account_history(self.name, i, limit)
-            for item in history:
-                index = item[0]
-                if index >= max_index:
-                    return
-
-                op_type = item[1]['op'][0]
-                op = item[1]['op'][1]
-                timestamp = item[1]['timestamp']
-                trx_id = item[1]['trx_id']
-
-                def construct_op(account_name):
-                    r = {
-                        "index": index,
-                        "account": account_name,
-                        "trx_id": trx_id,
-                        "timestamp": timestamp,
-                        "type": op_type,
-                    }
-                    r.update(op)
-                    return r
-
-                if filter_by is None:
-                    yield construct_op(self.name)
-                else:
-                    if type(filter_by) is list:
-                        if op_type in filter_by:
-                            yield construct_op(self.name)
-
-                    if type(filter_by) is str:
-                        if op_type == filter_by:
-                            yield construct_op(self.name)
-            i += batch_size
-
-    def rawhistory(
+    def history(
         self, first=None,
         last=1, limit=100,
         only_ops=[], exclude_ops=[]
