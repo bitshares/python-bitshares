@@ -64,40 +64,55 @@ class Market(dict):
         """
         data = {}
         # Core Exchange rate
-        data["core_exchange_rate"] = Price(self["quote"]["options"]["core_exchange_rate"], base=self["base"])
+        data["core_exchange_rate"] = Price(
+            self["quote"]["options"]["core_exchange_rate"],
+            base=self["base"],
+            bitshares_instance=self.bitshares
+        )
 
         # smartcoin stuff
         if "bitasset_data_id" in self["quote"]:
             bitasset = self.bitshares.rpc.get_object(self["quote"]["bitasset_data_id"])
             backing_asset_id = bitasset["options"]["short_backing_asset"]
             if backing_asset_id == self["base"]["id"]:
-                data["quoteSettlement_price"] = Price(bitasset["current_feed"]["settlement_price"], base=self["base"])
+                data["quoteSettlement_price"] = Price(
+                    bitasset["current_feed"]["settlement_price"],
+                    base=self["base"],
+                    bitshares_instance=self.bitshares
+                )
         elif "bitasset_data_id" in self["base"]:
             bitasset = self.bitshares.rpc.get_object(self["base"]["bitasset_data_id"])
             backing_asset_id = bitasset["options"]["short_backing_asset"]
             if backing_asset_id == self["quote"]["id"]:
-                data["baseSettlement_price"] = Price(bitasset["current_feed"]["settlement_price"], base=self["base"])
+                data["baseSettlement_price"] = Price(
+                    bitasset["current_feed"]["settlement_price"],
+                    base=self["base"],
+                    bitshares_instance=self.bitshares
+                )
 
         ticker = self.bitshares.rpc.get_ticker(
             self["base"]["id"],
             self["quote"]["id"],
         )
-        data["baseVolume"] = Amount(ticker["base_volume"], self["base"])
-        data["quoteVolume"] = Amount(ticker["quote_volume"], self["quote"])
+        data["baseVolume"] = Amount(ticker["base_volume"], self["base"], bitshares_instance=self.bitshares)
+        data["quoteVolume"] = Amount(ticker["quote_volume"], self["quote"], bitshares_instance=self.bitshares)
         data["lowestAsk"] = Price(
             ticker["lowest_ask"],
             base=self["base"],
-            quote=self["quote"]
+            quote=self["quote"],
+            bitshares_instance=self.bitshares
         )
         data["highestBid"] = Price(
             ticker["highest_bid"],
             base=self["base"],
-            quote=self["quote"]
+            quote=self["quote"],
+            bitshares_instance=self.bitshares
         )
         data["latest"] = Price(
             ticker["latest"],
             quote=self["quote"],
             base=self["base"],
+            bitshares_instance=self.bitshares
         )
         data["percentChange"] = round(float(ticker["percent_change"]) * 100, 3)
 
@@ -121,8 +136,8 @@ class Market(dict):
             self["quote"]["id"],
         )
         return {
-            self["base"]["symbol"]: Amount(volume["base_volume"], self["base"]),
-            self["quote"]["symbol"]: Amount(volume["quote_volume"], self["quote"])
+            self["base"]["symbol"]: Amount(volume["base_volume"], self["base"]), bitshares_instance=self.bitshares,
+            self["quote"]["symbol"]: Amount(volume["quote_volume"], self["quote"], bitshares_instance=self.bitshares)
         }
 
     def orderbook(self, limit=25):
@@ -159,12 +174,14 @@ class Market(dict):
             limit
         )
         asks = list(map(lambda x: Order(
-            Amount(x["quote"], self["quote"]),
-            Amount(x["base"], self["base"])
+            Amount(x["quote"], self["quote"], bitshares_instance=self.bitshares),
+            Amount(x["base"], self["base"], bitshares_instance=self.bitshares),
+            bitshares_instance=self.bitshares
         ), orders["asks"]))
         bids = list(map(lambda x: Order(
-            Amount(x["quote"], self["quote"]),
-            Amount(x["base"], self["base"])
+            Amount(x["quote"], self["quote"], bitshares_instance=self.bitshares),
+            Amount(x["base"], self["base"], bitshares_instance=self.bitshares),
+            bitshares_instance=self.bitshares
         ), orders["bids"]))
         data = {"asks": asks, "bids": bids}
         return data
@@ -192,8 +209,9 @@ class Market(dict):
         return list(map(
             lambda x: FilledOrder(
                 x,
-                quote=Amount(x["amount"], self["quote"]),
-                base=Amount(float(x["amount"]) * float(x["price"]), self["base"]),
+                quote=Amount(x["amount"], self["quote"], bitshares_instance=self.bitshares),
+                base=Amount(float(x["amount"]) * float(x["price"]), self["base"], bitshares_instance=self.bitshares),
+                bitshares_instance=self.bitshares
             ), orders
         ))
 
@@ -238,7 +256,8 @@ class Market(dict):
                     FilledOrder(
                         f,
                         base=self["base"],
-                        quote=self["quote"]
+                        quote=self["quote"],
+                        bitshares_instance=self.bitshares
                     ))
         return trades
 
@@ -262,7 +281,10 @@ class Market(dict):
                 o["sell_price"]["base"]["asset_id"] == self["quote"]["id"] and
                 o["sell_price"]["quote"]["asset_id"] == self["base"]["id"]
             )):
-                r.append(Order(o))
+                r.append(Order(
+                    o,
+                    bitshares_instance=self.bitshares
+                ))
         return r
 
     def buy(
@@ -329,10 +351,10 @@ class Market(dict):
                 raise ValueError("The assets in the price do not match the market!")
 
         if isinstance(amount, Amount):
-            amount = Amount(amount)
+            amount = Amount(amount, bitshares_instance=self.bitshares)
             assert(amount["asset"]["symbol"] == self["quote"]["symbol"])
         else:
-            amount = Amount(amount, self["quote"]["symbol"])
+            amount = Amount(amount, self["quote"]["symbol"], bitshares_instance=self.bitshares)
 
         order = operations.Limit_order_create(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -350,7 +372,10 @@ class Market(dict):
         })
         tx = self.bitshares.finalizeOp(order, account["name"], "active")
         if returnOrderId:
-            chain = Blockchain(mode=("head" if returnOrderId == "head" else "irreversible"))
+            chain = Blockchain(
+                mode=("head" if returnOrderId == "head" else "irreversible"),
+                bitshares_instance=self.bitshares
+            )
             tx = chain.awaitTxConfirmation(tx)
             tx["orderid"] = tx["operation_results"][0][1]
         return tx
@@ -407,10 +432,10 @@ class Market(dict):
                 raise ValueError("The assets in the price do not match the market!")
 
         if isinstance(amount, Amount):
-            amount = Amount(amount)
+            amount = Amount(amount, bitshares_instance=self.bitshares)
             assert(amount["asset"]["symbol"] == self["quote"]["symbol"])
         else:
-            amount = Amount(amount, self["quote"]["symbol"])
+            amount = Amount(amount, self["quote"]["symbol"], bitshares_instance=self.bitshares)
 
         order = operations.Limit_order_create(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -428,7 +453,10 @@ class Market(dict):
         })
         tx = self.bitshares.finalizeOp(order, account["name"], "active")
         if returnOrderId:
-            chain = Blockchain(mode=("head" if returnOrderId == "head" else "irreversible"))
+            chain = Blockchain(
+                mode=("head" if returnOrderId == "head" else "irreversible"),
+                bitshares_instance=self.bitshares
+            )
             tx = chain.awaitTxConfirmation(tx)
             tx["orderid"] = tx["operation_results"][0][1]
         return tx
