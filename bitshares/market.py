@@ -136,7 +136,7 @@ class Market(dict):
             self["quote"]["id"],
         )
         return {
-            self["base"]["symbol"]: Amount(volume["base_volume"], self["base"]), bitshares_instance=self.bitshares,
+            self["base"]["symbol"]: Amount(volume["base_volume"], self["base"], bitshares_instance=self.bitshares),
             self["quote"]["symbol"]: Amount(volume["quote_volume"], self["quote"], bitshares_instance=self.bitshares)
         }
 

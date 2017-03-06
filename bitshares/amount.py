@@ -3,6 +3,41 @@ from .asset import Asset
 
 
 class Amount(dict):
+    """ This class deals with Amounts of any asset to simplify dealing with the tuple::
+
+            (amount, asset)
+
+        :param list args: Allows to deal with different representations of an amount
+        :param float amount: Let's create an instance with a specific amount
+        :param str asset: Let's you create an instance with a specific asset (symbol)
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :returns: All data required to represent an Amount/Asset
+        :rtype: dict
+        :raises ValueError: if the data provided is not recognized
+
+        Way to obtain a proper instance:
+
+            * ``args`` can be a string, e.g.:  "1 USD"
+            * ``args`` can be a dictionary containing ``amount`` and ``asset_id``
+            * ``args`` can be a dictionary containing ``amount`` and ``asset``
+            * ``args`` can be a list of a ``float`` and ``str`` (symbol)
+            * ``args`` can be a list of a ``float`` and a :class:`bitshares.asset.Asset`
+            * ``amount`` and ``asset`` are defined manually
+
+        An instance is a dictionary and comes with the following keys:
+
+            * ``amount`` (float)
+            * ``symbol`` (str)
+            * ``asset`` (instance of :class:`bitshares.asset.Asset`)
+
+        Instances of this class can be used in regular mathematical expressions
+        (``+-*/%``) such as:
+
+        .. code-block:: python
+
+            Amount("1 USD") * 2
+            Amount("15 GOLD") + Amount("0.5 GOLD")
+    """
     def __init__(self, *args, amount=None, asset=None, bitshares_instance=None):
         self["asset"] = {}
 
@@ -50,12 +85,14 @@ class Amount(dict):
             self["symbol"] = self["asset"]["symbol"]
 
         else:
-            raise
+            raise ValueError
 
         # make sure amount is a float
         self["amount"] = float(self["amount"])
 
     def copy(self):
+        """ Copy the instance and make sure not to use a reference
+        """
         return Amount(
             amount=self["amount"],
             asset=self["asset"].copy(),
@@ -63,14 +100,20 @@ class Amount(dict):
 
     @property
     def amount(self):
+        """ Returns the amount as float
+        """
         return self["amount"]
 
     @property
     def symbol(self):
+        """ Returns the symbol of the asset
+        """
         return self["symbol"]
 
     @property
     def asset(self):
+        """ Returns the asset as instance of :class:`bitshares.asset.Asset`
+        """
         if not self["asset"]:
             self["asset"] = Asset(self["symbol"], bitshares_instance=self.bitshares)
         return self["asset"]
