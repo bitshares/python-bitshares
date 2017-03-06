@@ -11,6 +11,35 @@ from bitsharesbase.objects import Operation
 
 
 class Market(dict):
+    """ This class allows to easily access Markets on the blockchain for trading, etc.
+
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param bitshares.asset.Asset base: Base asset
+        :param bitshares.asset.Asset quote: Quote asset
+        :returns: Blockchain Market
+        :rtype: dictionary with overloaded methods
+
+        Instances of this class are dictionaries that come with additional
+        methods (see below) that allow dealing with a market and it's
+        corresponding functions.
+
+        This class tries to identify **two** assets as provided in the
+        parameters in one of the following forms:
+
+        * ``base`` and ``quote`` are valid assets (according to :class:`bitshares.asset.Asset`)
+        * ``base:quote`` separated with ``:``
+        * ``base/quote`` separated with ``/``
+        * ``base-quote`` separated with ``-``
+
+        .. note:: Throughout this library, the ``quote`` symbol will be
+                  presented first (e.g. ``USD:BTS`` with ``USD`` being the
+                  quote), while the ``base`` only refers to a secondary asset
+                  for a trade. This means, if you call
+                  :func:`bitshares.market.Market.sell` or
+                  :func:`bitshares.market.Market.buy`, you will sell/buy **only
+                  quote** and obtain/pay **only base**.
+
+    """
     def __init__(
         self,
         *args,
@@ -263,6 +292,8 @@ class Market(dict):
 
     def accountopenorders(self, account=None):
         """ Returns open Orders
+
+            :param bitshares.account.Account account: Account name or instance of Account to show orders for in this market
         """
         if not account:
             if "default_account" in self.bitshares.config:

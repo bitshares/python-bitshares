@@ -16,7 +16,9 @@ def shared_bitshares_instance():
 
 def set_shared_bitshares_instance(bitshares_instance):
     """ This method allows us to override default bitshares instance for all users of
-       ``_shared_bitshares_instance``.
+        ``_shared_bitshares_instance``.
+
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
     """
     global _shared_bitshares_instance
     _shared_bitshares_instance = bitshares_instance

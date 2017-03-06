@@ -5,18 +5,23 @@ from .asset import Asset
 from .amount import Amount
 from .market import Market
 from .price import Price, Order
-from .exceptions import (
-    NoWalletException,
-    InvalidWifKey,
-    WifNotActive,
-)
+from .exceptions import NoWalletException
 from .utils import formatTimeFromNow
 from bitsharesbase import operations
 from bitsharesbase.objects import Operation
 
 
 class Dex():
-    def __init__(self, bitshares_instance=None, **kwargs):
+    """ This class simplifies interactions with the decentralized exchange.
+
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+
+        .. note:: The methods of this class only deal with a single asset (at
+                  most). If you are looking to deal with orders for trading,
+                  please use :class:`bitshares.market.Market`.
+
+    """
+    def __init__(self, bitshares_instance=None):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
 
     def returnFees(self):

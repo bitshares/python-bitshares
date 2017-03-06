@@ -6,18 +6,19 @@ from bitsharesbase.operationids import operations, getOperationNameForId
 
 
 class Blockchain(object):
+    """ This class allows to access the blockchain and read data
+        from it
+
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param str mode: (default) Irreversible block (``irreversible``) or actual head block (``head``)
+
+        This class let's you deal with blockchain related data and methods.
+    """
     def __init__(
         self,
         bitshares_instance=None,
         mode="irreversible"
     ):
-        """ This class allows to access the blockchain and read data
-            from it
-
-            :param BitShares bitshares_instance: BitShares() instance to use when accesing a RPC
-            :param str mode: (default) Irreversible block
-                    (``irreversible``) or actual head block (``head``)
-        """
         self.bitshares = bitshares_instance or shared_bitshares_instance()
 
         if mode == "irreversible":
@@ -33,12 +34,22 @@ class Blockchain(object):
         return self.bitshares.rpc.get_dynamic_global_properties()
 
     def chainParameters(self):
+        """ The blockchain parameters, such as fees, and committee-controlled
+            parameters are returned here
+        """
         return self.config()["parameters"]
 
     def get_network(self):
+        """ Identify the network
+
+            :returns: Network parameters
+            :rtype: dict
+        """
         return self.bitshares.rpc.get_network()
 
     def get_chain_properties(self):
+        """ Return chain properties
+        """
         return self.bitshares.rpc.get_chain_properties()
 
     def config(self):
@@ -48,11 +59,17 @@ class Blockchain(object):
 
     def get_current_block_num(self):
         """ This call returns the current block
+
+            .. note:: The block number returned depends on the ``mode`` used
+                      when instanciating from this class.
         """
         return self.info().get(self.mode)
 
     def get_current_block(self):
         """ This call returns the current block
+
+            .. note:: The block number returned depends on the ``mode`` used
+                      when instanciating from this class.
         """
         return Block(self.get_current_block_num())
 
@@ -103,7 +120,7 @@ class Blockchain(object):
             start = head_block + 1
 
             if stop and start > stop:
-                break
+                raise StopIteration
 
             # Sleep for one block
             time.sleep(block_interval)
@@ -159,12 +176,19 @@ class Blockchain(object):
                 yield r
 
     def awaitTxConfirmation(self, transaction, limit=50):
-        """ Returns the transction as seen by the blockchain after being included into a block
+        """ Returns the transaction as seen by the blockchain after being included into a block
 
-            .. note:: If you want instant confirmation, you need to instanciate
+            .. note:: If you want instant confirmation, you need to instantiate
                       class:`bitshares.blockchain.Blockchain` with
                       ``mode="head"``, otherwise, the call will wait until
-                      connfirmed in an irreversible block.
+                      confirmed in an irreversible block.
+
+            .. note:: This method returns once the blockchain has included a
+                      transaction with the **same signature**. Even though the
+                      signature is not usually used to identify a transaction,
+                      it still cannot be forfeited and is derived from the
+                      transaction contented and thus identifies a transaction
+                      uniquely.
         """
         counter = 10
         for block in self.blocks():
