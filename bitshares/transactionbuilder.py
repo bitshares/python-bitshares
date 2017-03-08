@@ -26,6 +26,10 @@ class TransactionBuilder(dict):
         super(TransactionBuilder, self).__init__(tx)
 
     def appendOps(self, ops):
+        """ Append op(s) to the transaction builder
+
+            :param list ops: One or a list of operations
+        """
         if isinstance(ops, list):
             for op in ops:
                 self.op.append(op)
@@ -33,6 +37,9 @@ class TransactionBuilder(dict):
             self.op.append(ops)
 
     def appendSigner(self, account, permission):
+        """ Try to obtain the wif key from the wallet by telling which account
+            and permission is supposed to sign the transaction
+        """
         assert permission in ["active", "owner"], "Invalid permission"
         account = Account(account, bitshares_instance=self.bitshares)
         required_treshold = account[permission]["weight_threshold"]
@@ -58,6 +65,8 @@ class TransactionBuilder(dict):
         self.wifs.extend([x[0] for x in keys])
 
     def appendWif(self, wif):
+        """ Add a wif that should be used for signing of the transaction.
+        """ 
         if wif:
             try:
                 PrivateKey(wif)
@@ -66,6 +75,9 @@ class TransactionBuilder(dict):
                 raise InvalidWifError
 
     def constructTx(self):
+        """ Construct the actual transaction and store it in the class's dict
+            store
+        """
         if isinstance(self.op, list):
             ops = [Operation(o) for o in self.op]
         else:
@@ -111,6 +123,8 @@ class TransactionBuilder(dict):
         self["signatures"].extend(signedtx.json().get("signatures"))
 
     def verify_authority(self):
+        """ Verify the authority of the signed transaction
+        """
         try:
             if not self.bitshares.rpc.verify_authority(self.json()):
                 raise InsufficientAuthorityError
@@ -137,6 +151,8 @@ class TransactionBuilder(dict):
         return self
 
     def clear(self):
+        """ Clear the transaction builder and start from scratch
+        """
         self.op = []
         self.wifs = []
 
@@ -172,9 +188,15 @@ class TransactionBuilder(dict):
         self["blockchain"] = self.bitshares.rpc.chain_params
 
     def json(self):
+        """ Show the transaction as plain json
+        """
         return dict(self)
 
     def appendMissingSignatures(self, wifs=[]):
+        """ Store which accounts/keys are supposed to sign the transaction
+
+            This method is used for an offline-signer!
+        """
         missing_signatures = self.get("missing_signatures", [])
         for pub in missing_signatures:
             wif = self.bitshares.wallet.getPrivateKeyForPublicKey(pub)

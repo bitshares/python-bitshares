@@ -18,6 +18,25 @@ timeformat = "%Y%m%d-%H%M%S"
 
 
 class DataDir(object):
+    """ This class ensures that the user's data is stored in its OS
+        preotected user directory:
+
+        **OSX:**
+
+         * `~/Library/Application Support/<AppName>`
+
+        **Windows:**
+
+         * `C:\Documents and Settings\<User>\Application Data\Local Settings\<AppAuthor>\<AppName>`
+         * `C:\Documents and Settings\<User>\Application Data\<AppAuthor>\<AppName>`
+
+        **Linux:**
+
+         * `~/.local/share/<AppName>`
+
+         Furthermore, it offers an interface to generated backups
+         in the `backups/` directory every now and then.
+    """
     appname = "bitshares"
     appauthor = "Fabian Schuh"
     storageDatabase = "bitshares.sqlite"
@@ -26,26 +45,6 @@ class DataDir(object):
     sqlDataBaseFile = os.path.join(data_dir, storageDatabase)
 
     def __init__(self):
-        """ This class ensures that the user's data is stored in its OS
-            preotected user directory:
-
-            **OSX:**
-
-             * `~/Library/Application Support/<AppName>`
-
-            **Windows:**
-
-             * `C:\Documents and Settings\<User>\Application Data\Local Settings\<AppAuthor>\<AppName>`
-             * `C:\Documents and Settings\<User>\Application Data\<AppAuthor>\<AppName>`
-
-            **Linux:**
-
-             * `~/.local/share/<AppName>`
-
-             Furthermore, it offers an interface to generated backups
-             in the `backups/` directory every now and then.
-        """
-
         #: Storage
         self.mkdir_p()
 
@@ -103,13 +102,13 @@ class DataDir(object):
 
 
 class Key(DataDir):
+    """ This is the key storage that stores the public key and the
+        (possibly encrypted) private key in the `keys` table in the
+        SQLite3 database.
+    """
     __tablename__ = 'keys'
 
     def __init__(self):
-        """ This is the key storage that stores the public key and the
-            (possibly encrypted) private key in the `keys` table in the
-            SQLite3 database.
-        """
         super(Key, self).__init__()
 
     def exists_table(self):
@@ -212,6 +211,9 @@ class Key(DataDir):
 
 
 class Configuration(DataDir):
+    """ This is the configuration storage that stores key/value
+        pairs in the `config` table of the SQLite3 database.
+    """
     __tablename__ = "config"
 
     #: Default configuration
@@ -222,9 +224,6 @@ class Configuration(DataDir):
     }
 
     def __init__(self):
-        """ This is the configuration storage that stores key/value
-            pairs in the `config` table of the SQLite3 database.
-        """
         super(Configuration, self).__init__()
 
     def exists_table(self):

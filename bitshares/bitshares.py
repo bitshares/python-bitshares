@@ -138,8 +138,14 @@ class BitShares(object):
 
         self.rpc = BitSharesNodeRPC(node, rpcuser, rpcpassword, **kwargs)
 
-    def newWallet(self):
-        self.wallet.newWallet()
+    def newWallet(self, pwd):
+        """ Create a new wallet. This method is basically only calls
+            :func:`bitshares.wallet.create`.
+
+            :param str pwd: Password to use for the new wallet
+            :raises bitshares.exceptions.WalletExists: if there is already a wallet created
+        """
+        self.wallet.create(pwd)
 
     def finalizeOp(self, ops, account, permission):
         """ This method obtains the required private keys if present in
@@ -199,22 +205,23 @@ class BitShares(object):
         """
         return self.rpc.get_dynamic_global_properties()
 
-    def create_account(self,
-                       account_name,
-                       registrar=None,
-                       referrer="1.2.35641",
-                       referrer_percent=50,
-                       owner_key=None,
-                       active_key=None,
-                       memo_key=None,
-                       password=None,
-                       additional_owner_keys=[],
-                       additional_active_keys=[],
-                       additional_owner_accounts=[],
-                       additional_active_accounts=[],
-                       proxy_account="proxy-to-self",
-                       storekeys=True,
-                       ):
+    def create_account(
+        self,
+        account_name,
+        registrar=None,
+        referrer="1.2.35641",
+        referrer_percent=50,
+        owner_key=None,
+        active_key=None,
+        memo_key=None,
+        password=None,
+        additional_owner_keys=[],
+        additional_active_keys=[],
+        additional_owner_accounts=[],
+        additional_active_accounts=[],
+        proxy_account="proxy-to-self",
+        storekeys=True,
+    ):
         """ Create new account on BitShares
 
             The brainkey/password can be used to recover all generated keys (see
@@ -363,6 +370,7 @@ class BitShares(object):
             :param str memo: (optional) Memo, may begin with `#` for encrypted messaging
             :param str account: (optional) the source account for the transfer if not ``default_account``
         """
+        from .memo import Memo
         if not account:
             if "default_account" in config:
                 account = config["default_account"]
@@ -373,9 +381,11 @@ class BitShares(object):
         amount = Amount(amount, asset, bitshares_instance=self)
         to = Account(to, bitshares_instance=self)
 
-        if memo:
-            from .memo import Memo
-            memo = Memo(account, to, memo, bitshares_instance=self)
+        memoObj = Memo(
+            from_account=account,
+            to_account=to,
+            bitshares_instance=self
+        )
 
         op = operations.Transfer(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -385,11 +395,17 @@ class BitShares(object):
                 "amount": int(amount),
                 "asset_id": amount.asset["id"]
             },
-            "memo": memo.encrytped_memo if memo else ""
+            "memo": memoObj.encrypt(memo)
         })
         return self.finalizeOp(op, account, "active")
 
     def _test_weights_treshold(self, authority):
+        """ This method raises an error if the threshold of an authority cannot
+            be reached by the weights.
+            
+            :param dict authority: An authority of an account
+            :raises ValueError: if the threshold is set too high
+        """
         weights = 0
         for a in authority["account_auths"]:
             weights += a[1]
@@ -563,9 +579,7 @@ class BitShares(object):
         PublicKey(key, prefix=self.rpc.chain_params["prefix"])
 
         account = Account(account, bitshares_instance=self)
-        account["options"].update({
-            "memo_key": "BTS5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE"}
-        )
+        account["options"]["memo_key"] = key
         op = operations.Account_update(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "account": account["id"],

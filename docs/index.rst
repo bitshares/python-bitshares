@@ -110,14 +110,15 @@ Python-BitShares Libraries
    bitshares
    instances
    account
+   amount
+   asset
    block
    blockchain
-   amount
-   witness
+   exceptions
    dex
    market
-   asset
    price
+   witness
 
 Low Level Classes
 -----------------

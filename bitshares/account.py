@@ -4,6 +4,31 @@ from .exceptions import AccountDoesNotExistsException
 
 
 class Account(dict):
+    """ This class allows to easily access Account data
+
+        :param str account_name: Name of the account
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param bool lazy: Use lazy loading
+        :param bool full: Obtain all account data including orders, positions, etc.
+        :returns: Account data
+        :rtype: dictionary
+        :raises bitshares.exceptions.AccountDoesNotExistsException: if account does not exist
+
+        Instances of this class are dictionaries that come with additional
+        methods (see below) that allow dealing with an account and it's
+        corresponding functions.
+
+        .. code-block:: python
+
+            from bitshares.account import Account
+            account = Account("init0")
+            print(account)
+
+        .. note:: This class comes with its own caching function to reduce the
+                  load on the API server. Instances of this class can be
+                  refreshed with ``Account.refresh()``.
+
+    """
 
     accounts_cache = dict()
 
@@ -34,6 +59,8 @@ class Account(dict):
             self.cached = True
 
     def refresh(self):
+        """ Refresh/Obtain an account's data from the API server
+        """
         import re
         if re.match("^1\.2\.[0-9]*$", self.name):
             account = self.bitshares.rpc.get_objects([self.name])[0]
@@ -71,10 +98,15 @@ class Account(dict):
 
     @property
     def is_ltm(self):
+        """ Is the account a lifetime member (LTM)?
+        """
         return self["id"] == self["lifetime_referrer"]
 
     @property
     def balances(self):
+        """ List balances of an account. This call returns instances of
+            :class:`bitshares.amount.Amount`.
+        """
         balances = self.bitshares.rpc.get_account_balances(self["id"], [])
         return [
             Amount(b, bitshares_instance=self.bitshares)
@@ -82,6 +114,9 @@ class Account(dict):
         ]
 
     def balance(self, symbol):
+        """ Obtain the balance of a specific Asset. This call returns instances of
+            :class:`bitshares.amount.Amount`.
+        """
         balances = self.balances
         for b in balances:
             if b["symbol"] == symbol:
@@ -89,6 +124,8 @@ class Account(dict):
 
     @property
     def call_positions(self):
+        """ List call positions (collateralized positions :doc:`mpa`)
+        """
         from .dex import Dex
         dex = Dex(bitshares_instance=self.bitshares)
         return dex.list_debt_positions(self["name"])

@@ -3,14 +3,22 @@ from bitshares.instance import shared_bitshares_instance
 from .exceptions import AssetDoesNotExistsException
 
 
-class Cache(dict):
-
-    cache = dict()
-
-
 class Asset(dict):
+    """ Deals with Assets of the network.
 
-    assets_cache = Cache()
+        :param str Asset: Symbol name or object id of an asset
+        :param bool lazy: Lazy loading
+        :param bool full: Also obtain bitasset-data and dynamic asset dat
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :returns: All data of an asset
+        :rtype: dict
+
+        .. note:: This class comes with its own caching function to reduce the
+                  load on the API server. Instances of this class can be
+                  refreshed with ``Asset.refresh()``.
+    """
+
+    assets_cache = dict()
 
     def __init__(
         self,
@@ -42,6 +50,8 @@ class Asset(dict):
             raise ValueError("Asset() expects a symbol, id or an instance of Asset")
 
     def refresh(self):
+        """ Refresh the data from the API server
+        """
         from bitsharesbase import asset_permissions
 
         asset = self.bitshares.rpc.get_asset(self.asset)
@@ -70,14 +80,20 @@ class Asset(dict):
 
     @property
     def is_bitasset(self):
+        """ Is the asset a :doc:`mpa`?
+        """
         return ("bitasset_data_id" in self)
 
     @property
     def permissions(self):
+        """ List the permissions for this asset that the issuer can obtain
+        """
         return self["permissions"]
 
     @property
     def flags(self):
+        """ List the permissions that are currently used (flags)
+        """
         return self["flags"]
 
     def __getitem__(self, key):

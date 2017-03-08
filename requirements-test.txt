@@ -1,4 +1,4 @@
--e git://github.com/xeroc/python-graphenelib@minimal#egg=graphenelib
+graphenelib
 pycrypto==2.6.1
 scrypt==0.7.1
 Events==0.2.2
