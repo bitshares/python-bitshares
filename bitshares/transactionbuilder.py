@@ -78,10 +78,24 @@ class TransactionBuilder(dict):
         """ Construct the actual transaction and store it in the class's dict
             store
         """
-        if isinstance(self.op, list):
-            ops = [Operation(o) for o in self.op]
+        if self.bitshares.proposer:
+            ops = [operations.Op_wrapper(op=o) for o in list(self.op)]
+            proposer = Account(
+                self.bitshares.proposer,
+                bitshares_instance=self.bitshares
+            )
+            ops = operations.Proposal_create(**{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "fee_paying_account": proposer["id"],
+                "expiration_time": transactions.formatTimeFromNow(
+                    self.bitshares.expiration - 1),
+                "proposed_ops": [o.json() for o in ops],
+                "extensions": []
+            })
+            ops = [Operation(ops)]
         else:
-            ops = [Operation(self.op)]
+            ops = [Operation(o) for o in list(self.op)]
+
         ops = transactions.addRequiredFees(self.bitshares.rpc, ops)
         expiration = transactions.formatTimeFromNow(self.bitshares.expiration)
         ref_block_num, ref_block_prefix = transactions.getBlockParams(self.bitshares.rpc)
@@ -103,6 +117,14 @@ class TransactionBuilder(dict):
                 of the transactions.
         """
         self.constructTx()
+
+        # If we are doing a proposal, obtain the account from the proposer_id
+        if self.bitshares.proposer:
+            proposer = Account(
+                self.bitshares.proposer,
+                bitshares_instance=self.bitshares)
+            self.wifs = []
+            self.appendSigner(proposer["id"], "active")
 
         # We need to set the default prefix, otherwise pubkeys are
         # presented wrongly!

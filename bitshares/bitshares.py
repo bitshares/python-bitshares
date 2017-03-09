@@ -108,6 +108,7 @@ class BitShares(object):
         self.nobroadcast = kwargs.get("nobroadcast", False)
         self.unsigned = kwargs.get("unsigned", False)
         self.expiration = int(kwargs.get("expiration", 30))
+        self.proposer = kwargs.get("proposer", None)
 
         if not self.offline:
             self._connect(node=node,
