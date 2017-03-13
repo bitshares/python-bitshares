@@ -609,6 +609,7 @@ class BitShares(object):
             witness = Witness(witness)
             options["votes"].append(witness["vote_id"])
 
+        options["votes"] = list(set(options["votes"]))
         options["num_witness"] = len(list(filter(
             lambda x: float(x.split(":")[0]) == 1,
             options["votes"]
@@ -643,6 +644,7 @@ class BitShares(object):
             if witness["vote_id"] in options["votes"]:
                 options["votes"].remove(witness["vote_id"])
 
+        options["votes"] = list(set(options["votes"]))
         options["num_witness"] = len(list(filter(
             lambda x: float(x.split(":")[0]) == 1,
             options["votes"]

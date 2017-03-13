@@ -73,7 +73,7 @@ class Price(dict):
 
         elif (len(args) == 1 and isinstance(args[0], dict) and
             "base" in args[0] and
-            "quote" in obj
+            "quote" in args[0]
         ):
             # Regular 'price' objects according to bitshares-core
             base_id = args[0]["base"]["asset_id"]
@@ -84,7 +84,7 @@ class Price(dict):
                 self["quote"] = Amount(args[0]["base"], bitshares_instance=self.bitshares)
                 self["base"] = Amount(args[0]["quote"], bitshares_instance=self.bitshares)
 
-        elif len(args) == 1 and isinstance(args[0], dict) and "receives" in obj:
+        elif len(args) == 1 and isinstance(args[0], dict) and "receives" in args[0]:
             # Filled order
             assert base_asset, "Need a 'base_asset' asset"
             base_asset = Asset(base_asset)
