@@ -10,6 +10,7 @@ from bitsharesbase import transactions, operations
 from .asset import Asset
 from .account import Account
 from .amount import Amount
+from .witness import Witness
 from .storage import configStorage as config
 from .exceptions import (
     AccountExistsException,
@@ -586,5 +587,72 @@ class BitShares(object):
             "account": account["id"],
             "new_options": account["options"],
             "extensions": {}
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def approvewitness(self, witnesses, account=None):
+        """ Approve a witness
+
+            :param str witnesses: (list of) Witness name or id
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+        options = account["options"]
+
+        for witness in witnesses:
+            witness = Witness(witness)
+            options["votes"].append(witness["vote_id"])
+
+        options["num_witness"] = len(list(filter(
+            lambda x: float(x.split(":")[0]) == 1,
+            options["votes"]
+        )))
+
+        op = operations.Account_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account": account["id"],
+            "new_options": options,
+            "extensions": {},
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def disapprovewitness(self, witnesses, account=None):
+        """ Disapprove a witness
+
+            :param str witnesses: (list of) Witness name or id
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+        options = account["options"]
+
+        for witness in witnesses:
+            witness = Witness(witness)
+            if witness["vote_id"] in options["votes"]:
+                options["votes"].remove(witness["vote_id"])
+
+        options["num_witness"] = len(list(filter(
+            lambda x: float(x.split(":")[0]) == 1,
+            options["votes"]
+        )))
+
+        op = operations.Account_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account": account["id"],
+            "new_options": options,
+            "extensions": {},
+            "prefix": self.rpc.chain_params["prefix"]
         })
         return self.finalizeOp(op, account["name"], "active")

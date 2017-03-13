@@ -67,7 +67,7 @@ class Account(dict):
         else:
             account = self.bitshares.rpc.lookup_account_names([self.name])[0]
         if not account:
-            raise AccountDoesNotExistsException
+            raise AccountDoesNotExistsException(self.name)
 
         if self.full:
             account = self.bitshares.rpc.get_full_accounts([account["id"]], False)[0][1]
