@@ -288,10 +288,19 @@ class Order(Price):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
 
         if (
+            len(args) == 1 and
+            isinstance(args[0], str)
+        ):
+            order = self.bitshares.rpc.get_objects([args[0]])[0]
+            super(Order, self).__init__(order["sell_price"])
+            self["seller"] = order["seller"]
+            self["id"] = order["id"]
+        elif (
             isinstance(args[0], dict) and
             "sell_price" in args[0]
         ):
             super(Order, self).__init__(args[0]["sell_price"])
+            self["id"] = args[0]["id"]
         elif (
             isinstance(args[0], dict) and
             "min_to_receive" in args[0] and
@@ -301,8 +310,10 @@ class Order(Price):
                 Amount(args[0]["min_to_receive"], bitshares_instance=self.bitshares),
                 Amount(args[0]["amount_to_sell"], bitshares_instance=self.bitshares),
             )
+            self["id"] = args[0]["id"]
         elif isinstance(args[0], Amount) and isinstance(args[1], Amount):
             super(Order, self).__init__(*args, **kwargs)
+            self["id"] = order["id"]
         else:
             raise ValueError("Unkown format to load Order")
 
@@ -354,6 +365,8 @@ class FilledOrder(Price):
             )
             if "time" in order:
                 self["time"] = formatTimeString(order["time"])
+            if "account_id" in order:
+                self["account_id"] = order["account_id"]
 
         else:
             raise
