@@ -358,8 +358,6 @@ class BitShares(object):
             "extensions": {},
             "prefix": self.rpc.chain_params["prefix"]
         }
-        from pprint import pprint
-        pprint(op)
         op = operations.Account_create(**op)
         return self.finalizeOp(op, registrar, "active")
 
@@ -657,4 +655,29 @@ class BitShares(object):
             "extensions": {},
             "prefix": self.rpc.chain_params["prefix"]
         })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def cancel(self, orderNumber, account=None):
+        """ Cancels an order you have placed in a given market. Requires
+            only the "orderNumber". An order number takes the form
+            ``1.7.xxx``.
+
+            :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, full=False, bitshares_instance=self)
+
+        op = []
+        for order in list(orderNumber):
+            op.append(
+                operations.Limit_order_cancel(**{
+                    "fee": {"amount": 0, "asset_id": "1.3.0"},
+                    "fee_paying_account": account["id"],
+                    "order": order,
+                    "extensions": []
+            }))
         return self.finalizeOp(op, account["name"], "active")
