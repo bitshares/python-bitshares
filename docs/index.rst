@@ -117,6 +117,7 @@ Python-BitShares Libraries
    exceptions
    dex
    market
+   notify
    price
    witness
 
@@ -134,6 +135,14 @@ Low Level Classes
    websocketrpc
    transactions
    memo
+
+Glossary
+========
+
+.. toctree::
+   :maxdepth: 1
+
+   mpa
 
 Indices and tables
 ==================
