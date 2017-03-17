@@ -94,7 +94,7 @@ Quickstart
 General
 -------------------------
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
 
    installation
    quickstart
@@ -105,7 +105,7 @@ Python-BitShares Libraries
 --------------------------
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
 
    bitshares
    instances
@@ -125,7 +125,7 @@ Low Level Classes
 -----------------
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
 
    storage
    utils

@@ -7,6 +7,37 @@ from bitshares.account import Account, AccountUpdate
 
 
 class Notify(Events):
+    """ Notifications on Blockchain events.
+
+        :param list accounts: Account names/ids to be notified about when changing
+        :param list markets: Instances of :class:`bitshares.market.Market` that identify markets to be monitored
+        :param list objects: Object ids to be notified about when changed
+        :param fnt on_tx: Callback that will be called for each transaction received
+        :param fnt on_block: Callback that will be called for each block received
+        :param fnt on_account: Callback that will be called for changes of the listed accounts
+        :param fnt on_market: Callback that will be called for changes of the listed markets
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+
+        **Example**
+
+        .. code-block:: python
+
+            from pprint import pprint
+            from bitshares.notify import Notify
+            from bitshares.market import Market
+
+            notify = Notify(
+                markets=["TEST:GOLD"],
+                accounts=["xeroc"],
+                on_market=print,
+                on_account=print,
+                on_block=print,
+                on_tx=print
+            )
+            notify.listen()
+
+
+    """
 
     __events__ = [
         'on_tx',
@@ -18,8 +49,6 @@ class Notify(Events):
 
     def __init__(
         self,
-        *args,
-        bitshares_instance=None,
         accounts=[],
         markets=[],
         objects=[],
@@ -28,12 +57,16 @@ class Notify(Events):
         on_block=None,
         on_account=None,
         on_market=None,
-        **kwargs,
+        bitshares_instance=None,
     ):
-        Events.__init__(self, *args, **kwargs)
+        # Events
+        super(Notify, self).__init__()
         self.events = Events()
+
+        # BitShares instance
         self.bitshares = bitshares_instance or shared_bitshares_instance()
 
+        # Markets
         market_ids = []
         for market_name in markets:
             market = Market(
@@ -45,6 +78,7 @@ class Notify(Events):
                 market["quote"]["id"],
             ])
 
+        # Accounts
         account_ids = []
         for account_name in accounts:
             account = Account(
@@ -53,6 +87,7 @@ class Notify(Events):
             )
             account_ids.append(account["id"])
 
+        # Callbacks
         if on_tx:
             self.on_tx += on_tx
         if on_object:
@@ -64,6 +99,7 @@ class Notify(Events):
         if on_market:
             self.on_market += on_market
 
+        # Open the websocket
         self.websocket = BitSharesWebsocket(
             urls=self.bitshares.rpc.urls,
             user=self.bitshares.rpc.user,
@@ -74,23 +110,36 @@ class Notify(Events):
             on_tx=on_tx,
             on_object=on_object,
             on_block=on_block,
-            on_account=self._process_account,
-            on_market=self._process_market,
+            on_account=self.process_account,
+            on_market=self.process_market,
         )
 
-    def _process_market(self, ids):
-        for id in ids:
-            if isinstance(id, str):
+    def process_market(self, data):
+        """ This method is used for post processing of market
+            notifications. It will return instances of either
+
+            * :class:`bitshares.price.Order` or
+            * :class:`bitshares.price.FilledOrder`
+
+        """
+        for d in data:
+            if isinstance(d, str):
                 # Single order has been placed
-                self.on_market(Order(id))
+                self.on_market(Order(d))
             else:
                 # Orders have been matched
-                for p in id:
+                for p in d:
                     if p[1]:
                         self.on_market(FilledOrder(p[1]))
 
-    def _process_account(self, message):
+    def process_account(self, message):
+        """ This is used for processing of account Updates. It will
+            return instances of :class:bitshares.account.AccountUpdate`
+        """
         self.on_account(AccountUpdate(message))
 
     def listen(self):
+        """ This call initiates the listening/notification process. It
+            behaves similar to ``run_forever()``.
+        """
         self.websocket.run_forever()

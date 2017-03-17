@@ -12,3 +12,6 @@ Obtaining data of an account.
 
 .. autoclass:: bitshares.account.Account
    :members:
+
+.. autoclass:: bitshares.account.AccountUpdate
+   :members:
