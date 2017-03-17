@@ -21,9 +21,9 @@ setup(
     long_description=open('README.md').read(),
     download_url='https://github.com/xeroc/python-bitshares/tarball/' + VERSION,
     author='Fabian Schuh',
-    author_email='<Fabian@chainsquad.com>',
+    author_email='Fabian@chainsquad.com',
     maintainer='Fabian Schuh',
-    maintainer_email='<Fabian@chainsquad.com>',
+    maintainer_email='Fabian@chainsquad.com',
     url='http://www.github.com/xeroc/python-bitshares',
     keywords=['bitshares', 'library', 'api', 'rpc'],
     packages=[
