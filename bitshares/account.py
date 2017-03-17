@@ -123,6 +123,12 @@ class Account(dict):
                 return b
 
     @property
+    def call_positions(self):
+        """ Alias for :func:bitshares.account.Account.callpositions
+        """
+        return self.callpositions()
+
+    @property
     def callpositions(self):
         """ List call positions (collateralized positions :doc:`mpa`)
         """
