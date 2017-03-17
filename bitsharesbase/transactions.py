@@ -35,8 +35,7 @@ def addRequiredFees(ws, ops, asset_id="1.3.0"):
                 ops[i].op.data["proposed_ops"].data[j].data["op"].op.data["fee"] = (
                     Asset(
                         amount=fees[i][1][j]["amount"],
-                        asset_id=fees[i][1][j]["asset_id"]
-                ))
+                        asset_id=fees[i][1][j]["asset_id"]))
         else:
             # Operation is a regular operation
             ops[i].op.data["fee"] = Asset(
