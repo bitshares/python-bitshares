@@ -175,7 +175,13 @@ class AccountOptions(GrapheneObject):
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
-
+            # remove dublicates
+            kwargs["votes"] = list(set(kwargs["votes"]))
+            # Sort votes
+            kwargs["votes"] = sorted(
+                kwargs["votes"],
+                key=lambda x: float(x.split(":")[1]),
+            )
             super().__init__(OrderedDict([
                 ('memo_key', PublicKey(kwargs["memo_key"], prefix=prefix)),
                 ('voting_account', ObjectId(kwargs["voting_account"], "account")),

@@ -10,7 +10,7 @@ from events import Events
 import websocket
 
 log = logging.getLogger(__name__)
-#logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 
 class BitSharesWebsocket(Events):
@@ -122,7 +122,9 @@ class BitSharesWebsocket(Events):
         self.user = user
         self.password = password
         self.keep_alive = keep_alive
-        if isinstance(urls, list):
+        if isinstance(urls, cycle):
+            self.urls = urls
+        elif isinstance(urls, list):
             self.urls = cycle(urls)
         else:
             self.urls = cycle([urls])
@@ -191,7 +193,7 @@ class BitSharesWebsocket(Events):
         def ping(self):
             while 1:
                 log.debug('Sending ping')
-                self.get_objects(["2.9.0"])
+                self.get_objects(["2.8.0"])
                 time.sleep(self.keep_alive)
 
         self.keepalive = threading.Thread(
@@ -205,6 +207,7 @@ class BitSharesWebsocket(Events):
             we call ``on_object`` and ``on_account`` slots.
         """
         id = notice["id"]
+
         _a, _b, _ = id.split(".")
 
         if id in self.subscription_objects:

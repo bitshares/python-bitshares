@@ -67,7 +67,7 @@ class Account(dict):
         else:
             account = self.bitshares.rpc.lookup_account_names([self.name])[0]
         if not account:
-            raise AccountDoesNotExistsException
+            raise AccountDoesNotExistsException(self.name)
 
         if self.full:
             account = self.bitshares.rpc.get_full_accounts([account["id"]], False)[0][1]
@@ -124,11 +124,20 @@ class Account(dict):
 
     @property
     def call_positions(self):
+        """ Alias for :func:bitshares.account.Account.callpositions
+        """
+        return self.callpositions()
+
+    @property
+    def callpositions(self):
         """ List call positions (collateralized positions :doc:`mpa`)
         """
+        if not self.full:
+            self.full = True
+            self.refresh()
         from .dex import Dex
         dex = Dex(bitshares_instance=self.bitshares)
-        return dex.list_debt_positions(self["name"])
+        return dex.list_debt_positions(self)
 
     @property
     def openorders(self):
@@ -193,3 +202,48 @@ class Account(dict):
             if len(txs) < _limit:
                 break
             first = int(txs[-1]["id"].split(".")[2])
+
+
+class AccountUpdate(dict):
+    """ This purpose of this class is to keep track of account updates
+        as they are pushed through by :class:`bitshares.notify.Notify`.
+
+        Instances of this class are dictionaries and take the following
+        form:
+
+        ... code-block: js
+
+            {'id': '2.6.29',
+             'lifetime_fees_paid': '44261516129',
+             'most_recent_op': '2.9.0',
+             'owner': '1.2.29',
+             'pending_fees': 0,
+             'pending_vested_fees': 16310,
+             'total_core_in_orders': '6788845277634',
+             'total_ops': 0}
+
+    """
+
+    def __init__(
+        self,
+        data,
+        bitshares_instance=None
+    ):
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
+
+        if isinstance(data, dict):
+            super(AccountUpdate, self).__init__(data)
+        else:
+            account = Account(data, bitshares_instance=self.bitshares)
+            update = self.bitshares.rpc.get_objects([
+                "2.6.%s" % (account["id"].split(".")[2])
+            ])[0]
+            super(AccountUpdate, self).__init__(update)
+
+    @property
+    def account(self):
+        """ In oder to obtain the actual
+            :class:`bitshares.account.Account` from this class, you can
+            use the ``account`` attribute.
+        """
+        return Account(self["owner"])

@@ -10,6 +10,7 @@ from bitsharesbase import transactions, operations
 from .asset import Asset
 from .account import Account
 from .amount import Amount
+from .witness import Witness
 from .storage import configStorage as config
 from .exceptions import (
     AccountExistsException,
@@ -108,6 +109,7 @@ class BitShares(object):
         self.nobroadcast = kwargs.get("nobroadcast", False)
         self.unsigned = kwargs.get("unsigned", False)
         self.expiration = int(kwargs.get("expiration", 30))
+        self.proposer = kwargs.get("proposer", None)
 
         if not self.offline:
             self._connect(node=node,
@@ -356,8 +358,6 @@ class BitShares(object):
             "extensions": {},
             "prefix": self.rpc.chain_params["prefix"]
         }
-        from pprint import pprint
-        pprint(op)
         op = operations.Account_create(**op)
         return self.finalizeOp(op, registrar, "active")
 
@@ -586,4 +586,98 @@ class BitShares(object):
             "new_options": account["options"],
             "extensions": {}
         })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def approvewitness(self, witnesses, account=None):
+        """ Approve a witness
+
+            :param str witnesses: (list of) Witness name or id
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+        options = account["options"]
+
+        for witness in witnesses:
+            witness = Witness(witness)
+            options["votes"].append(witness["vote_id"])
+
+        options["votes"] = list(set(options["votes"]))
+        options["num_witness"] = len(list(filter(
+            lambda x: float(x.split(":")[0]) == 1,
+            options["votes"]
+        )))
+
+        op = operations.Account_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account": account["id"],
+            "new_options": options,
+            "extensions": {},
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def disapprovewitness(self, witnesses, account=None):
+        """ Disapprove a witness
+
+            :param str witnesses: (list of) Witness name or id
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+        options = account["options"]
+
+        for witness in witnesses:
+            witness = Witness(witness)
+            if witness["vote_id"] in options["votes"]:
+                options["votes"].remove(witness["vote_id"])
+
+        options["votes"] = list(set(options["votes"]))
+        options["num_witness"] = len(list(filter(
+            lambda x: float(x.split(":")[0]) == 1,
+            options["votes"]
+        )))
+
+        op = operations.Account_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account": account["id"],
+            "new_options": options,
+            "extensions": {},
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def cancel(self, orderNumber, account=None):
+        """ Cancels an order you have placed in a given market. Requires
+            only the "orderNumber". An order number takes the form
+            ``1.7.xxx``.
+
+            :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, full=False, bitshares_instance=self)
+
+        op = []
+        for order in list(orderNumber):
+            op.append(
+                operations.Limit_order_cancel(**{
+                    "fee": {"amount": 0, "asset_id": "1.3.0"},
+                    "fee_paying_account": account["id"],
+                    "order": order,
+                    "extensions": []
+            }))
         return self.finalizeOp(op, account["name"], "active")
