@@ -83,9 +83,9 @@ class Dex():
         account = Account(account, full=True, bitshares_instance=self.bitshares)
 
         r = {}
-        for debt in account["call_orders"]:
-            base = Asset(debt["call_price"]["base"]["asset_id"])
-            quote = Asset(debt["call_price"]["quote"]["asset_id"])
+        for debt in account.get("call_orders"):
+            base = Asset(debt["call_price"]["base"]["asset_id"], full=True)
+            quote = Asset(debt["call_price"]["quote"]["asset_id"], full=True)
             if not quote.is_bitasset:
                 continue
             bitasset = quote["bitasset_data"]
