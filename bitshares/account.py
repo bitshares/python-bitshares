@@ -124,11 +124,20 @@ class Account(dict):
 
     @property
     def call_positions(self):
+        """ Alias for :func:bitshares.account.Account.callpositions
+        """
+        return self.callpositions()
+
+    @property
+    def callpositions(self):
         """ List call positions (collateralized positions :doc:`mpa`)
         """
+        if not self.full:
+            self.full = True
+            self.refresh()
         from .dex import Dex
         dex = Dex(bitshares_instance=self.bitshares)
-        return dex.list_debt_positions(self["name"])
+        return dex.list_debt_positions(self)
 
     @property
     def openorders(self):
