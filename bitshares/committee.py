@@ -1,24 +1,24 @@
 from bitshares.instance import shared_bitshares_instance
 from .account import Account
-from .exceptions import WitnessDoesNotExistsException
+from .exceptions import CommitteeMemberDoesNotExistsException
 
 
-class Witness(dict):
-    """ Read data about a witness in the chain
+class Committee(dict):
+    """ Read data about a Committee Member in the chain
 
-        :param str account_name: Name of the witness
+        :param str member: Name of the Committee Member
         :param bitshares bitshares_instance: BitShares() instance to use when accesing a RPC
         :param bool lazy: Use lazy loading
 
     """
     def __init__(
         self,
-        witness,
+        member,
         bitshares_instance=None,
         lazy=False
     ):
         self.cached = False
-        self.witness = witness
+        self.member = member
 
         self.bitshares = bitshares_instance or shared_bitshares_instance()
 
@@ -26,23 +26,23 @@ class Witness(dict):
             self.refresh()
 
     def refresh(self):
-        account = Account(self.witness)
-        witness = self.bitshares.rpc.get_witness_by_account(account["id"])
-        if not witness:
-            raise WitnessDoesNotExistsException
-        super(Witness, self).__init__(witness)
+        account = Account(self.member)
+        member = self.bitshares.rpc.get_committee_member_by_account(account["id"])
+        if not member:
+            raise CommitteeMemberDoesNotExistsException
+        super(Committee, self).__init__(member)
         self.cached = True
 
     def __getitem__(self, key):
         if not self.cached:
             self.refresh()
-        return super(Witness, self).__getitem__(key)
+        return super(Committee, self).__getitem__(key)
 
     def items(self):
         if not self.cached:
             self.refresh()
-        return super(Witness, self).items()
+        return super(Committee, self).items()
 
     @property
     def account(self):
-        return Account(self.witness)
+        return Account(self.member)

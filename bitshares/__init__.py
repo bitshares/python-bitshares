@@ -13,5 +13,6 @@ __all__ = [
     "storage",
     "price",
     "utils",
-    "wallet"
+    "wallet",
+    "committee"
 ]

@@ -11,6 +11,7 @@ from .asset import Asset
 from .account import Account
 from .amount import Amount
 from .witness import Witness
+from .committee import Committee
 from .storage import configStorage as config
 from .exceptions import (
     AccountExistsException,
@@ -402,7 +403,7 @@ class BitShares(object):
     def _test_weights_treshold(self, authority):
         """ This method raises an error if the threshold of an authority cannot
             be reached by the weights.
-            
+
             :param dict authority: An authority of an account
             :raises ValueError: if the threshold is set too high
         """
@@ -591,7 +592,7 @@ class BitShares(object):
     def approvewitness(self, witnesses, account=None):
         """ Approve a witness
 
-            :param str witnesses: (list of) Witness name or id
+            :param list witnesses: list of Witness name or id
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
         """
@@ -625,7 +626,7 @@ class BitShares(object):
     def disapprovewitness(self, witnesses, account=None):
         """ Disapprove a witness
 
-            :param str witnesses: (list of) Witness name or id
+            :param list witnesses: list of Witness name or id
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
         """
@@ -645,6 +646,75 @@ class BitShares(object):
         options["votes"] = list(set(options["votes"]))
         options["num_witness"] = len(list(filter(
             lambda x: float(x.split(":")[0]) == 1,
+            options["votes"]
+        )))
+
+        op = operations.Account_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account": account["id"],
+            "new_options": options,
+            "extensions": {},
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def approvecommittee(self, committees, account=None):
+        """ Approve a committee
+
+            :param list committees: list of committee member name or id
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+        options = account["options"]
+
+        for committee in committees:
+            committee = Committee(committee)
+            options["votes"].append(committee["vote_id"])
+
+        options["votes"] = list(set(options["votes"]))
+        options["num_committee"] = len(list(filter(
+            lambda x: float(x.split(":")[0]) == 0,
+            options["votes"]
+        )))
+
+        op = operations.Account_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account": account["id"],
+            "new_options": options,
+            "extensions": {},
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def disapprovecommittee(self, committees, account=None):
+        """ Disapprove a committee
+
+            :param list committees: list of committee name or id
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+        options = account["options"]
+
+        for committee in committees:
+            committee = Committee(committee)
+            if committee["vote_id"] in options["votes"]:
+                options["votes"].remove(committee["vote_id"])
+
+        options["votes"] = list(set(options["votes"]))
+        options["num_committee"] = len(list(filter(
+            lambda x: float(x.split(":")[0]) == 0,
             options["votes"]
         )))
 
@@ -678,6 +748,5 @@ class BitShares(object):
                     "fee": {"amount": 0, "asset_id": "1.3.0"},
                     "fee_paying_account": account["id"],
                     "order": order,
-                    "extensions": []
-            }))
+                    "extensions": []}))
         return self.finalizeOp(op, account["name"], "active")
