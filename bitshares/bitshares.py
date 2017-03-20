@@ -11,6 +11,8 @@ from .asset import Asset
 from .account import Account
 from .amount import Amount
 from .witness import Witness
+from .committee import Committee
+from .vesting import Vesting
 from .storage import configStorage as config
 from .exceptions import (
     AccountExistsException,
@@ -32,8 +34,11 @@ class BitShares(object):
         :param str rpcpassword: RPC password *(optional)*
         :param bool nobroadcast: Do **not** broadcast a transaction! *(optional)*
         :param bool debug: Enable Debugging *(optional)*
-        :param array,dict,string keys: Predefine the wif keys to shortcut the wallet database
-        :param bool offline: Boolean to prevent connecting to network (defaults to ``False``)
+        :param array,dict,string keys: Predefine the wif keys to shortcut the wallet database *(optional)*
+        :param bool offline: Boolean to prevent connecting to network (defaults to ``False``) *(optional)*
+        :param str proposer: Propose a transaction using this proposer *(optional)*
+        :param int expiration: Delay in seconds until transactions are supposed to expire *(optional)*
+        :param bool bundle: Do not broadcast transactions right away, but allow to bundle operations *(optional)*
 
         Three wallet operation modes are possible:
 
@@ -105,11 +110,15 @@ class BitShares(object):
         self.rpc = None
         self.debug = debug
 
-        self.offline = kwargs.get("offline", False)
-        self.nobroadcast = kwargs.get("nobroadcast", False)
-        self.unsigned = kwargs.get("unsigned", False)
+        self.offline = bool(kwargs.get("offline", False))
+        self.nobroadcast = bool(kwargs.get("nobroadcast", False))
+        self.unsigned = bool(kwargs.get("unsigned", False))
         self.expiration = int(kwargs.get("expiration", 30))
         self.proposer = kwargs.get("proposer", None)
+        self.bundle = bool(kwargs.get("bundle", False))
+
+        # Store config for access through other Classes
+        self.config = config
 
         if not self.offline:
             self._connect(node=node,
@@ -118,6 +127,7 @@ class BitShares(object):
                           **kwargs)
 
         self.wallet = Wallet(self.rpc, **kwargs)
+        self.txbuffer = TransactionBuilder(bitshares_instance=self)
 
     def _connect(self,
                  node="",
@@ -168,19 +178,23 @@ class BitShares(object):
                 posting permission. Neither can you use different
                 accounts for different operations!
         """
-        tx = TransactionBuilder(bitshares_instance=self)
-        tx.appendOps(ops)
+        # Append transaction
+        self.txbuffer.appendOps(ops)
 
         if self.unsigned:
-            tx.addSigningInformation(account, permission)
-            return tx
+            # In case we don't want to sign anything
+            self.txbuffer.addSigningInformation(account, permission)
+            return self.txbuffer
+        elif self.bundle:
+            # In case we want to add more ops to the tx (bundle)
+            self.txbuffer.appendSigner(account, permission)
         else:
-            tx.appendSigner(account, permission)
-            tx.sign()
+            # default behavior: sign + broadcast
+            self.txbuffer.appendSigner(account, permission)
+            self.txbuffer.sign()
+            return self.txbuffer.broadcast()
 
-        return tx.broadcast()
-
-    def sign(self, tx, wifs=[]):
+    def sign(self, tx=None, wifs=[]):
         """ Sign a provided transaction witht he provided key(s)
 
             :param dict tx: The transaction to be signed and returned
@@ -189,18 +203,25 @@ class BitShares(object):
                 from the wallet as defined in "missing_signatures" key
                 of the transactions.
         """
-        tx = TransactionBuilder(tx, bitshares_instance=self)
-        tx.appendMissingSignatures(wifs)
-        tx.sign()
-        return tx.json()
+        if tx:
+            txbuffer = TransactionBuilder(tx, bitshares_instance=self)
+        else:
+            txbuffer = self.txbuffer
+        txbuffer.appendWif(wifs)
+        txbuffer.appendMissingSignatures()
+        txbuffer.sign()
+        return txbuffer.json()
 
-    def broadcast(self, tx):
+    def broadcast(self, tx=None):
         """ Broadcast a transaction to the BitShares network
 
             :param tx tx: Signed transaction to broadcast
         """
-        tx = TransactionBuilder(tx)
-        return tx.broadcast()
+        if tx:
+            # If tx is provided, we broadcast the tx
+            return TransactionBuilder(tx).broadcast()
+        else:
+            return self.txbuffer.broadcast()
 
     def info(self):
         """ Returns the global properties
@@ -402,7 +423,7 @@ class BitShares(object):
     def _test_weights_treshold(self, authority):
         """ This method raises an error if the threshold of an authority cannot
             be reached by the weights.
-            
+
             :param dict authority: An authority of an account
             :raises ValueError: if the threshold is set too high
         """
@@ -591,7 +612,7 @@ class BitShares(object):
     def approvewitness(self, witnesses, account=None):
         """ Approve a witness
 
-            :param str witnesses: (list of) Witness name or id
+            :param list witnesses: list of Witness name or id
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
         """
@@ -625,7 +646,7 @@ class BitShares(object):
     def disapprovewitness(self, witnesses, account=None):
         """ Disapprove a witness
 
-            :param str witnesses: (list of) Witness name or id
+            :param list witnesses: list of Witness name or id
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
         """
@@ -645,6 +666,75 @@ class BitShares(object):
         options["votes"] = list(set(options["votes"]))
         options["num_witness"] = len(list(filter(
             lambda x: float(x.split(":")[0]) == 1,
+            options["votes"]
+        )))
+
+        op = operations.Account_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account": account["id"],
+            "new_options": options,
+            "extensions": {},
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def approvecommittee(self, committees, account=None):
+        """ Approve a committee
+
+            :param list committees: list of committee member name or id
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+        options = account["options"]
+
+        for committee in committees:
+            committee = Committee(committee)
+            options["votes"].append(committee["vote_id"])
+
+        options["votes"] = list(set(options["votes"]))
+        options["num_committee"] = len(list(filter(
+            lambda x: float(x.split(":")[0]) == 0,
+            options["votes"]
+        )))
+
+        op = operations.Account_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account": account["id"],
+            "new_options": options,
+            "extensions": {},
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def disapprovecommittee(self, committees, account=None):
+        """ Disapprove a committee
+
+            :param list committees: list of committee name or id
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+        options = account["options"]
+
+        for committee in committees:
+            committee = Committee(committee)
+            if committee["vote_id"] in options["votes"]:
+                options["votes"].remove(committee["vote_id"])
+
+        options["votes"] = list(set(options["votes"]))
+        options["num_committee"] = len(list(filter(
+            lambda x: float(x.split(":")[0]) == 0,
             options["votes"]
         )))
 
@@ -678,6 +768,97 @@ class BitShares(object):
                     "fee": {"amount": 0, "asset_id": "1.3.0"},
                     "fee_paying_account": account["id"],
                     "order": order,
-                    "extensions": []
-            }))
+                    "extensions": [],
+                    "prefix": self.rpc.chain_params["prefix"]}))
+        return self.finalizeOp(op, account["name"], "active")
+
+    def vesting_balance_withdraw(self, vesting_id, amount=None, account=None):
+        """ Withdraw vesting balance
+
+            :param str vesting_id: Id of the vesting object
+            :param bitshares.amount.Amount Amount to withdraw ("all" if not provided")
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+
+        if not amount:
+            obj = Vesting(vesting_id)
+            amount = Amount(obj["balance"])
+
+        op = operations.Vesting_balance_withdraw(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "vesting_balance": vesting_id,
+            "owner": account["id"],
+            "amount": {
+                "amount": int(amount),
+                "asset_id": amount["asset"]["id"]
+            },
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def approveproposal(self, proposal_id, account=None, approver=None):
+        """ Approve Proposal
+
+            :param str proposal_id: Id of the proposal
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        from .proposal import Proposal
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+        if not approver:
+            approver = account
+        else:
+            approver = Account(approver)
+
+        proposal = Proposal(proposal_id)
+
+        op = operations.Proposal_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            'fee_paying_account': account["id"],
+            'proposal': proposal["id"],
+            'active_approvals_to_add': [approver["id"]],
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def disapproveproposal(self, proposal_id, account=None, approver=None):
+        """ Disapprove Proposal
+
+            :param str proposal_id: Id of the proposal
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        from .proposal import Proposal
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+        if not approver:
+            approver = account
+        else:
+            approver = Account(approver)
+
+        proposal = Proposal(proposal_id)
+
+        op = operations.Proposal_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            'fee_paying_account': account["id"],
+            'proposal': proposal["id"],
+            'active_approvals_to_remove': [approver["id"]],
+            "prefix": self.rpc.chain_params["prefix"]
+        })
         return self.finalizeOp(op, account["name"], "active")

@@ -22,15 +22,27 @@ class Price(dict):
 
         Way to obtain a proper instance:
 
-            * ``args`` is a str with a price and two assets (i.e. ``0.315 USD/BTS``)
+            * ``args`` is a str with a price and two assets
             * ``args`` can be a floating number and ``base`` and ``quote`` being instances of :class:`bitshares.asset.Asset`
             * ``args`` can be a floating number and ``base`` and ``quote`` being instances of ``str``
-            * ``args`` can be dict with keys ``price``, ``base``, and ``quote``
+            * ``args`` can be dict with keys ``price``, ``base``, and ``quote`` (*graphene balances*)
             * ``args`` can be dict with keys ``base`` and ``quote``
             * ``args`` can be dict with key ``receives`` (filled orders)
             * ``args`` being a list of ``[quote, base]`` both being instances of :class:`bitshares.amount.Amount`
             * ``args`` being a list of ``[quote, base]`` both being instances of ``str`` (``amount symbol``)
             * ``base`` and ``quote`` being instances of :class:`bitshares.asset.Amount`
+
+        This allows instanciations like:
+
+        * ``Price("0.315 USD/BTS")``
+        * ``Price(0.315, base="USD", quote="BTS")``
+        * ``Price(0.315, base=Asset("USD"), quote=Asset("BTS"))``
+        * ``Price({"base": {"amount": 1, "asset_id": "1.3.0"}, "quote": {"amount": 10, "asset_id": "1.3.106"}})``
+        * ``Price({"receives": {"amount": 1, "asset_id": "1.3.0"}, "pays": {"amount": 10, "asset_id": "1.3.106"}}, base_asset=Asset("1.3.0"))``
+        * ``Price(quote="10 GOLD", base="1 USD")``
+        * ``Price("10 GOLD", "1 USD")``
+        * ``Price(Amount("10 GOLD"), Amount("1 USD"))``
+        * ``Price(1.0, "USD/GOLD")``
 
         Instances of this class can be used in regular mathematical expressions
         (``+-*/%``) such as:
@@ -39,7 +51,7 @@ class Price(dict):
 
             >>> from bitshares.price import Price
             >>> Price("0.3314 USD/BTS") * 2
-            0.662600000 USD/BTS 
+            0.662600000 USD/BTS
 
     """
     def __init__(
@@ -53,16 +65,7 @@ class Price(dict):
 
         self.bitshares = bitshares_instance or shared_bitshares_instance()
 
-        # len(args) == 0
-        if (len(args) == 1 and isinstance(args[0], dict) and (
-            "price" in args[0] and
-            "base" in args[0] and
-            "quote" in args[0])
-        ):
-            self["base"] = args[0]["base"]
-            self["quote"] = args[0]["quote"]
-
-        elif (len(args) == 1 and isinstance(args[0], str) and not base and not quote):
+        if (len(args) == 1 and isinstance(args[0], str) and not base and not quote):
             import re
             price, assets = args[0].split(" ")
             base_symbol, quote_symbol = re.split("[/-:]", assets)
@@ -72,9 +75,9 @@ class Price(dict):
             self["base"] = Amount(amount=float(price), asset=base, bitshares_instance=self.bitshares)
 
         elif (len(args) == 1 and isinstance(args[0], dict) and
-            "base" in args[0] and
-            "quote" in args[0]
-        ):
+                "base" in args[0] and
+                "quote" in args[0]):
+            assert "price" not in args[0], "You cannot provide a 'price' this way"
             # Regular 'price' objects according to bitshares-core
             base_id = args[0]["base"]["asset_id"]
             if args[0]["base"]["asset_id"] == base_id:
@@ -108,11 +111,14 @@ class Price(dict):
             self["quote"] = Amount(amount=1, asset=quote, bitshares_instance=self.bitshares)
             self["base"] = Amount(amount=float(args[0]), asset=base, bitshares_instance=self.bitshares)
 
+        elif (len(args) == 0 and isinstance(base, str) and isinstance(quote, str)):
+            self["quote"] = Amount(quote, bitshares_instance=self.bitshares)
+            self["base"] = Amount(base, bitshares_instance=self.bitshares)
+
         # len(args) > 1
         elif len(args) == 2 and isinstance(args[0], str) and isinstance(args[1], str):
-            self["quote"], self["base"] = args[0], args[1]
-            self["base"] = Amount(base, bitshares_instance=self.bitshares)
-            self["quote"] = Amount(quote, bitshares_instance=self.bitshares)
+            self["base"] = Amount(args[1], bitshares_instance=self.bitshares)
+            self["quote"] = Amount(args[0], bitshares_instance=self.bitshares)
 
         elif len(args) == 2 and isinstance(args[0], Amount) and isinstance(args[1], Amount):
             self["quote"], self["base"] = args[0], args[1]
@@ -121,6 +127,15 @@ class Price(dict):
         elif (isinstance(base, Amount) and isinstance(quote, Amount)):
             self["quote"] = quote
             self["base"] = base
+
+        elif (len(args) == 2 and isinstance(args[0], float) and isinstance(args[1], str)):
+            import re
+            price = args[0]
+            base_symbol, quote_symbol = re.split("[/-:]", args[1])
+            base = Asset(base_symbol, bitshares_instance=self.bitshares)
+            quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
+            self["quote"] = Amount(amount=1, asset=quote, bitshares_instance=self.bitshares)
+            self["base"] = Amount(amount=float(price), asset=base, bitshares_instance=self.bitshares)
 
         else:
             raise Exception
@@ -270,8 +285,8 @@ class Price(dict):
         """
         from .market import Market
         return Market(
-            base=self["base"],
-            quote=self["quote"],
+            base=self["base"]["asset"],
+            quote=self["quote"]["asset"],
             bitshares_instance=self.bitshares
         )
 

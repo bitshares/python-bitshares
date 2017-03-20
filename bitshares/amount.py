@@ -84,6 +84,11 @@ class Amount(dict):
             self["asset"] = asset
             self["symbol"] = self["asset"]["symbol"]
 
+        elif amount and asset and isinstance(asset, dict):
+            self["amount"] = amount
+            self["asset"] = asset
+            self["symbol"] = self["asset"]["symbol"]
+
         elif amount and asset and isinstance(asset, str):
             self["amount"] = amount
             self["asset"] = Asset(asset)

@@ -54,6 +54,7 @@ Quickstart
 
    from bitshares import BitShares
    bitshares = BitShares()
+   bitshares.wallet.unlock("wallet-passphrase")
    bitshares.transfer("<to>", "<amount>", "<asset>", "[<memo>]", account="<from>")
 
 .. code-block:: python
@@ -82,12 +83,14 @@ Quickstart
    from bitshares.market import Market
    market = Market("USD:BTS")
    print(market.ticker())
+   market.bitshares.wallet.unlock("wallet-passphrase")
    print(market.sell(300, 100)  # sell 100 USD for 300 BTS/USD
 
 .. code-block:: python
 
    from bitshares.dex import Dex
    dex = Dex()
+   dex.bitshares.wallet.unlock("wallet-passphrase")
    dex.adjust_collateral_ratio("SILVER", 3.5)
    
 
@@ -119,7 +122,9 @@ Python-BitShares Libraries
    market
    notify
    price
+   vesting
    witness
+   proposal
 
 Low Level Classes
 -----------------
