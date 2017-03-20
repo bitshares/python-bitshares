@@ -42,6 +42,7 @@ class Price(dict):
         * ``Price(quote="10 GOLD", base="1 USD")``
         * ``Price("10 GOLD", "1 USD")``
         * ``Price(Amount("10 GOLD"), Amount("1 USD"))``
+        * ``Price(1.0, "USD/GOLD")``
 
         Instances of this class can be used in regular mathematical expressions
         (``+-*/%``) such as:
@@ -126,6 +127,15 @@ class Price(dict):
         elif (isinstance(base, Amount) and isinstance(quote, Amount)):
             self["quote"] = quote
             self["base"] = base
+
+        elif (len(args) == 2 and isinstance(args[0], float) and isinstance(args[1], str)):
+            import re
+            price = args[0]
+            base_symbol, quote_symbol = re.split("[/-:]", args[1])
+            base = Asset(base_symbol, bitshares_instance=self.bitshares)
+            quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
+            self["quote"] = Amount(amount=1, asset=quote, bitshares_instance=self.bitshares)
+            self["base"] = Amount(amount=float(price), asset=base, bitshares_instance=self.bitshares)
 
         else:
             raise Exception
@@ -275,8 +285,8 @@ class Price(dict):
         """
         from .market import Market
         return Market(
-            base=self["base"],
-            quote=self["quote"],
+            base=self["base"]["asset"],
+            quote=self["quote"]["asset"],
             bitshares_instance=self.bitshares
         )
 

@@ -10,6 +10,7 @@ class Testcases(unittest.TestCase):
         # self.assertEqual(1, 1)
 
         Price("0.315 USD/BTS")
+        Price(1.0, "USD/GOLD"),
         Price(0.315, base="USD", quote="BTS")
         Price(0.315, base=Asset("USD"), quote=Asset("BTS"))
         Price({
