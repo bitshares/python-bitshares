@@ -117,6 +117,9 @@ class BitShares(object):
         self.proposer = kwargs.get("proposer", None)
         self.bundle = bool(kwargs.get("bundle", False))
 
+        # Store config for access through other Classes
+        self.config = config
+
         if not self.offline:
             self._connect(node=node,
                           rpcuser=rpcuser,
