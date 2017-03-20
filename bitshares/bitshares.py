@@ -12,6 +12,7 @@ from .account import Account
 from .amount import Amount
 from .witness import Witness
 from .committee import Committee
+from .vesting import Vesting
 from .storage import configStorage as config
 from .exceptions import (
     AccountExistsException,
@@ -764,5 +765,37 @@ class BitShares(object):
                     "fee": {"amount": 0, "asset_id": "1.3.0"},
                     "fee_paying_account": account["id"],
                     "order": order,
-                    "extensions": []}))
+                    "extensions": [],
+                    "prefix": self.rpc.chain_params["prefix"]}))
+        return self.finalizeOp(op, account["name"], "active")
+
+    def vesting_balance_withdraw(self, vesting_id, amount=None, account=None):
+        """ Withdraw vesting balance
+
+            :param str vesting_id: Id of the vesting object
+            :param bitshares.amount.Amount Amount to withdraw ("all" if not provided")
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+
+        if not amount:
+            obj = Vesting(vesting_id)
+            amount = Amount(obj["balance"])
+
+        op = operations.Vesting_balance_withdraw(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "vesting_balance": vesting_id,
+            "owner": account["id"],
+            "amount": {
+                "amount": int(amount),
+                "asset_id": amount["asset"]["id"]
+            },
+            "prefix": self.rpc.chain_params["prefix"]
+        })
         return self.finalizeOp(op, account["name"], "active")

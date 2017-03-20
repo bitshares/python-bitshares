@@ -122,6 +122,7 @@ Python-BitShares Libraries
    market
    notify
    price
+   vesting
    witness
 
 Low Level Classes

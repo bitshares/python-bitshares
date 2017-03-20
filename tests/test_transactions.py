@@ -507,52 +507,37 @@ class Testcases(unittest.TestCase):
                    "9945c8c9fccebd587cfa2d2f6a146b1639f8c")
         self.assertEqual(compare[:-130], txWire[:-130])
 
+    def test_vesting_withdraw(self):
+        op = operations.Vesting_balance_withdraw(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "vesting_balance": "1.13.0",
+            "owner": "1.2.0",
+            "amount": {"amount": 0, "asset_id": "1.3.0"},
+            "prefix": "TEST"
+        })
+        ops = [Operation(op)]
+        tx = transactions.Signed_Transaction(ref_block_num=ref_block_num,
+                                             ref_block_prefix=ref_block_prefix,
+                                             expiration=expiration,
+                                             operations=ops)
+        tx = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = ("f68585abf4dce7c80457012100000000000000000000"
+                   "0000000000000000000000011f07ae9b0d1cb494e248"
+                   "6b99cccdf78ef8b785522af8f2233de364d4455c0626"
+                   "935d2d32414a2f7a6b9cdf3451730062965adeec8aa2"
+                   "03fca97f608411dce84309")
+        self.assertEqual(compare[:-130], txWire[:-130])
+
     def compareConstructedTX(self):
         #    def test_online(self):
         #        self.maxDiff = None
-        op = operations.Account_update(**{
-            "fee": {"amount": 1467634,
-                    "asset_id": "1.3.0"
-                    },
-            "account": "1.2.15",
-            "owner": {"weight_threshold": 1,
-                      "account_auths": [["1.2.96086", 1]],
-                      'key_auths': [['TEST6pbVDAjRFiw6fkiKYCrkz7PFeL7XNAfefrsREwg8MKpJ9VYV9x',
-                                    1]],
-                      "address_auths": []
-                      },
-            "active": {"weight_threshold": 1,
-                       "account_auths": [["1.2.96086", 1]],
-                       'key_auths': [['TEST8CemMDjdUWSV5wKotEimhK6c4dY7p2PdzC2qM1HpAP8aLtZfE7',
-                                     1]],
-                       "address_auths": []
-                       },
-            "new_options": {"memo_key": "TEST5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE",
-                            "voting_account": "1.2.5",
-                            "num_witness": 0,
-                            "num_committee": 0,
-                            "votes": ["1:0",
-                                      "1:1", 
-                                      "1:2", 
-                                      "1:3", 
-                                      "0:22",
-                                      "0:23",
-                                      "1:45",
-                                      "1:47",
-                                      "1:49",
-                                      "0:24",
-                                      "0:25",
-                                      "0:26",
-                                      "0:27",
-                                      "0:28",
-                                      "1:42",
-                                      "1:43",
-                                      "1:44",
-                                      "1:53",
-                                      "1:56"],
-                            "extensions": []
-                            },
-            "extensions": {},
+        op = operations.Vesting_balance_withdraw(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "vesting_balance": "1.13.0",
+            "owner": "1.2.0",
+            "amount": {"amount": 0, "asset_id": "1.3.0"},
             "prefix": "TEST"
         })
         ops = [Operation(op)]
@@ -602,6 +587,7 @@ class Testcases(unittest.TestCase):
         print(txWire[:-130])
         print(compare[:-130])
         # self.assertEqual(compare[:-130], txWire[:-130])
+
 
 if __name__ == '__main__':
     t = Testcases()

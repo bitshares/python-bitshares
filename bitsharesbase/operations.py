@@ -324,3 +324,19 @@ class Account_whitelist(GrapheneObject):
                 ('new_listing', Uint8(kwargs["new_listing"])),
                 ('extensions', Set([])),
             ]))
+
+
+class Vesting_balance_withdraw(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('vesting_balance', ObjectId(kwargs["vesting_balance"], "vesting_balance")),
+                ('owner', ObjectId(kwargs["owner"], "account")),
+                ('amount', Asset(kwargs["amount"])),
+            ]))
