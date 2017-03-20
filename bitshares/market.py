@@ -81,7 +81,7 @@ class Market(dict):
                 {
                     {
                         "quoteVolume": 48328.73333,
-                        "settlement_price": 332.3344827586207,
+                        "quoteSettlement_price": 332.3344827586207,
                         "lowestAsk": 340.0,
                         "baseVolume": 144.1862,
                         "percentChange": -1.9607843231354893,

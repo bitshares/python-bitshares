@@ -1,6 +1,8 @@
 from .instance import shared_bitshares_instance
 from .account import Account
 from .exceptions import VestingBalanceDoesNotExistsException
+import logging
+log = logging.getLogger(__name__)
 
 
 class Vesting(dict):
@@ -29,3 +31,19 @@ class Vesting(dict):
     @property
     def account(self):
         return Account(self["owner"])
+
+    @property
+    def claimable(self):
+        from .amount import Amount
+        r = []
+        if self["policy"][0] == 1:
+            p = self["policy"][1]
+            ratio = (
+                (float(p["coin_seconds_earned"]) /
+                    float(self["balance"]["amount"])) /
+                float(p["vesting_seconds"])
+            ) if float(p["vesting_seconds"]) > 0.0 else 1
+            return Amount(self["balance"]) * ratio
+        else:
+            log.warning("This policy isn't implemented yet")
+            return 0
