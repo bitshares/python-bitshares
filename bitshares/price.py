@@ -309,13 +309,13 @@ class Order(Price):
             order = self.bitshares.rpc.get_objects([args[0]])[0]
             super(Order, self).__init__(order["sell_price"])
             self["seller"] = order["seller"]
-            self["id"] = order["id"]
+            self["id"] = order.get("id")
         elif (
             isinstance(args[0], dict) and
             "sell_price" in args[0]
         ):
             super(Order, self).__init__(args[0]["sell_price"])
-            self["id"] = args[0]["id"]
+            self["id"] = args[0].get("id")
         elif (
             isinstance(args[0], dict) and
             "min_to_receive" in args[0] and
@@ -325,10 +325,10 @@ class Order(Price):
                 Amount(args[0]["min_to_receive"], bitshares_instance=self.bitshares),
                 Amount(args[0]["amount_to_sell"], bitshares_instance=self.bitshares),
             )
-            self["id"] = args[0]["id"]
+            self["id"] = args[0].get("id")
         elif isinstance(args[0], Amount) and isinstance(args[1], Amount):
             super(Order, self).__init__(*args, **kwargs)
-            self["id"] = order["id"]
+            self["id"] = order.get("id")
         else:
             raise ValueError("Unkown format to load Order")
 
