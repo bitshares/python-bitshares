@@ -35,7 +35,6 @@ class Vesting(dict):
     @property
     def claimable(self):
         from .amount import Amount
-        r = []
         if self["policy"][0] == 1:
             p = self["policy"][1]
             ratio = (

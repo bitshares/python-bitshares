@@ -1,5 +1,12 @@
-Vesting
+Witness
 ~~~~~~~
 
-.. autoclass:: bitshares.vesting.Vesting
+Read data about a witness
+
+.. code-block:: python
+
+   from bitshares.witness import Witness
+   Witness("chainsquad.com")
+
+.. autoclass:: bitshares.witness.Witness
    :members:

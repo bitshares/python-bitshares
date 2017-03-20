@@ -802,3 +802,63 @@ class BitShares(object):
             "prefix": self.rpc.chain_params["prefix"]
         })
         return self.finalizeOp(op, account["name"], "active")
+
+    def approveproposal(self, proposal_id, account=None, approver=None):
+        """ Approve Proposal
+
+            :param str proposal_id: Id of the proposal
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        from .proposal import Proposal
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+        if not approver:
+            approver = account
+        else:
+            approver = Account(approver)
+
+        proposal = Proposal(proposal_id)
+
+        op = operations.Proposal_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            'fee_paying_account': account["id"],
+            'proposal': proposal["id"],
+            'active_approvals_to_add': [approver["id"]],
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def disapproveproposal(self, proposal_id, account=None, approver=None):
+        """ Disapprove Proposal
+
+            :param str proposal_id: Id of the proposal
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        from .proposal import Proposal
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+        if not approver:
+            approver = account
+        else:
+            approver = Account(approver)
+
+        proposal = Proposal(proposal_id)
+
+        op = operations.Proposal_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            'fee_paying_account': account["id"],
+            'proposal': proposal["id"],
+            'active_approvals_to_remove': [approver["id"]],
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
