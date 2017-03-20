@@ -31,10 +31,9 @@ class TransactionBuilder(dict):
             :param list ops: One or a list of operations
         """
         if isinstance(ops, list):
-            for op in ops:
-                self.op.append(op)
+            self.ops.extend(ops)
         else:
-            self.op.append(ops)
+            self.ops.append(ops)
 
     def appendSigner(self, account, permission):
         """ Try to obtain the wif key from the wallet by telling which account
@@ -66,7 +65,7 @@ class TransactionBuilder(dict):
 
     def appendWif(self, wif):
         """ Add a wif that should be used for signing of the transaction.
-        """ 
+        """
         if wif:
             try:
                 PrivateKey(wif)
@@ -79,7 +78,7 @@ class TransactionBuilder(dict):
             store
         """
         if self.bitshares.proposer:
-            ops = [operations.Op_wrapper(op=o) for o in list(self.op)]
+            ops = [operations.Op_wrapper(op=o) for o in list(self.ops)]
             proposer = Account(
                 self.bitshares.proposer,
                 bitshares_instance=self.bitshares
@@ -94,7 +93,7 @@ class TransactionBuilder(dict):
             })
             ops = [Operation(ops)]
         else:
-            ops = [Operation(o) for o in list(self.op)]
+            ops = [Operation(o) for o in list(self.ops)]
 
         ops = transactions.addRequiredFees(self.bitshares.rpc, ops)
         expiration = transactions.formatTimeFromNow(self.bitshares.expiration)
@@ -170,13 +169,16 @@ class TransactionBuilder(dict):
         except Exception as e:
             raise e
 
+        self.clear()
+
         return self
 
     def clear(self):
         """ Clear the transaction builder and start from scratch
         """
-        self.op = []
+        self.ops = []
         self.wifs = []
+        super(TransactionBuilder, self).__init__({})
 
     def addSigningInformation(self, account, permission):
         """ This is a private method that adds side information to a
@@ -214,7 +216,7 @@ class TransactionBuilder(dict):
         """
         return dict(self)
 
-    def appendMissingSignatures(self, wifs=[]):
+    def appendMissingSignatures(self):
         """ Store which accounts/keys are supposed to sign the transaction
 
             This method is used for an offline-signer!

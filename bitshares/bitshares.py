@@ -33,8 +33,11 @@ class BitShares(object):
         :param str rpcpassword: RPC password *(optional)*
         :param bool nobroadcast: Do **not** broadcast a transaction! *(optional)*
         :param bool debug: Enable Debugging *(optional)*
-        :param array,dict,string keys: Predefine the wif keys to shortcut the wallet database
-        :param bool offline: Boolean to prevent connecting to network (defaults to ``False``)
+        :param array,dict,string keys: Predefine the wif keys to shortcut the wallet database *(optional)*
+        :param bool offline: Boolean to prevent connecting to network (defaults to ``False``) *(optional)*
+        :param str proposer: Propose a transaction using this proposer *(optional)*
+        :param int expiration: Delay in seconds until transactions are supposed to expire *(optional)*
+        :param bool bundle: Do not broadcast transactions right away, but allow to bundle operations *(optional)*
 
         Three wallet operation modes are possible:
 
@@ -106,11 +109,12 @@ class BitShares(object):
         self.rpc = None
         self.debug = debug
 
-        self.offline = kwargs.get("offline", False)
-        self.nobroadcast = kwargs.get("nobroadcast", False)
-        self.unsigned = kwargs.get("unsigned", False)
+        self.offline = bool(kwargs.get("offline", False))
+        self.nobroadcast = bool(kwargs.get("nobroadcast", False))
+        self.unsigned = bool(kwargs.get("unsigned", False))
         self.expiration = int(kwargs.get("expiration", 30))
         self.proposer = kwargs.get("proposer", None)
+        self.bundle = bool(kwargs.get("bundle", False))
 
         if not self.offline:
             self._connect(node=node,
@@ -119,6 +123,7 @@ class BitShares(object):
                           **kwargs)
 
         self.wallet = Wallet(self.rpc, **kwargs)
+        self.txbuffer = TransactionBuilder(bitshares_instance=self)
 
     def _connect(self,
                  node="",
@@ -169,19 +174,23 @@ class BitShares(object):
                 posting permission. Neither can you use different
                 accounts for different operations!
         """
-        tx = TransactionBuilder(bitshares_instance=self)
-        tx.appendOps(ops)
+        # Append transaction
+        self.txbuffer.appendOps(ops)
 
         if self.unsigned:
-            tx.addSigningInformation(account, permission)
-            return tx
+            # In case we don't want to sign anything
+            self.txbuffer.addSigningInformation(account, permission)
+            return self.txbuffer
+        elif self.bundle:
+            # In case we want to add more ops to the tx (bundle)
+            self.txbuffer.appendSigner(account, permission)
         else:
-            tx.appendSigner(account, permission)
-            tx.sign()
+            # default behavior: sign + broadcast
+            self.txbuffer.appendSigner(account, permission)
+            self.txbuffer.sign()
+            return self.txbuffer.broadcast()
 
-        return tx.broadcast()
-
-    def sign(self, tx, wifs=[]):
+    def sign(self, tx=None, wifs=[]):
         """ Sign a provided transaction witht he provided key(s)
 
             :param dict tx: The transaction to be signed and returned
@@ -190,18 +199,25 @@ class BitShares(object):
                 from the wallet as defined in "missing_signatures" key
                 of the transactions.
         """
-        tx = TransactionBuilder(tx, bitshares_instance=self)
-        tx.appendMissingSignatures(wifs)
-        tx.sign()
-        return tx.json()
+        if tx:
+            txbuffer = TransactionBuilder(tx, bitshares_instance=self)
+        else:
+            txbuffer = self.txbuffer
+        txbuffer.appendWif(wifs)
+        txbuffer.appendMissingSignatures()
+        txbuffer.sign()
+        return txbuffer.json()
 
-    def broadcast(self, tx):
+    def broadcast(self, tx=None):
         """ Broadcast a transaction to the BitShares network
 
             :param tx tx: Signed transaction to broadcast
         """
-        tx = TransactionBuilder(tx)
-        return tx.broadcast()
+        if tx:
+            # If tx is provided, we broadcast the tx
+            return TransactionBuilder(tx).broadcast()
+        else:
+            return self.txbuffer.broadcast()
 
     def info(self):
         """ Returns the global properties
