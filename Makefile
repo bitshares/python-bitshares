@@ -46,4 +46,4 @@ dist:
 release: clean check dist bitshares-changelog git
 
 bitshares-changelog:
-	git show -s --pretty=format: $(TAG) | tail -n +4 | piston post --file "-" --author xeroc --permlink "python-bitshares-changelog-$(TAGSTEEM)" --category bitshares --title "[Changelog] python-bitshares $(TAG)" --tags python-bitshares changelog
+	git show -s --pretty=format: $(TAG) | tail -n +4 | piston post --file "-" --author chainsquad --permlink "python-bitshares-changelog-$(TAGSTEEM)" --category bitshares --title "[Changelog] python-bitshares $(TAG)" --tags python-bitshares changelog
