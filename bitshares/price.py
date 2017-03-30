@@ -198,33 +198,33 @@ class Price(dict):
         return self
 
     def __div__(self, other):
-        a = self.copy()
         if isinstance(other, Price):
-            raise ValueError("Division of two prices!?")
+            return self["price"] / other["price"]
         else:
+            a = self.copy()
             a["base"] /= other
-        return a
+            return a
 
     def __idiv__(self, other):
         if isinstance(other, Price):
-            raise ValueError("Division of two prices!?")
+            return self["price"] / other["price"]
         else:
             self["base"] /= other
         return self
 
     def __floordiv__(self, other):
-        a = self.copy()
         if isinstance(other, Price):
-            raise ValueError("Division of two prices!?")
+            return self["price"] / other["price"]
         else:
+            a = self.copy()
             a["base"] //= other
 
     def __ifloordiv__(self, other):
         if isinstance(other, Price):
-            raise ValueError("Division of two prices!?")
+            return self["price"] / other["price"]
         else:
             self["base"] //= other
-        return self
+            return self
 
     def __lt__(self, other):
         if isinstance(other, Price):
@@ -423,12 +423,19 @@ class PriceFeed(dict):
     """
     def __init__(self, feed, bitshares_instance=None):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
-        assert len(feed) == 2, "PriceFeed expects an array of length 3"
-        super(PriceFeed, self).__init__({
-            "witness": Witness(feed[0], lazy=True),
-            "date": parse_time(feed[1][0]),
-            "maintenance_collateral_ratio": feed[1][1]["maintenance_collateral_ratio"],
-            "maximum_short_squeeze_ratio": feed[1][1]["maximum_short_squeeze_ratio"],
-            "settlement_price": Price(feed[1][1]["settlement_price"]),
-            "core_exchange_rate": Price(feed[1][1]["core_exchange_rate"])
-        })
+        if len(feed) == 2:
+            super(PriceFeed, self).__init__({
+                "witness": Witness(feed[0], lazy=True),
+                "date": parse_time(feed[1][0]),
+                "maintenance_collateral_ratio": feed[1][1]["maintenance_collateral_ratio"],
+                "maximum_short_squeeze_ratio": feed[1][1]["maximum_short_squeeze_ratio"],
+                "settlement_price": Price(feed[1][1]["settlement_price"]),
+                "core_exchange_rate": Price(feed[1][1]["core_exchange_rate"])
+            })
+        else:
+            super(PriceFeed, self).__init__({
+                "maintenance_collateral_ratio": feed["maintenance_collateral_ratio"],
+                "maximum_short_squeeze_ratio": feed["maximum_short_squeeze_ratio"],
+                "settlement_price": Price(feed["settlement_price"]),
+                "core_exchange_rate": Price(feed["core_exchange_rate"])
+            })
