@@ -2,6 +2,8 @@ from bitshares.instance import shared_bitshares_instance
 from .amount import Amount
 from .asset import Asset
 from .utils import formatTimeString
+from .witness import Witness
+from .utils import parse_time
 
 
 class Price(dict):
@@ -296,6 +298,8 @@ class Order(Price):
         and ``quote`` Amounts not only be used to represent the price (as a
         ratio of base and quote) but instead has those amounts represent the
         amounts of an actual order!
+
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
     """
 
     def __init__(self, *args, bitshares_instance=None, **kwargs):
@@ -353,6 +357,8 @@ class FilledOrder(Price):
         ratio of base and quote) but instead has those amounts represent the
         amounts of an actually filled order!
 
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+
         .. note:: Instances of this class come with an additional ``time`` key
                   that shows when the order has been filled!
     """
@@ -399,3 +405,30 @@ class FilledOrder(Price):
         return t + "@ " + Price.__repr__(self)
 
     __str__ = __repr__
+
+
+class PriceFeed(dict):
+    """ This class is used to represent a price feed consisting of
+
+        * a witness,
+        * a symbol,
+        * a core exchange rate,
+        * the maintenance collateral ratio,
+        * the max short squeeze ratio,
+        * a settlement price, and
+        * a date
+
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+
+    """
+    def __init__(self, feed, bitshares_instance=None):
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        assert len(feed) == 2, "PriceFeed expects an array of length 3"
+        super(PriceFeed, self).__init__({
+            "witness": Witness(feed[0], lazy=True),
+            "date": parse_time(feed[1][0]),
+            "maintenance_collateral_ratio": feed[1][1]["maintenance_collateral_ratio"],
+            "maximum_short_squeeze_ratio": feed[1][1]["maximum_short_squeeze_ratio"],
+            "settlement_price": Price(feed[1][1]["settlement_price"]),
+            "core_exchange_rate": Price(feed[1][1]["core_exchange_rate"])
+        })
