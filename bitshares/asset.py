@@ -102,18 +102,29 @@ class Asset(dict):
         """
         return self["flags"]
 
-    @property
-    def feeds(self):
-        from .price import PriceFeed
+    def ensure_full(self):
         if not self.full:
             self.full = True
             self.refresh()
+
+    @property
+    def feeds(self):
+        from .price import PriceFeed
+        self.ensure_full()
         if not self.is_bitasset:
             return
         r = []
         for feed in self["bitasset_data"]["feeds"]:
             r.append(PriceFeed(feed))
         return r
+
+    @property
+    def feed(self):
+        from .price import PriceFeed
+        self.ensure_full()
+        if not self.is_bitasset:
+            return
+        return PriceFeed(self["bitasset_data"]["current_feed"])
 
     def __getitem__(self, key):
         if not self.cached:
