@@ -789,7 +789,7 @@ class BitShares(object):
 
         if not amount:
             obj = Vesting(vesting_id)
-            amount = Amount(obj["balance"])
+            amount = obj.claimable
 
         op = operations.Vesting_balance_withdraw(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
