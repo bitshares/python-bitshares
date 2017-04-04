@@ -1,3 +1,4 @@
+from fractions import Fraction
 from bitshares.instance import shared_bitshares_instance
 from .amount import Amount
 from .asset import Asset
@@ -73,8 +74,9 @@ class Price(dict):
             base_symbol, quote_symbol = re.split("[/-:]", assets)
             base = Asset(base_symbol, bitshares_instance=self.bitshares)
             quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
-            self["quote"] = Amount(amount=1, asset=quote, bitshares_instance=self.bitshares)
-            self["base"] = Amount(amount=float(price), asset=base, bitshares_instance=self.bitshares)
+            frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
+            self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
+            self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
 
         elif (len(args) == 1 and isinstance(args[0], dict) and
                 "base" in args[0] and
@@ -106,12 +108,14 @@ class Price(dict):
                 self["type"] = "buy"
 
         elif len(args) == 1 and (isinstance(base, Asset) and isinstance(quote, Asset)):
-            self["quote"] = Amount(amount=1, asset=quote, bitshares_instance=self.bitshares)
-            self["base"] = Amount(amount=float(args[0]), asset=base, bitshares_instance=self.bitshares)
+            frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
+            self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
+            self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
 
         elif (len(args) == 1 and isinstance(base, str) and isinstance(quote, str)):
-            self["quote"] = Amount(amount=1, asset=quote, bitshares_instance=self.bitshares)
-            self["base"] = Amount(amount=float(args[0]), asset=base, bitshares_instance=self.bitshares)
+            frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
+            self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
+            self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
 
         elif (len(args) == 0 and isinstance(base, str) and isinstance(quote, str)):
             self["quote"] = Amount(quote, bitshares_instance=self.bitshares)
@@ -138,8 +142,9 @@ class Price(dict):
             base_symbol, quote_symbol = re.split("[/-:]", args[1])
             base = Asset(base_symbol, bitshares_instance=self.bitshares)
             quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
-            self["quote"] = Amount(amount=1, asset=quote, bitshares_instance=self.bitshares)
-            self["base"] = Amount(amount=float(price), asset=base, bitshares_instance=self.bitshares)
+            frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
+            self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
+            self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
 
         else:
             raise Exception
