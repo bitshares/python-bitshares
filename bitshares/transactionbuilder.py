@@ -184,6 +184,7 @@ class TransactionBuilder(dict):
             unsigned/partial transaction in order to simplify later
             signing (e.g. for multisig or coldstorage)
         """
+        self.constructTx()
         accountObj = Account(account)
         authority = accountObj[permission]
         # We add a required_authorities to be able to identify
