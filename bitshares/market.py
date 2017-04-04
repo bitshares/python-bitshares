@@ -143,7 +143,7 @@ class Market(dict):
             base=self["base"],
             bitshares_instance=self.bitshares
         )
-        data["percentChange"] = round(float(ticker["percent_change"]) * 100, 3)
+        data["percentChange"] = float(ticker["percent_change"])
 
         return data
 
