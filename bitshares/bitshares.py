@@ -10,6 +10,7 @@ from bitsharesbase import transactions, operations
 from .asset import Asset
 from .account import Account
 from .amount import Amount
+from .price import Price
 from .witness import Witness
 from .committee import Committee
 from .vesting import Vesting
@@ -134,13 +135,13 @@ class BitShares(object):
                  rpcuser="",
                  rpcpassword="",
                  **kwargs):
-        """ Connect to Steem network (internal use only)
+        """ Connect to BitShares network (internal use only)
         """
         if not node:
             if "node" in config:
                 node = config["node"]
             else:
-                raise ValueError("A Steem node needs to be provided!")
+                raise ValueError("A BitShares node needs to be provided!")
 
         if not rpcuser and "rpcuser" in config:
             rpcuser = config["rpcuser"]
@@ -621,11 +622,11 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         options = account["options"]
 
         for witness in witnesses:
-            witness = Witness(witness)
+            witness = Witness(witness, bitshares_instance=self)
             options["votes"].append(witness["vote_id"])
 
         options["votes"] = list(set(options["votes"]))
@@ -655,11 +656,11 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         options = account["options"]
 
         for witness in witnesses:
-            witness = Witness(witness)
+            witness = Witness(witness, bitshares_instance=self)
             if witness["vote_id"] in options["votes"]:
                 options["votes"].remove(witness["vote_id"])
 
@@ -690,11 +691,11 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         options = account["options"]
 
         for committee in committees:
-            committee = Committee(committee)
+            committee = Committee(committee, bitshares_instance=self)
             options["votes"].append(committee["vote_id"])
 
         options["votes"] = list(set(options["votes"]))
@@ -724,11 +725,11 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         options = account["options"]
 
         for committee in committees:
-            committee = Committee(committee)
+            committee = Committee(committee, bitshares_instance=self)
             if committee["vote_id"] in options["votes"]:
                 options["votes"].remove(committee["vote_id"])
 
@@ -785,10 +786,10 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
 
         if not amount:
-            obj = Vesting(vesting_id)
+            obj = Vesting(vesting_id, bitshares_instance=self)
             amount = obj.claimable
 
         op = operations.Vesting_balance_withdraw(**{
@@ -816,13 +817,13 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         if not approver:
             approver = account
         else:
-            approver = Account(approver)
+            approver = Account(approver, bitshares_instance=self)
 
-        proposal = Proposal(proposal_id)
+        proposal = Proposal(proposal_id, bitshares_instance=self)
 
         op = operations.Proposal_update(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -846,19 +847,76 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         if not approver:
             approver = account
         else:
-            approver = Account(approver)
+            approver = Account(approver, bitshares_instance=self)
 
-        proposal = Proposal(proposal_id)
+        proposal = Proposal(proposal_id, bitshares_instance=self)
 
         op = operations.Proposal_update(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             'fee_paying_account': account["id"],
             'proposal': proposal["id"],
             'active_approvals_to_remove': [approver["id"]],
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def publish_price_feed(
+        self,
+        symbol,
+        settlement_price,
+        cer=None,
+        mssr=110,
+        mcr=200,
+        account=None
+    ):
+        """ Publish a price feed for a market-pegged asset
+
+            :param str symbol: Symbol of the asset to publish feed for
+            :param bitshares.price.Price settlement_price: Price for settlement
+            :param bitshares.price.Price cer: Core exchange Rate (default ``settlement_price + 5%``)
+            :param float mssr: Percentage for max short squeeze ratio (default: 110%)
+            :param float mcr: Percentage for maintenance collateral ratio (default: 200%)
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+
+            .. note:: The ``account`` needs to be allowed to produce a
+                      price feed for ``symbol``. For witness produced
+                      feeds this means ``account`` is a witness account!
+        """
+        assert isinstance(settlement_price, Price), "settlement_price needs to be instance of `bitshares.price.Price`!"
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self)
+        asset = Asset(symbol, bitshares_instance=self, full=True)
+        assert asset.is_bitasset, "Symbol needs to be a bitasset!"
+        assert settlement_price["base"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"] or \
+                settlement_price["quote"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"], \
+                "The Price needs to be relative to the backing collateral!"
+
+
+        if not cer:
+            if settlement_price["base"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"]:
+                cer = settlement_price * 0.95
+            else:
+                cer = settlement_price * 1.05
+
+        op = operations.Asset_publish_feed(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "publisher": account["id"],
+            "asset_id": "1.3.3",
+            "feed": {
+                "settlement_price": settlement_price.json(),
+                "core_exchange_rate": cer.json(),
+                "maximum_short_squeeze_ratio": int(mssr * 10),
+                "maintenance_collateral_ratio": int(mcr * 10),
+            },
             "prefix": self.rpc.chain_params["prefix"]
         })
         return self.finalizeOp(op, account["name"], "active")
