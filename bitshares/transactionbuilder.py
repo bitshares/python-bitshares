@@ -48,7 +48,7 @@ class TransactionBuilder(dict):
                 return []
             r = []
             for authority in account[permission]["key_auths"]:
-                wif = self.steem.wallet.getPrivateKeyForPublicKey(authority[0])
+                wif = self.bitshares.wallet.getPrivateKeyForPublicKey(authority[0])
                 if wif:
                     r.append([wif, authority[1]])
 
