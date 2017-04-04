@@ -130,7 +130,9 @@ class Price(dict):
             self["quote"] = quote
             self["base"] = base
 
-        elif (len(args) == 2 and isinstance(args[0], float) and isinstance(args[1], str)):
+        elif (len(args) == 2 and
+                (isinstance(args[0], float) or isinstance(args[0], int)) and 
+                isinstance(args[1], str)):
             import re
             price = args[0]
             base_symbol, quote_symbol = re.split("[/-:]", args[1])
@@ -167,6 +169,12 @@ class Price(dict):
         self["quote"] = self["base"]
         self["base"] = tmp
         return self
+
+    def json(self):
+        return {
+            "base": self["base"].json(),
+            "quote": self["quote"].json()
+        }
 
     def __repr__(self):
         return "{price:.{precision}f} {base}/{quote} ".format(
