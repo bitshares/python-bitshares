@@ -38,6 +38,7 @@ class BitShares(object):
         :param array,dict,string keys: Predefine the wif keys to shortcut the wallet database *(optional)*
         :param bool offline: Boolean to prevent connecting to network (defaults to ``False``) *(optional)*
         :param str proposer: Propose a transaction using this proposer *(optional)*
+        :param int proposal_expiration: Expiration time (in seconds) for the proposal *(optional)*
         :param int expiration: Delay in seconds until transactions are supposed to expire *(optional)*
         :param bool bundle: Do not broadcast transactions right away, but allow to bundle operations *(optional)*
 
@@ -116,6 +117,7 @@ class BitShares(object):
         self.unsigned = bool(kwargs.get("unsigned", False))
         self.expiration = int(kwargs.get("expiration", 30))
         self.proposer = kwargs.get("proposer", None)
+        self.proposal_expiration = int(kwargs.get("proposal_expiration", None))
         self.bundle = bool(kwargs.get("bundle", False))
 
         # Store config for access through other Classes

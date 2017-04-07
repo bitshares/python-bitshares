@@ -86,7 +86,7 @@ class TransactionBuilder(dict):
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 "fee_paying_account": proposer["id"],
                 "expiration_time": transactions.formatTimeFromNow(
-                    self.bitshares.expiration - 1),
+                    self.bitshares.proposal_expiration),
                 "proposed_ops": [o.json() for o in ops],
                 "extensions": []
             })
