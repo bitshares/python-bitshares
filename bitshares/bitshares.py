@@ -117,7 +117,7 @@ class BitShares(object):
         self.unsigned = bool(kwargs.get("unsigned", False))
         self.expiration = int(kwargs.get("expiration", 30))
         self.proposer = kwargs.get("proposer", None)
-        self.proposal_expiration = int(kwargs.get("proposal_expiration", None))
+        self.proposal_expiration = int(kwargs.get("proposal_expiration", 60 * 60 * 24))
         self.bundle = bool(kwargs.get("bundle", False))
 
         # Store config for access through other Classes
