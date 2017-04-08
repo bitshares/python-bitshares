@@ -115,6 +115,8 @@ class Price(dict):
 
         elif (len(args) == 1 and isinstance(base, str) and isinstance(quote, str)):
             price = args[0]
+            base = Asset(base)
+            quote = Asset(quote)
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
             self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
             self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
