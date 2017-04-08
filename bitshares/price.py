@@ -349,7 +349,6 @@ class Order(Price):
             self["id"] = args[0].get("id")
         elif isinstance(args[0], Amount) and isinstance(args[1], Amount):
             super(Order, self).__init__(*args, **kwargs)
-            self["id"] = order.get("id")
         else:
             raise ValueError("Unkown format to load Order")
 
