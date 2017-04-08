@@ -1,5 +1,6 @@
 from .instance import shared_bitshares_instance
 from .account import Account
+from .exceptions import ProposalDoesNotExistException
 import logging
 log = logging.getLogger(__name__)
 
@@ -24,5 +25,7 @@ class Proposal(dict):
     def refresh(self):
         a, b, c = self.id.split(".")
         assert int(a) == 1 and int(b) == 10, "Valid proposal ids are 1.10.x"
-        obj = self.bitshares.rpc.get_objects([self.id])[0]
-        super(Proposal, self).__init__(obj)
+        proposal = self.bitshares.rpc.get_objects([self.id])
+        if not any(proposal):
+            raise ProposalDoesNotExistException
+        super(Proposal, self).__init__(proposal[0])

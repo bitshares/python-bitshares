@@ -23,6 +23,36 @@ class AssetDoesNotExistsException(Exception):
     pass
 
 
+class BlockDoesNotExistsException(Exception):
+    """ The block does not exist
+    """
+    pass
+
+
+class WitnessDoesNotExistsException(Exception):
+    """ The witness does not exist
+    """
+    pass
+
+
+class CommitteeMemberDoesNotExistsException(Exception):
+    """ Committee Member does not exist
+    """
+    pass
+
+
+class VestingBalanceDoesNotExistsException(Exception):
+    """ Vesting Balance does not exist
+    """
+    pass
+
+
+class ProposalDoesNotExistException(Exception):
+    """ The proposal does not exist
+    """
+    pass
+
+
 class InsufficientAuthorityError(Exception):
     """ The transaction requires signature of a higher authority
     """
@@ -41,12 +71,6 @@ class InvalidWifError(Exception):
     pass
 
 
-class BlockDoesNotExistsException(Exception):
-    """ The block does not exist
-    """
-    pass
-
-
 class NoWalletException(Exception):
     """ No Wallet could be found, please use :func:`bitshares.wallet.create` to
         create a new wallet
@@ -54,25 +78,7 @@ class NoWalletException(Exception):
     pass
 
 
-class WitnessDoesNotExistsException(Exception):
-    """ The witness does not exist
-    """
-    pass
-
-
 class WrongMasterPasswordException(Exception):
     """ The password provided could not properly unlock the wallet
-    """
-    pass
-
-
-class CommitteeMemberDoesNotExistsException(Exception):
-    """ Committee Member does not exist
-    """
-    pass
-
-
-class VestingBalanceDoesNotExistsException(Exception):
-    """ Vesting Balance does not exist
     """
     pass
