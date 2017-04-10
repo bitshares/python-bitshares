@@ -12,7 +12,7 @@ except LookupError:
     ascii = codecs.lookup('ascii')
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == 'mbcs'))
 
-VERSION = '0.1.4a0'
+VERSION = '0.1.5'
 
 setup(
     name='bitshares',

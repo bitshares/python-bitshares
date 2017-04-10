@@ -627,6 +627,9 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         options = account["options"]
 
+        if not isinstance(witnesses, (list, set)):
+            witnesses = set(witnesses)
+
         for witness in witnesses:
             witness = Witness(witness, bitshares_instance=self)
             options["votes"].append(witness["vote_id"])
@@ -660,6 +663,9 @@ class BitShares(object):
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
         options = account["options"]
+
+        if not isinstance(witnesses, (list, set)):
+            witnesses = set(witnesses)
 
         for witness in witnesses:
             witness = Witness(witness, bitshares_instance=self)
@@ -696,6 +702,9 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         options = account["options"]
 
+        if not isinstance(committees, (list, set)):
+            committees = set(committees)
+
         for committee in committees:
             committee = Committee(committee, bitshares_instance=self)
             options["votes"].append(committee["vote_id"])
@@ -729,6 +738,9 @@ class BitShares(object):
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
         options = account["options"]
+
+        if not isinstance(committees, (list, set)):
+            committees = set(committees)
 
         for committee in committees:
             committee = Committee(committee, bitshares_instance=self)
@@ -806,10 +818,10 @@ class BitShares(object):
         })
         return self.finalizeOp(op, account["name"], "active")
 
-    def approveproposal(self, proposal_id, account=None, approver=None):
+    def approveproposal(self, proposal_ids, account=None, approver=None):
         """ Approve Proposal
 
-            :param str proposal_id: Id of the proposal
+            :param str proposal_ids: Ids of the proposals
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
         """
@@ -825,21 +837,25 @@ class BitShares(object):
         else:
             approver = Account(approver, bitshares_instance=self)
 
-        proposal = Proposal(proposal_id, bitshares_instance=self)
+        if not isinstance(proposal_ids, (list, set)):
+            proposal_ids = set(proposal_ids)
 
-        op = operations.Proposal_update(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            'fee_paying_account': account["id"],
-            'proposal': proposal["id"],
-            'active_approvals_to_add': [approver["id"]],
-            "prefix": self.rpc.chain_params["prefix"]
-        })
+        op = []
+        for proposal_id in proposal_ids:
+            proposal = Proposal(proposal_id, bitshares_instance=self)
+            op.append(operations.Proposal_update(**{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                'fee_paying_account': account["id"],
+                'proposal': proposal["id"],
+                'active_approvals_to_add': [approver["id"]],
+                "prefix": self.rpc.chain_params["prefix"]
+            }))
         return self.finalizeOp(op, account["name"], "active")
 
-    def disapproveproposal(self, proposal_id, account=None, approver=None):
+    def disapproveproposal(self, proposal_ids, account=None, approver=None):
         """ Disapprove Proposal
 
-            :param str proposal_id: Id of the proposal
+            :param str proposal_ids: Ids of the proposals
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
         """
@@ -855,15 +871,19 @@ class BitShares(object):
         else:
             approver = Account(approver, bitshares_instance=self)
 
-        proposal = Proposal(proposal_id, bitshares_instance=self)
+        if not isinstance(proposal_ids, (list, set)):
+            proposal_ids = set(proposal_ids)
 
-        op = operations.Proposal_update(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            'fee_paying_account': account["id"],
-            'proposal': proposal["id"],
-            'active_approvals_to_remove': [approver["id"]],
-            "prefix": self.rpc.chain_params["prefix"]
-        })
+        op = []
+        for proposal_id in proposal_ids:
+            proposal = Proposal(proposal_id, bitshares_instance=self)
+            op.append(operations.Proposal_update(**{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                'fee_paying_account': account["id"],
+                'proposal': proposal["id"],
+                'active_approvals_to_remove': [approver["id"]],
+                "prefix": self.rpc.chain_params["prefix"]
+            }))
         return self.finalizeOp(op, account["name"], "active")
 
     def publish_price_feed(
