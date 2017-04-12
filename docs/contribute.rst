@@ -3,6 +3,13 @@ Contributing to python-bitshares
 
 We welcome your contributions to our project.
 
+Repository
+----------
+
+The *main* repository of python-bitshares is currently located at:
+
+    https://github.com/xeroc/python-bitshares
+
 Flow
 ----
 
