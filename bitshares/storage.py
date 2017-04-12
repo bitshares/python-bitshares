@@ -340,6 +340,9 @@ class Configuration(DataDir):
         connection.commit()
 
     def __iter__(self):
+        return iter(self.items())
+
+    def items(self):
         query = ("SELECT key, value from %s " % (self.__tablename__))
         connection = sqlite3.connect(self.sqlDataBaseFile)
         cursor = connection.cursor()
@@ -347,7 +350,7 @@ class Configuration(DataDir):
         r = {}
         for key, value in cursor.fetchall():
             r[key] = value
-        return iter(r)
+        return r
 
     def __len__(self):
         query = ("SELECT id from %s " % (self.__tablename__))
