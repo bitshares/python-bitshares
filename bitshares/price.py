@@ -139,7 +139,7 @@ class Price(dict):
             self["base"] = base
 
         elif (len(args) == 2 and
-                (isinstance(args[0], float) or isinstance(args[0], int)) and 
+                (isinstance(args[0], float) or isinstance(args[0], int)) and
                 isinstance(args[1], str)):
             import re
             price = args[0]
@@ -186,7 +186,7 @@ class Price(dict):
         }
 
     def __repr__(self):
-        return "{price:.{precision}f} {base}/{quote} ".format(
+        return "{price:.{precision}f} {base}/{quote}".format(
             price=self["price"],
             base=self["base"]["symbol"],
             quote=self["quote"]["symbol"],
