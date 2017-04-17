@@ -918,12 +918,12 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         asset = Asset(symbol, bitshares_instance=self, full=True)
         assert asset["id"] == settlement_price["base"]["asset"]["id"] or \
-                asset["id"] == settlement_price["quote"]["asset"]["id"], \
-                "Price needs to contain the asset of the symbol you'd like to produce a feed for!"
+            asset["id"] == settlement_price["quote"]["asset"]["id"], \
+            "Price needs to contain the asset of the symbol you'd like to produce a feed for!"
         assert asset.is_bitasset, "Symbol needs to be a bitasset!"
         assert settlement_price["base"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"] or \
-                settlement_price["quote"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"], \
-                "The Price needs to be relative to the backing collateral!"
+            settlement_price["quote"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"], \
+            "The Price needs to be relative to the backing collateral!"
 
         # Base needs to be short backing asset
         if settlement_price["base"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"]:
