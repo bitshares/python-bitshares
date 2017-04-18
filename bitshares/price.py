@@ -159,7 +159,9 @@ class Price(dict):
 
     def __setitem__(self, key, value):
         dict.__setitem__(self, key, value)
-        if "quote" in self and "base" in self:
+        if ("quote" in self and
+                "base" in self and
+                self["base"] and self["quote"]):  # don't derive price for deleted Orders
             dict.__setitem__(self, "price", self._safedivide(
                 self["base"]["amount"],
                 self["quote"]["amount"]))

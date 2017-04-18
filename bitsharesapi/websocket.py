@@ -252,16 +252,23 @@ class BitSharesWebsocket(Events):
             if id == self.__events__.index('on_object'):
                 # Let's see if a specific object has changed
                 for notice in data["params"][1]:
-                    if "id" in notice:
-                        self.process_notice(notice)
-                    else:
-                        for obj in notice:
-                            if "id" in obj:
-                                self.process_notice(obj)
+                    try:
+                        if "id" in notice:
+                            self.process_notice(notice)
+                        else:
+                            for obj in notice:
+                                if "id" in obj:
+                                    self.process_notice(obj)
+                    except Exception as e:
+                        log.critical("Error in process_notice: {}\n\n{}".format(str(e), traceback.format_exc))
             else:
-                callbackname = self.__events__[id]
-                log.info("Patching through to call %s" % callbackname)
-                [getattr(self.events, callbackname)(x) for x in data["params"][1]]
+                try:
+                    callbackname = self.__events__[id]
+                    log.info("Patching through to call %s" % callbackname)
+                    [getattr(self.events, callbackname)(x) for x in data["params"][1]]
+                except Exception as e:
+                    log.critical("Error in {}: {}\n\n{}".format(
+                        callbackname, str(e), traceback.format_exc()))
 
     def on_error(self, ws, error):
         """ Called on websocket errors
@@ -315,7 +322,7 @@ class BitSharesWebsocket(Events):
                 raise
 
             except Exception as e:
-                log.critical("{}\n\n{}".format(str(e), traceback.format_exc))
+                log.critical("{}\n\n{}".format(str(e), traceback.format_exc()))
 
     def get_request_id(self):
         self._request_id += 1
