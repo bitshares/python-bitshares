@@ -11,10 +11,14 @@ class Price(dict):
     """ This class deals with all sorts of prices of any pair of assets to
         simplify dealing with the tuple::
 
-            (quote_amount, quote_asset, base_amount, base_asset)
+            (quote, base)
 
-        The price (floating) is derived as ``base_amount/quote_amount`` and
-        carries the unit ``base/quote``
+        each being an instance of :class:`bitshares.amount.Amount`. The
+        amount themselves define the price.
+
+        .. note::
+
+            The price (floating) is derived as ``base/quote``
 
         :param list args: Allows to deal with different representations of a price
         :param bitshares.asset.Asset base: Base asset
@@ -151,7 +155,7 @@ class Price(dict):
             self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
 
         else:
-            raise Exception
+            raise ValueError("Couldn't parse 'Price'.")
 
     def __setitem__(self, key, value):
         dict.__setitem__(self, key, value)
@@ -317,6 +321,12 @@ class Order(Price):
         amounts of an actual order!
 
         :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+
+        .. note::
+
+                If an order is marked as deleted, it will carry the
+                'deleted' key which is set to ``True`` and all other
+                data be ``None``.
     """
 
     def __init__(self, *args, bitshares_instance=None, **kwargs):
@@ -328,9 +338,18 @@ class Order(Price):
             isinstance(args[0], str)
         ):
             order = self.bitshares.rpc.get_objects([args[0]])[0]
-            super(Order, self).__init__(order["sell_price"])
-            self["seller"] = order["seller"]
-            self["id"] = order.get("id")
+            if order:
+                super(Order, self).__init__(order["sell_price"])
+                self["seller"] = order["seller"]
+                self["id"] = order.get("id")
+                self["deleted"] = False
+            else:
+                self["id"] = args[0]
+                self["deleted"] = True
+                self["quote"] = None
+                self["base"] = None
+                self["price"] = None
+                self["seller"] = None
         elif (
             isinstance(args[0], dict) and
             "sell_price" in args[0]
@@ -353,16 +372,19 @@ class Order(Price):
             raise ValueError("Unkown format to load Order")
 
     def __repr__(self):
-        t = ""
-        if "time" in self and self["time"]:
-            t += "(%s) " % self["time"]
-        if "type" in self and self["type"]:
-            t += "%s " % str(self["type"])
-        if "quote" in self and self["quote"]:
-            t += "%s " % str(self["quote"])
-        if "base" in self and self["base"]:
-            t += "%s " % str(self["base"])
-        return t + "@ " + Price.__repr__(self)
+        if "deleted" in self and self["deleted"]:
+            return "deleted order %s" % self["id"]
+        else:
+            t = ""
+            if "time" in self and self["time"]:
+                t += "(%s) " % self["time"]
+            if "type" in self and self["type"]:
+                t += "%s " % str(self["type"])
+            if "quote" in self and self["quote"]:
+                t += "%s " % str(self["quote"])
+            if "base" in self and self["base"]:
+                t += "%s " % str(self["base"])
+            return t + "@ " + Price.__repr__(self)
 
     __str__ = __repr__
 
@@ -406,7 +428,7 @@ class FilledOrder(Price):
                 self["account_id"] = order["account_id"]
 
         else:
-            raise
+            raise ValueError("Couldn't parse 'Price'.")
 
     def __repr__(self):
         t = ""
