@@ -124,19 +124,19 @@ class BitShares(object):
         self.config = config
 
         if not self.offline:
-            self._connect(node=node,
-                          rpcuser=rpcuser,
-                          rpcpassword=rpcpassword,
-                          **kwargs)
+            self.connect(node=node,
+                         rpcuser=rpcuser,
+                         rpcpassword=rpcpassword,
+                         **kwargs)
 
         self.wallet = Wallet(self.rpc, **kwargs)
         self.txbuffer = TransactionBuilder(bitshares_instance=self)
 
-    def _connect(self,
-                 node="",
-                 rpcuser="",
-                 rpcpassword="",
-                 **kwargs):
+    def connect(self,
+                node="",
+                rpcuser="",
+                rpcpassword="",
+                **kwargs):
         """ Connect to BitShares network (internal use only)
         """
         if not node:
@@ -419,7 +419,8 @@ class BitShares(object):
                 "amount": int(amount),
                 "asset_id": amount.asset["id"]
             },
-            "memo": memoObj.encrypt(memo)
+            "memo": memoObj.encrypt(memo),
+            "prefix": self.rpc.chain_params["prefix"]
         })
         return self.finalizeOp(op, account, "active")
 
@@ -821,7 +822,7 @@ class BitShares(object):
     def approveproposal(self, proposal_ids, account=None, approver=None):
         """ Approve Proposal
 
-            :param str proposal_ids: Ids of the proposals
+            :param list proposal_id: Ids of the proposals
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
         """
@@ -855,7 +856,7 @@ class BitShares(object):
     def disapproveproposal(self, proposal_ids, account=None, approver=None):
         """ Disapprove Proposal
 
-            :param str proposal_ids: Ids of the proposals
+            :param list proposal_ids: Ids of the proposals
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
         """
@@ -942,6 +943,25 @@ class BitShares(object):
                 "maximum_short_squeeze_ratio": int(mssr * 10),
                 "maintenance_collateral_ratio": int(mcr * 10),
             },
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def upgrade_account(self, account=None):
+        """ Upgrade an account to Lifetime membership
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+        op = operations.Account_upgrade(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account_to_upgrade": account["id"],
+            "upgrade_to_lifetime_member": True,
             "prefix": self.rpc.chain_params["prefix"]
         })
         return self.finalizeOp(op, account["name"], "active")
