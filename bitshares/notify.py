@@ -1,9 +1,12 @@
+import logging
 from events import Events
 from bitsharesapi.websocket import BitSharesWebsocket
 from bitshares.instance import shared_bitshares_instance
 from bitshares.market import Market
 from bitshares.price import Order, FilledOrder
 from bitshares.account import Account, AccountUpdate
+log = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.DEBUG)
 
 
 class Notify(Events):
@@ -123,14 +126,26 @@ class Notify(Events):
 
         """
         for d in data:
+            if not d:
+                continue
             if isinstance(d, str):
                 # Single order has been placed
+                log.info("Calling on_market with Order()")
                 self.on_market(Order(d))
-            else:
-                # Orders have been matched
-                for p in d:
-                    if p[1]:
-                        self.on_market(FilledOrder(p[1]))
+                continue
+            elif isinstance(d, dict):
+                d = [d]
+
+            # Orders have been matched
+            for p in d:
+                if not isinstance(p, list):
+                    p = [p]
+                for i in p:
+                    if isinstance(i, dict):
+                        if "pays" in i and "receives" in i:
+                            self.on_market(FilledOrder(i))
+                        elif "for_sale" in i and "sell_price" in i:
+                            self.on_market(Order(i))
 
     def process_account(self, message):
         """ This is used for processing of account Updates. It will
