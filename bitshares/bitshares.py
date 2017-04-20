@@ -763,12 +763,12 @@ class BitShares(object):
         })
         return self.finalizeOp(op, account["name"], "active")
 
-    def cancel(self, orderNumber, account=None):
+    def cancel(self, orderNumbers, account=None):
         """ Cancels an order you have placed in a given market. Requires
-            only the "orderNumber". An order number takes the form
+            only the "orderNumbers". An order number takes the form
             ``1.7.xxx``.
 
-            :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
+            :param str orderNumbers: The Order Object ide of the form ``1.7.xxxx``
         """
         if not account:
             if "default_account" in config:
@@ -777,8 +777,11 @@ class BitShares(object):
             raise ValueError("You need to provide an account")
         account = Account(account, full=False, bitshares_instance=self)
 
+        if not isinstance(orderNumbers, (list, set)):
+            orderNumbers = set(orderNumbers)
+
         op = []
-        for order in list(orderNumber):
+        for order in orderNumbers:
             op.append(
                 operations.Limit_order_cancel(**{
                     "fee": {"amount": 0, "asset_id": "1.3.0"},
