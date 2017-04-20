@@ -929,6 +929,8 @@ class BitShares(object):
         # Base needs to be short backing asset
         if settlement_price["base"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"]:
             settlement_price = settlement_price.invert()
+        if cer["base"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"]:
+            cer = cer.invert()
 
         if not cer:
             cer = settlement_price * 1.05
