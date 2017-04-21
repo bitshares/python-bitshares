@@ -61,12 +61,20 @@ class Memo(object):
 
         enc = BtsMemo.encode_memo(
             PrivateKey(memo_wif),
-            PublicKey(self.to_account["options"]["memo_key"]),
+            PublicKey(
+                self.to_account["options"]["memo_key"],
+                prefix=self.bitshares.rpc.chain_params["prefix"]
+            ),
             nonce,
             memo
         )
 
-        return {"message": enc, "nonce": nonce}
+        return {
+            "message": enc,
+            "nonce": nonce,
+            "from": self.from_account["options"]["memo_key"],
+            "to": self.to_account["options"]["memo_key"]
+        }
 
     def decrypt(self, memo):
         """ Decrypt a memo
@@ -84,9 +92,13 @@ class Memo(object):
         if not memo_wif:
             raise MissingKeyError("Memo key for %s missing!" % self.to_account["name"])
 
+        # TODO: Use pubkeys of the message, not pubkeys of account!
         return BtsMemo.decode_memo(
             PrivateKey(memo_wif),
-            PublicKey(self.from_account["options"]["memo_key"]),
+            PublicKey(
+                self.from_account["options"]["memo_key"],
+                prefix=self.peerplays.rpc.chain_params["prefix"]
+            ),
             memo.get("nonce"),
             memo.get("message")
         )

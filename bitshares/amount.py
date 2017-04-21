@@ -128,6 +128,12 @@ class Amount(dict):
             self["asset"] = Asset(self["symbol"], bitshares_instance=self.bitshares)
         return self["asset"]
 
+    def json(self):
+        return {
+            "amount": int(self),
+            "asset_id": self["asset"]["id"]
+        }
+
     def __str__(self):
         return "{:,.{prec}f} {}".format(
             self["amount"],

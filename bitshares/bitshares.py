@@ -10,6 +10,7 @@ from bitsharesbase import transactions, operations
 from .asset import Asset
 from .account import Account
 from .amount import Amount
+from .price import Price
 from .witness import Witness
 from .committee import Committee
 from .vesting import Vesting
@@ -37,6 +38,7 @@ class BitShares(object):
         :param array,dict,string keys: Predefine the wif keys to shortcut the wallet database *(optional)*
         :param bool offline: Boolean to prevent connecting to network (defaults to ``False``) *(optional)*
         :param str proposer: Propose a transaction using this proposer *(optional)*
+        :param int proposal_expiration: Expiration time (in seconds) for the proposal *(optional)*
         :param int expiration: Delay in seconds until transactions are supposed to expire *(optional)*
         :param bool bundle: Do not broadcast transactions right away, but allow to bundle operations *(optional)*
 
@@ -115,32 +117,33 @@ class BitShares(object):
         self.unsigned = bool(kwargs.get("unsigned", False))
         self.expiration = int(kwargs.get("expiration", 30))
         self.proposer = kwargs.get("proposer", None)
+        self.proposal_expiration = int(kwargs.get("proposal_expiration", 60 * 60 * 24))
         self.bundle = bool(kwargs.get("bundle", False))
 
         # Store config for access through other Classes
         self.config = config
 
         if not self.offline:
-            self._connect(node=node,
-                          rpcuser=rpcuser,
-                          rpcpassword=rpcpassword,
-                          **kwargs)
+            self.connect(node=node,
+                         rpcuser=rpcuser,
+                         rpcpassword=rpcpassword,
+                         **kwargs)
 
         self.wallet = Wallet(self.rpc, **kwargs)
         self.txbuffer = TransactionBuilder(bitshares_instance=self)
 
-    def _connect(self,
-                 node="",
-                 rpcuser="",
-                 rpcpassword="",
-                 **kwargs):
-        """ Connect to Steem network (internal use only)
+    def connect(self,
+                node="",
+                rpcuser="",
+                rpcpassword="",
+                **kwargs):
+        """ Connect to BitShares network (internal use only)
         """
         if not node:
             if "node" in config:
                 node = config["node"]
             else:
-                raise ValueError("A Steem node needs to be provided!")
+                raise ValueError("A BitShares node needs to be provided!")
 
         if not rpcuser and "rpcuser" in config:
             rpcuser = config["rpcuser"]
@@ -416,7 +419,8 @@ class BitShares(object):
                 "amount": int(amount),
                 "asset_id": amount.asset["id"]
             },
-            "memo": memoObj.encrypt(memo)
+            "memo": memoObj.encrypt(memo),
+            "prefix": self.rpc.chain_params["prefix"]
         })
         return self.finalizeOp(op, account, "active")
 
@@ -621,11 +625,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         options = account["options"]
 
+        if not isinstance(witnesses, (list, set)):
+            witnesses = set(witnesses)
+
         for witness in witnesses:
-            witness = Witness(witness)
+            witness = Witness(witness, bitshares_instance=self)
             options["votes"].append(witness["vote_id"])
 
         options["votes"] = list(set(options["votes"]))
@@ -655,11 +662,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         options = account["options"]
 
+        if not isinstance(witnesses, (list, set)):
+            witnesses = set(witnesses)
+
         for witness in witnesses:
-            witness = Witness(witness)
+            witness = Witness(witness, bitshares_instance=self)
             if witness["vote_id"] in options["votes"]:
                 options["votes"].remove(witness["vote_id"])
 
@@ -690,11 +700,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         options = account["options"]
 
+        if not isinstance(committees, (list, set)):
+            committees = set(committees)
+
         for committee in committees:
-            committee = Committee(committee)
+            committee = Committee(committee, bitshares_instance=self)
             options["votes"].append(committee["vote_id"])
 
         options["votes"] = list(set(options["votes"]))
@@ -724,11 +737,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         options = account["options"]
 
+        if not isinstance(committees, (list, set)):
+            committees = set(committees)
+
         for committee in committees:
-            committee = Committee(committee)
+            committee = Committee(committee, bitshares_instance=self)
             if committee["vote_id"] in options["votes"]:
                 options["votes"].remove(committee["vote_id"])
 
@@ -747,12 +763,12 @@ class BitShares(object):
         })
         return self.finalizeOp(op, account["name"], "active")
 
-    def cancel(self, orderNumber, account=None):
+    def cancel(self, orderNumbers, account=None):
         """ Cancels an order you have placed in a given market. Requires
-            only the "orderNumber". An order number takes the form
+            only the "orderNumbers". An order number takes the form
             ``1.7.xxx``.
 
-            :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
+            :param str orderNumbers: The Order Object ide of the form ``1.7.xxxx``
         """
         if not account:
             if "default_account" in config:
@@ -761,8 +777,11 @@ class BitShares(object):
             raise ValueError("You need to provide an account")
         account = Account(account, full=False, bitshares_instance=self)
 
+        if not isinstance(orderNumbers, (list, set)):
+            orderNumbers = set(orderNumbers)
+
         op = []
-        for order in list(orderNumber):
+        for order in orderNumbers:
             op.append(
                 operations.Limit_order_cancel(**{
                     "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -785,11 +804,11 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
 
         if not amount:
-            obj = Vesting(vesting_id)
-            amount = Amount(obj["balance"])
+            obj = Vesting(vesting_id, bitshares_instance=self)
+            amount = obj.claimable
 
         op = operations.Vesting_balance_withdraw(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -803,10 +822,10 @@ class BitShares(object):
         })
         return self.finalizeOp(op, account["name"], "active")
 
-    def approveproposal(self, proposal_id, account=None, approver=None):
+    def approveproposal(self, proposal_ids, account=None, approver=None):
         """ Approve Proposal
 
-            :param str proposal_id: Id of the proposal
+            :param list proposal_id: Ids of the proposals
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
         """
@@ -816,49 +835,139 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         if not approver:
             approver = account
         else:
-            approver = Account(approver)
+            approver = Account(approver, bitshares_instance=self)
 
-        proposal = Proposal(proposal_id)
+        if not isinstance(proposal_ids, (list, set)):
+            proposal_ids = set(proposal_ids)
 
-        op = operations.Proposal_update(**{
+        op = []
+        for proposal_id in proposal_ids:
+            proposal = Proposal(proposal_id, bitshares_instance=self)
+            op.append(operations.Proposal_update(**{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                'fee_paying_account': account["id"],
+                'proposal': proposal["id"],
+                'active_approvals_to_add': [approver["id"]],
+                "prefix": self.rpc.chain_params["prefix"]
+            }))
+        return self.finalizeOp(op, account["name"], "active")
+
+    def disapproveproposal(self, proposal_ids, account=None, approver=None):
+        """ Disapprove Proposal
+
+            :param list proposal_ids: Ids of the proposals
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        from .proposal import Proposal
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self)
+        if not approver:
+            approver = account
+        else:
+            approver = Account(approver, bitshares_instance=self)
+
+        if not isinstance(proposal_ids, (list, set)):
+            proposal_ids = set(proposal_ids)
+
+        op = []
+        for proposal_id in proposal_ids:
+            proposal = Proposal(proposal_id, bitshares_instance=self)
+            op.append(operations.Proposal_update(**{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                'fee_paying_account': account["id"],
+                'proposal': proposal["id"],
+                'active_approvals_to_remove': [approver["id"]],
+                "prefix": self.rpc.chain_params["prefix"]
+            }))
+        return self.finalizeOp(op, account["name"], "active")
+
+    def publish_price_feed(
+        self,
+        symbol,
+        settlement_price,
+        cer=None,
+        mssr=110,
+        mcr=200,
+        account=None
+    ):
+        """ Publish a price feed for a market-pegged asset
+
+            :param str symbol: Symbol of the asset to publish feed for
+            :param bitshares.price.Price settlement_price: Price for settlement
+            :param bitshares.price.Price cer: Core exchange Rate (default ``settlement_price + 5%``)
+            :param float mssr: Percentage for max short squeeze ratio (default: 110%)
+            :param float mcr: Percentage for maintenance collateral ratio (default: 200%)
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+
+            .. note:: The ``account`` needs to be allowed to produce a
+                      price feed for ``symbol``. For witness produced
+                      feeds this means ``account`` is a witness account!
+        """
+        assert isinstance(settlement_price, Price), "settlement_price needs to be instance of `bitshares.price.Price`!"
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self)
+        asset = Asset(symbol, bitshares_instance=self, full=True)
+        assert asset["id"] == settlement_price["base"]["asset"]["id"] or \
+            asset["id"] == settlement_price["quote"]["asset"]["id"], \
+            "Price needs to contain the asset of the symbol you'd like to produce a feed for!"
+        assert asset.is_bitasset, "Symbol needs to be a bitasset!"
+        assert settlement_price["base"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"] or \
+            settlement_price["quote"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"], \
+            "The Price needs to be relative to the backing collateral!"
+
+        # Base needs to be short backing asset
+        if settlement_price["base"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"]:
+            settlement_price = settlement_price.invert()
+
+        if cer:
+            if cer["base"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"]:
+                cer = cer.invert()
+        else:
+            cer = settlement_price * 1.05
+
+        op = operations.Asset_publish_feed(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
-            'fee_paying_account': account["id"],
-            'proposal': proposal["id"],
-            'active_approvals_to_add': [approver["id"]],
+            "publisher": account["id"],
+            "asset_id": asset["id"],
+            "feed": {
+                "settlement_price": settlement_price.json(),
+                "core_exchange_rate": cer.json(),
+                "maximum_short_squeeze_ratio": int(mssr * 10),
+                "maintenance_collateral_ratio": int(mcr * 10),
+            },
             "prefix": self.rpc.chain_params["prefix"]
         })
         return self.finalizeOp(op, account["name"], "active")
 
-    def disapproveproposal(self, proposal_id, account=None, approver=None):
-        """ Disapprove Proposal
-
-            :param str proposal_id: Id of the proposal
+    def upgrade_account(self, account=None):
+        """ Upgrade an account to Lifetime membership
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
         """
-        from .proposal import Proposal
         if not account:
             if "default_account" in config:
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account)
-        if not approver:
-            approver = account
-        else:
-            approver = Account(approver)
-
-        proposal = Proposal(proposal_id)
-
-        op = operations.Proposal_update(**{
+        op = operations.Account_upgrade(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
-            'fee_paying_account': account["id"],
-            'proposal': proposal["id"],
-            'active_approvals_to_remove': [approver["id"]],
+            "account_to_upgrade": account["id"],
+            "upgrade_to_lifetime_member": True,
             "prefix": self.rpc.chain_params["prefix"]
         })
         return self.finalizeOp(op, account["name"], "active")

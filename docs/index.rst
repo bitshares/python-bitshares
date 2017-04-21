@@ -103,6 +103,7 @@ General
    quickstart
    tutorials
    contribute
+   support
 
 Python-BitShares Libraries
 --------------------------

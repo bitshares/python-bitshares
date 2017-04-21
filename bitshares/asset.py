@@ -41,7 +41,13 @@ class Asset(dict):
         elif isinstance(asset, str):
             self.asset = asset
             if self.asset in Asset.assets_cache:
-                super(Asset, self).__init__(Asset.assets_cache[self.asset])
+                if (
+                    not full or (
+                        full and "dynamic_asset_data" in
+                        Asset.assets_cache[self.asset])):
+                    super(Asset, self).__init__(Asset.assets_cache[self.asset])
+                else:
+                    self.refresh()
                 self.cached = True
             elif not lazy and not self.cached:
                 self.refresh()
@@ -96,6 +102,30 @@ class Asset(dict):
         """
         return self["flags"]
 
+    def ensure_full(self):
+        if not self.full:
+            self.full = True
+            self.refresh()
+
+    @property
+    def feeds(self):
+        from .price import PriceFeed
+        self.ensure_full()
+        if not self.is_bitasset:
+            return
+        r = []
+        for feed in self["bitasset_data"]["feeds"]:
+            r.append(PriceFeed(feed))
+        return r
+
+    @property
+    def feed(self):
+        from .price import PriceFeed
+        self.ensure_full()
+        if not self.is_bitasset:
+            return
+        return PriceFeed(self["bitasset_data"]["current_feed"])
+
     def __getitem__(self, key):
         if not self.cached:
             self.refresh()
@@ -105,3 +135,6 @@ class Asset(dict):
         if not self.cached:
             self.refresh()
         return super(Asset, self).items()
+
+    def __repr__(self):
+        return "<Asset %s>" % str(self.asset)

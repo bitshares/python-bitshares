@@ -48,10 +48,9 @@ class TransactionBuilder(dict):
                 return []
             r = []
             for authority in account[permission]["key_auths"]:
-                r.append([
-                    self.bitshares.wallet.getPrivateKeyForPublicKey(authority[0]),
-                    authority[1]  # weight
-                ])
+                wif = self.bitshares.wallet.getPrivateKeyForPublicKey(authority[0])
+                if wif:
+                    r.append([wif, authority[1]])
 
             if sum([x[1] for x in r]) < required_treshold:
                 # go one level deeper
@@ -87,7 +86,7 @@ class TransactionBuilder(dict):
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 "fee_paying_account": proposer["id"],
                 "expiration_time": transactions.formatTimeFromNow(
-                    self.bitshares.expiration - 1),
+                    self.bitshares.proposal_expiration),
                 "proposed_ops": [o.json() for o in ops],
                 "extensions": []
             })
@@ -185,6 +184,7 @@ class TransactionBuilder(dict):
             unsigned/partial transaction in order to simplify later
             signing (e.g. for multisig or coldstorage)
         """
+        self.constructTx()
         accountObj = Account(account)
         authority = accountObj[permission]
         # We add a required_authorities to be able to identify

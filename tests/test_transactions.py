@@ -530,6 +530,27 @@ class Testcases(unittest.TestCase):
                    "03fca97f608411dce84309")
         self.assertEqual(compare[:-130], txWire[:-130])
 
+    def test_upgrade_account(self):
+        op = operations.Account_upgrade(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account_to_upgrade": "1.2.0",
+            "upgrade_to_lifetime_member": True,
+            "prefix": prefix,
+        })
+        ops = [Operation(op)]
+        tx = Signed_Transaction(ref_block_num=ref_block_num,
+                                ref_block_prefix=ref_block_prefix,
+                                expiration=expiration,
+                                operations=ops)
+        tx = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = ("f68585abf4dce7c804570108000000000000000000000100000"
+                   "11f4e42562ada1d3fed8f8eb51dd58117e3a4024959c46955a0"
+                   "0d2a7e7e8b40ae7204f4617913aaaf028248d43e8c3463b8776"
+                   "0ca569007dba99a2c49de75bd69b3")
+        self.assertEqual(compare[:-130], txWire[:-130])
+
     def compareConstructedTX(self):
         #    def test_online(self):
         #        self.maxDiff = None

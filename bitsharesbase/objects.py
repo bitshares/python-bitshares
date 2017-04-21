@@ -82,7 +82,7 @@ class Memo(GrapheneObject):
                 kwargs = args[0]
             if "message" in kwargs and kwargs["message"]:
                 if "chain" not in kwargs:
-                    chain = "BTS"
+                    chain = default_prefix
                 else:
                     chain = kwargs["chain"]
                 if isinstance(chain, str) and chain in known_chains:

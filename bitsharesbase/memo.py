@@ -46,7 +46,7 @@ def init_aes(shared_secret, nonce):
     " Shared Secret "
     ss = hashlib.sha512(unhexlify(shared_secret)).digest()
     " Seed "
-    seed = bytes(nonce, 'ascii') + hexlify(ss)
+    seed = bytes(str(nonce), 'ascii') + hexlify(ss)
     seed_digest = hexlify(hashlib.sha512(seed).digest()).decode('ascii')
     " AES "
     key = unhexlify(seed_digest[0:64])

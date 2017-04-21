@@ -46,3 +46,10 @@ class Vesting(dict):
         else:
             log.warning("This policy isn't implemented yet")
             return 0
+
+    def claim(self, amount=None):
+        return self.bitshares.vesting_balance_withdraw(
+            self["id"],
+            amount=amount,
+            account=self["owner"]
+        )

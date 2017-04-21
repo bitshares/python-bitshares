@@ -1,13 +1,14 @@
+import traceback
 import threading
 import ssl
 import time
 import json
 import logging
+import websocket
 from itertools import cycle
 from threading import Thread
 from .exceptions import NumRetriesReached
 from events import Events
-import websocket
 
 log = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
@@ -149,6 +150,9 @@ class BitSharesWebsocket(Events):
         if on_market:
             self.on_market += on_market
 
+    def cancel_subscriptions(self):
+        self.cancel_all_subscriptions()
+
     def on_open(self, ws):
         """ This method will be called once the websocket connection is
             established. It will
@@ -164,9 +168,10 @@ class BitSharesWebsocket(Events):
 
         # Subscribe to events on the Backend and give them a
         # callback number that allows us to identify the event
-        self.set_subscribe_callback(
-            self.__events__.index('on_object'),
-            False)
+        if len(self.on_object):
+            self.set_subscribe_callback(
+                self.__events__.index('on_object'),
+                False)
 
         if len(self.on_tx):
             self.set_pending_transaction_callback(
@@ -226,14 +231,16 @@ class BitSharesWebsocket(Events):
             hand over post-processing and signalling of events to
             ``process_notice``.
         """
+        log.debug("Received message: %s" % str(reply))
         data = {}
         try:
             data = json.loads(reply, strict=False)
         except ValueError:
-            raise ValueError("Client returned invalid format. Expected JSON!")
+            raise ValueError("API node returned invalid format. Expected JSON!")
 
         if data.get("method") == "notice":
             id = data["params"][0]
+
             if id >= len(self.__events__):
                 log.critical(
                     "Received an id that is out of range\n\n" +
@@ -245,15 +252,23 @@ class BitSharesWebsocket(Events):
             if id == self.__events__.index('on_object'):
                 # Let's see if a specific object has changed
                 for notice in data["params"][1]:
-                    if "id" in notice:
-                        self.process_notice(notice)
-                    else:
-                        for obj in notice:
-                            if "id" in obj:
-                                self.process_notice(obj)
+                    try:
+                        if "id" in notice:
+                            self.process_notice(notice)
+                        else:
+                            for obj in notice:
+                                if "id" in obj:
+                                    self.process_notice(obj)
+                    except Exception as e:
+                        log.critical("Error in process_notice: {}\n\n{}".format(str(e), traceback.format_exc))
             else:
-                callbackname = self.__events__[id]
-                [getattr(self.events, callbackname)(x) for x in data["params"][1]]
+                try:
+                    callbackname = self.__events__[id]
+                    log.info("Patching through to call %s" % callbackname)
+                    [getattr(self.events, callbackname)(x) for x in data["params"][1]]
+                except Exception as e:
+                    log.critical("Error in {}: {}\n\n{}".format(
+                        callbackname, str(e), traceback.format_exc()))
 
     def on_error(self, ws, error):
         """ Called on websocket errors
@@ -283,7 +298,7 @@ class BitSharesWebsocket(Events):
                 self.ws = websocket.WebSocketApp(
                     self.url,
                     on_message=self.on_message,
-                    on_data=self.on_message,
+                    # on_data=self.on_message,
                     on_error=self.on_error,
                     on_close=self.on_close,
                     on_open=self.on_open
@@ -305,6 +320,9 @@ class BitSharesWebsocket(Events):
             except KeyboardInterrupt:
                 self.ws.keep_running = False
                 raise
+
+            except Exception as e:
+                log.critical("{}\n\n{}".format(str(e), traceback.format_exc()))
 
     def get_request_id(self):
         self._request_id += 1

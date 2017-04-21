@@ -10,3 +10,6 @@ Read data about a witness
 
 .. autoclass:: bitshares.witness.Witness
    :members:
+
+.. autoclass:: bitshares.witness.Witnesses
+   :members:
