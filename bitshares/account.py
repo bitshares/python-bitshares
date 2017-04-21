@@ -204,6 +204,9 @@ class Account(dict):
                 break
             first = int(txs[-1]["id"].split(".")[2])
 
+    def upgrade(self):
+        return self.bitshares.upgrade_account(account=self)
+
 
 class AccountUpdate(dict):
     """ This purpose of this class is to keep track of account updates
