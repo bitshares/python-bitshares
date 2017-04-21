@@ -41,10 +41,10 @@ setup(
         'Topic :: Office/Business :: Financial',
     ],
     install_requires=[
-        "graphenelib==0.5.0",
-        "websockets==2.0",
+        "graphenelib==0.5.1",
+        "websockets",
         "appdirs",
-        "Events==0.2.2",
+        "Events",
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
