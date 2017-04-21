@@ -45,6 +45,7 @@ setup(
         "websockets",
         "appdirs",
         "Events",
+        "scrypt",
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
