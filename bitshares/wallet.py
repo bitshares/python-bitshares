@@ -129,7 +129,10 @@ class Wallet():
     def locked(self):
         """ Is the wallet database locked?
         """
-        self.tryUnlockFromEnv()
+        try:
+            self.tryUnlockFromEnv()
+        except:
+            pass
         return not bool(self.masterpassword)
 
     def changePassphrase(self, new_pwd):
