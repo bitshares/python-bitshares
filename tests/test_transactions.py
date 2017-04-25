@@ -551,15 +551,41 @@ class Testcases(unittest.TestCase):
                    "0ca569007dba99a2c49de75bd69b3")
         self.assertEqual(compare[:-130], txWire[:-130])
 
+    def test_witness_update(self):
+        op = operations.Witness_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "prefix": "TEST",
+            "witness": "1.6.63",
+            "witness_account": "1.2.212",
+            "new_url": "https://example.com",
+            "new_signing_key": "BTS5vfCLKyXYb44znYjbrJXCyvvx3SuifhmvemnQsdbf61EtoR36z"
+        })
+        ops = [Operation(op)]
+        tx = Signed_Transaction(ref_block_num=ref_block_num,
+                                ref_block_prefix=ref_block_prefix,
+                                expiration=expiration,
+                                operations=ops)
+        tx = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = ("f68585abf4dce7c8045701150000000000000000003fd401011"
+                   "368747470733a2f2f6578616d706c652e636f6d0102889f66e3"
+                   "584423e86b615e3b07593ebec4b1ac0e08ad4a3748f0726dae7"
+                   "c874f0001205628a49ef823ab54f4b4c56304f5ac57bdc3768c"
+                   "62ac630a92de9858f5d90fad01c43bdc406293edad734d53dca"
+                   "a1c96546a50e3ec96d07cf1224ed329177af5")
+        self.assertEqual(compare[:-130], txWire[:-130])
+
     def compareConstructedTX(self):
         #    def test_online(self):
         #        self.maxDiff = None
-        op = operations.Vesting_balance_withdraw(**{
+        op = operations.Witness_update(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "vesting_balance": "1.13.0",
-            "owner": "1.2.0",
-            "amount": {"amount": 0, "asset_id": "1.3.0"},
-            "prefix": "TEST"
+            "prefix": "TEST",
+            "witness": "1.6.63",
+            "witness_account": "1.2.212",
+            "new_url": "https://example.com",
+            "new_signing_key": "BTS5vfCLKyXYb44znYjbrJXCyvvx3SuifhmvemnQsdbf61EtoR36z"
         })
         ops = [Operation(op)]
         tx = Signed_Transaction(
@@ -582,32 +608,6 @@ class Testcases(unittest.TestCase):
         print(txWire[:-130])
         print(txWire[:-130] == compare[:-130])
         self.assertEqual(compare[:-130], txWire[:-130])
-
-    def compareNewWire(self):
-        #    def test_online(self):
-        #        self.maxDiff = None
-
-        from grapheneapi.grapheneapi import GrapheneAPI
-        rpc = GrapheneAPI("localhost", 8092)
-        tx = rpc.create_account("xeroc", "fsafaasf", "", False)
-        pprint(tx)
-        compare = rpc.serialize_transaction(tx)
-        ref_block_num = tx["ref_block_num"]
-        ref_block_prefix = tx["ref_block_prefix"]
-        expiration = tx["expiration"]
-
-        ops = [Operation(operations.Account_create(**tx["operations"][0][1]))]
-        tx = Signed_Transaction(ref_block_num=ref_block_num,
-                                ref_block_prefix=ref_block_prefix,
-                                expiration=expiration,
-                                operations=ops)
-        tx = tx.sign([wif], chain=prefix)
-        tx.verify([PrivateKey(wif).pubkey], "BTS")
-        txWire = hexlify(bytes(tx)).decode("ascii")
-        print("\n")
-        print(txWire[:-130])
-        print(compare[:-130])
-        # self.assertEqual(compare[:-130], txWire[:-130])
 
 
 if __name__ == '__main__':

@@ -355,3 +355,31 @@ class Account_upgrade(GrapheneObject):
                 ('upgrade_to_lifetime_member', Bool(kwargs["upgrade_to_lifetime_member"])),
                 ('extensions', Set([])),
             ]))
+
+
+class Witness_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            prefix = kwargs.pop("prefix", default_prefix)
+
+            if "new_url" in kwargs and kwargs["new_url"]:
+                new_url = Optional(String(kwargs["new_url"]))
+            else:
+                new_url = Optional(None)
+
+            if "new_signing_key" in kwargs and kwargs["new_signing_key"]:
+                new_signing_key = Optional(PublicKey(kwargs["new_signing_key"]))
+            else:
+                new_signing_key = Optional(None)
+
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('witness', ObjectId(kwargs["witness"], "witness")),
+                ('witness_account', ObjectId(kwargs["witness_account"], "account")),
+                ('new_url', new_url),
+                ('new_signing_key', new_signing_key),
+            ]))
