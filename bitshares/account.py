@@ -51,7 +51,7 @@ class Account(dict):
         else:
             raise ValueError("Account() expects an account name, id or an instance of Account")
 
-        if self.name in Account.accounts_cache:
+        if self.name in Account.accounts_cache and not self.full:
             super(Account, self).__init__(Account.accounts_cache[self.name])
             self.cached = True
         elif not lazy and not self.cached:
