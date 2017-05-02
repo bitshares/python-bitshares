@@ -1,5 +1,4 @@
 from bitshares.instance import shared_bitshares_instance
-from .amount import Amount
 from .exceptions import AccountDoesNotExistsException
 
 
@@ -107,6 +106,7 @@ class Account(dict):
         """ List balances of an account. This call returns instances of
             :class:`bitshares.amount.Amount`.
         """
+        from .amount import Amount
         balances = self.bitshares.rpc.get_account_balances(self["id"], [])
         return [
             Amount(b, bitshares_instance=self.bitshares)

@@ -576,16 +576,37 @@ class Testcases(unittest.TestCase):
                    "a1c96546a50e3ec96d07cf1224ed329177af5")
         self.assertEqual(compare[:-130], txWire[:-130])
 
+    def test_feed_producer_update(self):
+        op = operations.Asset_update_feed_producers(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "issuer": "1.2.214",
+            "asset_to_update": "1.3.132",
+            "new_feed_producers": ["1.2.214", "1.2.341", "1.2.2414"],
+            "extensions": []
+        })
+        ops = [Operation(op)]
+        tx = Signed_Transaction(ref_block_num=ref_block_num,
+                                ref_block_prefix=ref_block_prefix,
+                                expiration=expiration,
+                                operations=ops)
+        tx = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = ("f68585abf4dce7c80457010d000000000000000000d60184010"
+                   "3d601d502ee120000011f34dc3aafe350f3f8608cc3d0db3b64"
+                   "a8f40b60d3528c9fa9e88fc3185fc27f4922ef5612f657205ad"
+                   "6fc6fed68ec78c4776e1fd125278ab03c8477b37e4c569a")
+        self.assertEqual(compare[:-130], txWire[:-130])
+
     def compareConstructedTX(self):
         #    def test_online(self):
         #        self.maxDiff = None
-        op = operations.Witness_update(**{
+        op = operations.Asset_update_feed_producers(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "prefix": "TEST",
-            "witness": "1.6.63",
-            "witness_account": "1.2.212",
-            "new_url": "https://example.com",
-            "new_signing_key": "BTS5vfCLKyXYb44znYjbrJXCyvvx3SuifhmvemnQsdbf61EtoR36z"
+            "issuer": "1.2.214",
+            "asset_to_update": "1.3.132",
+            "new_feed_producers": ["1.2.214", "1.2.341", "1.2.2414"],
+            "extensions": []
         })
         ops = [Operation(op)]
         tx = Signed_Transaction(
