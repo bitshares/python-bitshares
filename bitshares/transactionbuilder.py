@@ -156,7 +156,7 @@ class TransactionBuilder(dict):
 
             :param tx tx: Signed transaction to broadcast
         """
-        if not self["signatures"]:
+        if "signatures" not in self or not self["signatures"]:
             self.sign()
 
         if self.bitshares.nobroadcast:
