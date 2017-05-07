@@ -250,14 +250,14 @@ class Asset(dict):
 
             :param str flag: Flag name
         """
-        return self.setoptions(self, {flag: True})
+        return self.setoptions({flag: True})
 
     def disableflag(self, flag):
         """ Enable a certain flag.
 
             :param str flag: Flag name
         """
-        return self.setoptions(self, {flag: False})
+        return self.setoptions({flag: False})
 
     def seize(self, from_account, to_account, amount):
         """ Seize amount from an account and send to another
