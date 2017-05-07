@@ -118,6 +118,8 @@ class Wallet():
         if "UNLOCK" in os.environ:
             log.debug("Trying to use environmental variable to unlock wallet")
             self.unlock(os.environ.get("UNLOCK"))
+        else:
+            raise WrongMasterPasswordException
 
     def lock(self):
         """ Lock the wallet database
@@ -127,7 +129,10 @@ class Wallet():
     def locked(self):
         """ Is the wallet database locked?
         """
-        self.tryUnlockFromEnv()
+        try:
+            self.tryUnlockFromEnv()
+        except:
+            pass
         return not bool(self.masterpassword)
 
     def changePassphrase(self, new_pwd):

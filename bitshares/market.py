@@ -40,6 +40,8 @@ class Market(dict):
                   quote** and obtain/pay **only base**.
 
     """
+    market_sep_regex = "[/-:]"
+
     def __init__(
         self,
         *args,
@@ -51,13 +53,36 @@ class Market(dict):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
 
         if len(args) == 1 and isinstance(args[0], str):
-            import re
-            quote_symbol, base_symbol = re.split("[/-:]", args[0])
+            quote_symbol, base_symbol = self._get_assets_from_string(args[0])
             quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
             base = Asset(base_symbol, bitshares_instance=self.bitshares)
             super(Market, self).__init__({"base": base, "quote": quote})
         if len(args) == 0 and base and quote:
             super(Market, self).__init__({"base": base, "quote": quote})
+
+    def _get_assets_from_string(self, s):
+        import re
+        return re.split(self.market_sep_regex, s)
+
+    def get_string(self, separator=":"):
+        """ Return a formated string that identifies the market, e.g. ``USD:BTS``
+
+            :param str separator: The separator of the assets (defaults to ``:``)
+        """
+        return "%s%s%s" % (self["quote"]["symbol"], separator, self["base"]["symbol"])
+
+    def __eq__(self, other):
+        if isinstance(other, str):
+            quote_symbol, base_symbol = self._get_assets_from_string(other)
+            return (
+                self["quote"]["symbol"] == quote_symbol and
+                self["base"]["symbol"] == base_symbol
+            )
+        elif isinstance(other, Market):
+            return (
+                self["quote"]["symbol"] == other["quote"]["symbol"] and
+                self["base"]["symbol"] == other["base"]["symbol"]
+            )
 
     def ticker(self):
         """ Returns the ticker for all markets.

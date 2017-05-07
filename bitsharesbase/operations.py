@@ -355,3 +355,47 @@ class Account_upgrade(GrapheneObject):
                 ('upgrade_to_lifetime_member', Bool(kwargs["upgrade_to_lifetime_member"])),
                 ('extensions', Set([])),
             ]))
+
+
+class Witness_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            if "new_url" in kwargs and kwargs["new_url"]:
+                new_url = Optional(String(kwargs["new_url"]))
+            else:
+                new_url = Optional(None)
+
+            if "new_signing_key" in kwargs and kwargs["new_signing_key"]:
+                new_signing_key = Optional(PublicKey(kwargs["new_signing_key"]))
+            else:
+                new_signing_key = Optional(None)
+
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('witness', ObjectId(kwargs["witness"], "witness")),
+                ('witness_account', ObjectId(kwargs["witness_account"], "account")),
+                ('new_url', new_url),
+                ('new_signing_key', new_signing_key),
+            ]))
+
+
+class Asset_update_feed_producers(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('issuer', ObjectId(kwargs["issuer"], "account")),
+                ('asset_to_update', ObjectId(kwargs["asset_to_update"], "asset")),
+                ('new_feed_producers',
+                    Array([ObjectId(o, "account") for o in kwargs["new_feed_producers"]])),
+                ('extensions', Set([])),
+            ]))

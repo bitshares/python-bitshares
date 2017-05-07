@@ -208,8 +208,8 @@ class AssetOptions(GrapheneObject):
                 "blacklist_markets"
             ]:
                 kwargs[key] = sorted(
-                    kwargs[key],
-                    key=lambda x: int(x.split(".")[-1]),
+                    set(kwargs[key]),
+                    key=lambda x: int(x.split(".")[2]),
                 )
 
             super().__init__(OrderedDict([

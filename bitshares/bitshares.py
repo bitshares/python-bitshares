@@ -955,6 +955,7 @@ class BitShares(object):
 
     def upgrade_account(self, account=None):
         """ Upgrade an account to Lifetime membership
+
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
         """
@@ -969,5 +970,24 @@ class BitShares(object):
             "account_to_upgrade": account["id"],
             "upgrade_to_lifetime_member": True,
             "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def update_witness(self, witness_identifier, url=None, key=None):
+        """ Upgrade a witness account
+
+            :param str witness_identifier: Identifier for the witness
+            :param str url: New URL for the witness
+            :param str key: Public Key for the signing
+        """
+        witness = Witness(witness_identifier)
+        account = witness.account
+        op = operations.Witness_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "prefix": self.rpc.chain_params["prefix"],
+            "witness": witness["id"],
+            "witness_account": account["id"],
+            "new_url": url,
+            "new_signing_key": key,
         })
         return self.finalizeOp(op, account["name"], "active")

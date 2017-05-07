@@ -1,5 +1,4 @@
 from bitshares.instance import shared_bitshares_instance
-from .amount import Amount
 from .exceptions import AccountDoesNotExistsException
 
 
@@ -51,7 +50,7 @@ class Account(dict):
         else:
             raise ValueError("Account() expects an account name, id or an instance of Account")
 
-        if self.name in Account.accounts_cache:
+        if self.name in Account.accounts_cache and not self.full:
             super(Account, self).__init__(Account.accounts_cache[self.name])
             self.cached = True
         elif not lazy and not self.cached:
@@ -107,6 +106,7 @@ class Account(dict):
         """ List balances of an account. This call returns instances of
             :class:`bitshares.amount.Amount`.
         """
+        from .amount import Amount
         balances = self.bitshares.rpc.get_account_balances(self["id"], [])
         return [
             Amount(b, bitshares_instance=self.bitshares)
