@@ -208,7 +208,20 @@ class Price(dict):
     def __mul__(self, other):
         a = self.copy()
         if isinstance(other, Price):
-            raise ValueError("Multiplication of two prices!?")
+            if (
+                self["quote"]["asset"]["symbol"] ==
+                other["base"]["asset"]["symbol"]
+            ):
+                a["base"] = Amount(float(self["base"] * other["base"]), self["base"]["asset"])
+                a["quote"] = Amount(float(self["quote"] * other["quote"]), other["quote"]["asset"])
+            elif (
+                self["base"]["asset"]["symbol"] ==
+                other["quote"]["asset"]["symbol"]
+            ):
+                a["quote"] = Amount(float(self["quote"] * other["quote"]), self["quote"]["asset"])
+                a["base"] = Amount(float(self["base"] * other["base"]), other["base"]["asset"])
+            else:
+                raise ValueError("Multiplication of two unmatching prices!")
         else:
             a["base"] *= other
         return a
