@@ -340,16 +340,33 @@ class Asset(dict):
         })
         return self.bitshares.finalizeOp(op, self["issuer"], "active")
 
-    def add_markets(self, type, authorities=[]):
+    def add_markets(self, type, authorities=[], force_enable=True):
         """ Add markets to an assets white/black list
 
             :param str type: ``blacklist`` or ``whitelist``
             :param list markets: List of markets (assets)
+            :param bool force_enable: Force enable ``white_list`` flag
         """
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
 
         options = self["options"]
+        if force_enable:
+            test_permissions(
+                options["issuer_permissions"],
+                {"white_list": True}
+            )
+            flags_int = force_flag(
+                options["flags"],
+                {"white_list": True}
+            )
+            options.update({"flags": flags_int})
+        else:
+            assert test_permissions(
+                options["flags"],
+                ["white_list"]
+            ), "whitelist feature not enabled"
+
         if type == "whitelist":
             options["whitelist_markets"].extend([
                 Asset(a)["id"] for a in authorities
