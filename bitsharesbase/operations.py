@@ -391,6 +391,11 @@ class Asset_update_feed_producers(GrapheneObject):
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
 
+            kwargs["new_feed_producers"] = sorted(
+                kwargs["new_feed_producers"],
+                key=lambda x: float(x.split(".")[2]),
+            )
+
             super().__init__(OrderedDict([
                 ('fee', Asset(kwargs["fee"])),
                 ('issuer', ObjectId(kwargs["issuer"], "account")),

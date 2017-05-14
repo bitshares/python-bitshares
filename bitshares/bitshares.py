@@ -836,10 +836,13 @@ class BitShares(object):
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
-        if not approver:
+        is_key = approver[:3] == "BTS"
+        if not approver and not is_key:
             approver = account
-        else:
+        elif approver and not is_key:
             approver = Account(approver, bitshares_instance=self)
+        else:
+            approver = PublicKey(approver)
 
         if not isinstance(proposal_ids, (list, set)):
             proposal_ids = set(proposal_ids)
@@ -847,14 +850,26 @@ class BitShares(object):
         op = []
         for proposal_id in proposal_ids:
             proposal = Proposal(proposal_id, bitshares_instance=self)
-            op.append(operations.Proposal_update(**{
+            update_dict = {
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 'fee_paying_account': account["id"],
                 'proposal': proposal["id"],
-                'active_approvals_to_add': [approver["id"]],
                 "prefix": self.rpc.chain_params["prefix"]
-            }))
-        return self.finalizeOp(op, account["name"], "active")
+            }
+            if is_key:
+                update_dict.update({
+                    'key_approvals_to_add': [str(approver)],
+                })
+            else:
+                update_dict.update({
+                    'active_approvals_to_add': [approver["id"]],
+                })
+            op.append(operations.Proposal_update(**update_dict))
+        if is_key:
+            self.txbuffer.appendSigner(account["name"], "active")
+            return self.finalizeOp(op, approver, "active")
+        else:
+            return self.finalizeOp(op, approver["name"], "active")
 
     def disapproveproposal(self, proposal_ids, account=None, approver=None):
         """ Disapprove Proposal

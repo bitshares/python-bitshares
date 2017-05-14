@@ -39,9 +39,6 @@ class TransactionBuilder(dict):
         """ Try to obtain the wif key from the wallet by telling which account
             and permission is supposed to sign the transaction
         """
-        assert permission in ["active", "owner"], "Invalid permission"
-        account = Account(account, bitshares_instance=self.bitshares)
-        required_treshold = account[permission]["weight_threshold"]
 
         def fetchkeys(account, level=0):
             if level > 2:
@@ -59,8 +56,21 @@ class TransactionBuilder(dict):
                     r.extend(fetchkeys(auth_account, level + 1))
 
             return r
-        keys = fetchkeys(account)
-        self.wifs.extend([x[0] for x in keys])
+
+        assert permission in ["active", "owner"], "Invalid permission"
+
+        # is the account an instance of public key?
+        if isinstance(account, PublicKey):
+            self.wifs.append(
+                self.bitshares.wallet.getPrivateKeyForPublicKey(
+                    str(account)
+                )
+            )
+        else:
+            account = Account(account, bitshares_instance=self.bitshares)
+            required_treshold = account[permission]["weight_threshold"]
+            keys = fetchkeys(account)
+            self.wifs.extend([x[0] for x in keys])
 
     def appendWif(self, wif):
         """ Add a wif that should be used for signing of the transaction.
@@ -186,31 +196,37 @@ class TransactionBuilder(dict):
             signing (e.g. for multisig or coldstorage)
         """
         self.constructTx()
-        accountObj = Account(account)
-        authority = accountObj[permission]
-        # We add a required_authorities to be able to identify
-        # how to sign later. This is an array, because we
-        # may later want to allow multiple operations per tx
-        self.update({"required_authorities": {
-            accountObj["name"]: authority
-        }})
-        for account_auth in authority["account_auths"]:
-            account_auth_account = Account(account_auth[0])
-            self["required_authorities"].update({
-                account_auth[0]: account_auth_account.get(permission)
-            })
-
-        # Try to resolve required signatures for offline signing
-        self["missing_signatures"] = [
-            x[0] for x in authority["key_auths"]
-        ]
-        # Add one recursion of keys from account_auths:
-        for account_auth in authority["account_auths"]:
-            account_auth_account = Account(account_auth[0])
-            self["missing_signatures"].extend(
-                [x[0] for x in account_auth_account[permission]["key_auths"]]
-            )
         self["blockchain"] = self.bitshares.rpc.chain_params
+
+        if isinstance(account, PublicKey):
+            self["missing_signatures"] = [
+                str(account)
+            ]
+        else:
+            accountObj = Account(account)
+            authority = accountObj[permission]
+            # We add a required_authorities to be able to identify
+            # how to sign later. This is an array, because we
+            # may later want to allow multiple operations per tx
+            self.update({"required_authorities": {
+                accountObj["name"]: authority
+            }})
+            for account_auth in authority["account_auths"]:
+                account_auth_account = Account(account_auth[0])
+                self["required_authorities"].update({
+                    account_auth[0]: account_auth_account.get(permission)
+                })
+
+            # Try to resolve required signatures for offline signing
+            self["missing_signatures"] = [
+                x[0] for x in authority["key_auths"]
+            ]
+            # Add one recursion of keys from account_auths:
+            for account_auth in authority["account_auths"]:
+                account_auth_account = Account(account_auth[0])
+                self["missing_signatures"].extend(
+                    [x[0] for x in account_auth_account[permission]["key_auths"]]
+                )
 
     def json(self):
         """ Show the transaction as plain json
