@@ -50,9 +50,31 @@ of the message.
 Example
 #######
 
+High Level
+~~~~~~~~~~
+
+The high level memo class makes use of the pybitshares wallet to obtain keys
+for the corresponding accounts.
+
 .. code-block:: python
 
-    from bitsharesbase.memo import Memo
+    from bitshares.memo import Memo
+    from bitshares.account import Account
+
+    memoObj = Memo(
+        from_account=Account(from_account),
+        to_account=Account(to_account)
+    )
+    cipher = memoObj.encrypt(memo)
+    plain = memoObj.decrypt(cipher)
+
+
+Low Level
+~~~~~~~~~
+
+.. code-block:: python
+
+    from bitsharesbase.memo import memo
     from bitsharesbase.account import PrivateKey, PublicKey
 
     wifkey = "5....<wif>"
@@ -65,7 +87,7 @@ Example
     try :
         privkey = PrivateKey(wifkey)
         pubkey  = PublicKey(memo["from"], prefix=prefix)
-        memomsg = Memo.decode_memo(privkey, pubkey, memo["nonce"], memo["message"])
+        memomsg = memo.decode_memo(privkey, pubkey, memo["nonce"], memo["message"])
     except Exception as e:
         memomsg = "--cannot decode-- %s" % str(e)
 
