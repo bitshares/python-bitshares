@@ -836,7 +836,7 @@ class BitShares(object):
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
-        is_key = approver[:3] == "BTS"
+        is_key = approver and approver[:3] == self.rpc.chain_params["prefix"]
         if not approver and not is_key:
             approver = account
         elif approver and not is_key:
