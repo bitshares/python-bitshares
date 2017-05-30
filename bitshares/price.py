@@ -1,5 +1,6 @@
 from fractions import Fraction
 from bitshares.instance import shared_bitshares_instance
+from .account import Account
 from .amount import Amount
 from .asset import Asset
 from .utils import formatTimeString
@@ -478,7 +479,7 @@ class PriceFeed(dict):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
         if len(feed) == 2:
             super(PriceFeed, self).__init__({
-                "witness": Witness(feed[0], lazy=True),
+                "producer": Account(feed[0], lazy=True),
                 "date": parse_time(feed[1][0]),
                 "maintenance_collateral_ratio": feed[1][1]["maintenance_collateral_ratio"],
                 "maximum_short_squeeze_ratio": feed[1][1]["maximum_short_squeeze_ratio"],
