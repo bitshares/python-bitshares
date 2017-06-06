@@ -159,7 +159,7 @@ class Dex():
 
         # We sell quote and pay with base
         symbol = delta["symbol"]
-        asset = Asset(symbol)
+        asset = Asset(symbol, full=True)
         if not asset.is_bitasset:
             raise ValueError("%s is not a bitasset!" % symbol)
         bitasset = asset["bitasset_data"]
@@ -179,17 +179,17 @@ class Dex():
         collateral_asset = Asset(backing_asset_id)
         settlement_price = Price(bitasset["current_feed"]["settlement_price"])
 
-        if symbol not in current_debts:
-            raise ValueError("No Call position available to adjust! Please borrow first!")
-
-        amount_of_collateral = (
-            float(current_debts[symbol]["debt"]) + float(delta["amount"])
-        ) * new_collateral_ratio / float(settlement_price)
-        amount_of_collateral -= float(current_debts[symbol]["collateral"])
+        if symbol in current_debts:
+            amount_of_collateral = (
+                float(current_debts[symbol]["debt"]) + float(delta["amount"])
+            ) * new_collateral_ratio / float(settlement_price)
+            amount_of_collateral -= float(current_debts[symbol]["collateral"])
+        else:
+            amount_of_collateral = new_collateral_ratio
 
         # Verify that enough funds are available
         fundsNeeded = amount_of_collateral + float(self.returnFees()["call_order_update"]["fee"])
-        fundsHave = account.balance(collateral_asset["symbol"])
+        fundsHave = account.balance(collateral_asset["symbol"]) or 0
         if fundsHave <= fundsNeeded:
             raise ValueError("Not enough funds available. Need %f %s, but only %f %s are available" %
                              (fundsNeeded, collateral_asset["symbol"], fundsHave, collateral_asset["symbol"]))
@@ -216,6 +216,15 @@ class Dex():
             :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
             :raises ValueError: if required amounts of collateral are not available
         """
+        if not account:
+            if "default_account" in self.bitshares.config:
+                account = self.bitshares.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, full=True, bitshares_instance=self.bitshares)
+        current_debts = self.list_debt_positions(account)
+        if symbol not in current_debts:
+            raise ValueError("No Call position available to adjust! Please borrow first!")
         return self.adjust_debt(Amount(0, symbol), target_collateral_ratio, account)
 
     def borrow(self, amount, collateral_ratio=None, account=None):

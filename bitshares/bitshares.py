@@ -14,6 +14,7 @@ from .price import Price
 from .witness import Witness
 from .committee import Committee
 from .vesting import Vesting
+from .worker import Worker
 from .storage import configStorage as config
 from .exceptions import (
     AccountExistsException,
@@ -753,6 +754,71 @@ class BitShares(object):
             lambda x: float(x.split(":")[0]) == 0,
             options["votes"]
         )))
+
+        op = operations.Account_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account": account["id"],
+            "new_options": options,
+            "extensions": {},
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def approveworker(self, workers, account=None):
+        """ Approve a worker
+
+            :param list workers: list of worker member name or id
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self)
+        options = account["options"]
+
+        if not isinstance(workers, (list, set)):
+            workers = set(workers)
+
+        for worker in workers:
+            worker = Worker(worker, bitshares_instance=self)
+            options["votes"].append(worker["vote_for"])
+        options["votes"] = list(set(options["votes"]))
+
+        op = operations.Account_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account": account["id"],
+            "new_options": options,
+            "extensions": {},
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def disapproveworker(self, workers, account=None):
+        """ Disapprove a worker
+
+            :param list workers: list of worker name or id
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self)
+        options = account["options"]
+
+        if not isinstance(workers, (list, set)):
+            workers = set(workers)
+
+        for worker in workers:
+            worker = Worker(worker, bitshares_instance=self)
+            if worker["vote_for"] in options["votes"]:
+                options["votes"].remove(worker["vote_for"])
+        options["votes"] = list(set(options["votes"]))
 
         op = operations.Account_update(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},

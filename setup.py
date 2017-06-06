@@ -1,7 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from setuptools import setup
-from pip.req import parse_requirements
 
 # Work around mbcs bug in distutils.
 # http://bugs.python.org/issue10945
