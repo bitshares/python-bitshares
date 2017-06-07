@@ -598,14 +598,34 @@ class Testcases(unittest.TestCase):
                    "6fc6fed68ec78c4776e1fd125278ab03c8477b37e4c569a")
         self.assertEqual(compare[:-130], txWire[:-130])
 
+    def test_asset_reserve(self):
+        op = operations.Asset_reserve(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "payer": "1.2.0",
+            "amount_to_reserve": {"amount": 1234567890, "asset_id": "1.3.0"},
+            "extensions": []
+        })
+        ops = [Operation(op)]
+        tx = Signed_Transaction(ref_block_num=ref_block_num,
+                                ref_block_prefix=ref_block_prefix,
+                                expiration=expiration,
+                                operations=ops)
+        tx = tx.sign([wif], chain=prefix)
+        tx.verify([PrivateKey(wif).pubkey], "BTS")
+        txWire = hexlify(bytes(tx)).decode("ascii")
+        compare = ("f68585abf4dce7c80457010f00000000000000000000d202964"
+                   "900000000000000011f75065cb1155bfcaabaf55d3357d69679"
+                   "c7c1fe589b6dc0919fe1dde1a305009c360823a40c28907299a"
+                   "40c241db9cad86e27369d0e5a76b5832d585505ff177d")
+        self.assertEqual(compare[:-130], txWire[:-130])
+
     def compareConstructedTX(self):
         #    def test_online(self):
         #        self.maxDiff = None
-        op = operations.Asset_update_feed_producers(**{
+        op = operations.Asset_reserve(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "issuer": "1.2.214",
-            "asset_to_update": "1.3.132",
-            "new_feed_producers": ["1.2.214", "1.2.341", "1.2.2414"],
+            "payer": "1.2.0",
+            "amount_to_reserve": {"amount": 1234567890, "asset_id": "1.3.0"},
             "extensions": []
         })
         ops = [Operation(op)]

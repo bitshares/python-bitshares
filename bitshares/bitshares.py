@@ -1072,3 +1072,28 @@ class BitShares(object):
             "new_signing_key": key,
         })
         return self.finalizeOp(op, account["name"], "active")
+
+    def reserve(self, amount, account=None):
+        """ Reserve/Burn an amount of this shares
+
+            This removes the shares from the supply
+
+            :param bitshares.amount.Amount amount: The amount to be burned.
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        assert isinstance(amount, Amount)
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        op = operations.Asset_reserve(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "payer": "1.2.0",
+            "amount_to_reserve": {
+                "amount": int(amount),
+                "asset_id": amount["asset"]["id"]},
+            "extensions": []
+        })
+        return self.finalizeOp(op, account, "active")
