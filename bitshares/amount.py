@@ -79,17 +79,17 @@ class Amount(dict):
             self["asset"] = Asset(args[1], bitshares_instance=self.bitshares)
             self["symbol"] = self["asset"]["symbol"]
 
-        elif amount and asset and isinstance(asset, Asset):
+        elif isinstance(amount, (int, float)) and asset and isinstance(asset, Asset):
             self["amount"] = amount
             self["asset"] = asset
             self["symbol"] = self["asset"]["symbol"]
 
-        elif amount and asset and isinstance(asset, dict):
+        elif isinstance(amount, (int, float)) and asset and isinstance(asset, dict):
             self["amount"] = amount
             self["asset"] = asset
             self["symbol"] = self["asset"]["symbol"]
 
-        elif amount and asset and isinstance(asset, str):
+        elif isinstance(amount, (int, float)) and asset and isinstance(asset, str):
             self["amount"] = amount
             self["asset"] = Asset(asset)
             self["symbol"] = asset

@@ -223,13 +223,18 @@ class Price(dict):
                 a["base"] = Amount(float(self["base"] * other["base"]), other["base"]["asset"])
             else:
                 raise ValueError("Multiplication of two unmatching prices!")
+        elif isinstance(other, Amount):
+            assert other["asset"]["id"] == self["quote"]["asset"]["id"]
+            a = other.copy() * self["price"]
+            a["asset"] = self["base"]["asset"].copy()
+            a["symbol"] = self["base"]["asset"]["symbol"]
         else:
             a["base"] *= other
         return a
 
     def __imul__(self, other):
         if isinstance(other, Price):
-            raise ValueError("Multiplication of two prices!?")
+            raise ValueError("'*=' Not supported for two prices")
         else:
             self["base"] *= other
         return self
