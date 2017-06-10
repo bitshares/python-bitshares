@@ -98,6 +98,7 @@ class TransactionBuilder(dict):
                 "expiration_time": transactions.formatTimeFromNow(
                     self.bitshares.proposal_expiration),
                 "proposed_ops": [o.json() for o in ops],
+                "review_period_seconds": self.bitshares.proposal_review,
                 "extensions": []
             })
             ops = [Operation(ops)]
