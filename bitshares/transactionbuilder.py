@@ -40,20 +40,20 @@ class TransactionBuilder(dict):
             and permission is supposed to sign the transaction
         """
 
-        def fetchkeys(account, level=0):
+        def fetchkeys(account, perm, level=0):
             if level > 2:
                 return []
             r = []
-            for authority in account[permission]["key_auths"]:
+            for authority in account[perm]["key_auths"]:
                 wif = self.bitshares.wallet.getPrivateKeyForPublicKey(authority[0])
                 if wif:
                     r.append([wif, authority[1]])
 
             if sum([x[1] for x in r]) < required_treshold:
                 # go one level deeper
-                for authority in account[permission]["account_auths"]:
+                for authority in account[perm]["account_auths"]:
                     auth_account = Account(authority[0], bitshares_instance=self.bitshares)
-                    r.extend(fetchkeys(auth_account, level + 1))
+                    r.extend(fetchkeys(auth_account, perm, level + 1))
 
             return r
 
@@ -69,7 +69,9 @@ class TransactionBuilder(dict):
         else:
             account = Account(account, bitshares_instance=self.bitshares)
             required_treshold = account[permission]["weight_threshold"]
-            keys = fetchkeys(account)
+            keys = fetchkeys(account, permission)
+            if permission != "owner":
+                keys.extend(fetchkeys(account, "owner"))
             self.wifs.extend([x[0] for x in keys])
 
     def appendWif(self, wif):
@@ -195,6 +197,8 @@ class TransactionBuilder(dict):
         """ This is a private method that adds side information to a
             unsigned/partial transaction in order to simplify later
             signing (e.g. for multisig or coldstorage)
+
+            FIXME: Does not work with owner keys!
         """
         self.constructTx()
         self["blockchain"] = self.bitshares.rpc.chain_params
