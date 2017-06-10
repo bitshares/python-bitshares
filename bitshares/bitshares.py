@@ -1092,7 +1092,7 @@ class BitShares(object):
             raise ValueError("You need to provide an account")
         op = operations.Asset_reserve(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "payer": "1.2.0",
+            "payer": account["id"],
             "amount_to_reserve": {
                 "amount": int(amount),
                 "asset_id": amount["asset"]["id"]},
