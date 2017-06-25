@@ -77,6 +77,9 @@ class Market(dict):
             return (
                 self["quote"]["symbol"] == quote_symbol and
                 self["base"]["symbol"] == base_symbol
+            ) or (
+                self["quote"]["symbol"] == base_symbol and
+                self["base"]["symbol"] == quote_symbol
             )
         elif isinstance(other, Market):
             return (
