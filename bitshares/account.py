@@ -197,9 +197,9 @@ class Account(dict):
                 api="history"
             )
             for i in txs:
-                if exclude_ops and i[1]["op"][0] in exclude_ops:
+                if exclude_ops and i["op"][0] in exclude_ops:
                     continue
-                if not only_ops or i[1]["op"][0] in only_ops:
+                if not only_ops or i["op"][0] in only_ops:
                     cnt += 1
                     yield i
                     if limit >= 0 and cnt >= limit:
