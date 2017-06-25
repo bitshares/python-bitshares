@@ -124,6 +124,8 @@ class Notify(Events):
             * :class:`bitshares.price.Order` or
             * :class:`bitshares.price.FilledOrder`
 
+            Also possible are limit order updates (margin calls)
+
         """
         for d in data:
             if not d:
@@ -146,6 +148,11 @@ class Notify(Events):
                             self.on_market(FilledOrder(i))
                         elif "for_sale" in i and "sell_price" in i:
                             self.on_market(Order(i))
+                        else:
+                            if i:
+                                log.error(
+                                    "Unknown market update type: %s" % i
+                                )
 
     def process_account(self, message):
         """ This is used for processing of account Updates. It will
