@@ -57,8 +57,10 @@ class Market(dict):
             quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
             base = Asset(base_symbol, bitshares_instance=self.bitshares)
             super(Market, self).__init__({"base": base, "quote": quote})
-        if len(args) == 0 and base and quote:
+        elif len(args) == 0 and base and quote:
             super(Market, self).__init__({"base": base, "quote": quote})
+        else:
+            raise ValueError("Unknown Market Format: %s" % str(args))
 
     def _get_assets_from_string(self, s):
         import re
@@ -528,3 +530,27 @@ class Market(dict):
             :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
         """
         return self.bitshares.cancel(orderNumber, account=account)
+
+    def core_quote_market(self):
+        """ This returns an instance of the market that has the core market of the quote asset.
+            It means that quote needs to be a market pegged asset and returns a
+            market to it's collateral asset.
+        """
+        if not self["quote"].is_bitasset:
+            raise ValueError("Quote (%s) is not a bitasset!" % self["quote"]["symbol"])
+        self["quote"].full = True
+        self["quote"].refresh()
+        collateral = Asset(self["quote"]["bitasset_data"]["options"]["short_backing_asset"])
+        return Market(quote=self["quote"], base=collateral)
+
+    def core_base_market(self):
+        """ This returns an instance of the market that has the core market of the base asset.
+            It means that base needs to be a market pegged asset and returns a
+            market to it's collateral asset.
+        """
+        if not self["base"].is_bitasset:
+            raise ValueError("base (%s) is not a bitasset!" % self["base"]["symbol"])
+        self["base"].full = True
+        self["base"].refresh()
+        collateral = Asset(self["base"]["bitasset_data"]["options"]["short_backing_asset"])
+        return Market(quote=self["base"], base=collateral)
