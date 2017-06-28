@@ -132,7 +132,7 @@ class Notify(Events):
                 continue
             if isinstance(d, str):
                 # Single order has been placed
-                log.info("Calling on_market with Order()")
+                log.debug("Calling on_market with Order()")
                 self.on_market(Order(d))
                 continue
             elif isinstance(d, dict):

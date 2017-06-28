@@ -264,7 +264,7 @@ class BitSharesWebsocket(Events):
             else:
                 try:
                     callbackname = self.__events__[id]
-                    log.info("Patching through to call %s" % callbackname)
+                    log.debug("Patching through to call %s" % callbackname)
                     [getattr(self.events, callbackname)(x) for x in data["params"][1]]
                 except Exception as e:
                     log.critical("Error in {}: {}\n\n{}".format(

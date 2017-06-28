@@ -117,10 +117,14 @@ class Account(dict):
         """ Obtain the balance of a specific Asset. This call returns instances of
             :class:`bitshares.amount.Amount`.
         """
+        from .amount import Amount
+        if isinstance(symbol, dict) and "symbol" in symbol:
+            symbol = symbol["symbol"]
         balances = self.balances
         for b in balances:
             if b["symbol"] == symbol:
                 return b
+        return Amount(0, symbol)
 
     @property
     def call_positions(self):

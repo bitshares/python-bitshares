@@ -123,20 +123,27 @@ class Market(dict):
         """
         data = {}
         # Core Exchange rate
+        cer = self["quote"]["options"]["core_exchange_rate"]
         data["core_exchange_rate"] = Price(
-            self["quote"]["options"]["core_exchange_rate"],
+            cer,
             bitshares_instance=self.bitshares
         )
+        if cer["base"]["asset_id"] == self["quote"]["id"]:
+            data["core_exchange_rate"] = data["core_exchange_rate"].invert()
 
         # smartcoin stuff
         if "bitasset_data_id" in self["quote"]:
             bitasset = self.bitshares.rpc.get_object(self["quote"]["bitasset_data_id"])
             backing_asset_id = bitasset["options"]["short_backing_asset"]
             if backing_asset_id == self["base"]["id"]:
+                sp = bitasset["current_feed"]["settlement_price"]
                 data["quoteSettlement_price"] = Price(
-                    bitasset["current_feed"]["settlement_price"],
+                    sp,
                     bitshares_instance=self.bitshares
                 )
+                if sp["base"]["asset_id"] == self["quote"]["id"]:
+                    data["quoteSettlement_price"] = data["quoteSettlement_price"].invert()
+
         elif "bitasset_data_id" in self["base"]:
             bitasset = self.bitshares.rpc.get_object(self["base"]["bitasset_data_id"])
             backing_asset_id = bitasset["options"]["short_backing_asset"]
@@ -428,14 +435,18 @@ class Market(dict):
             "expiration": formatTimeFromNow(expiration),
             "fill_or_kill": killfill,
         })
-        tx = self.bitshares.finalizeOp(order, account["name"], "active")
+
         if returnOrderId:
-            chain = Blockchain(
-                mode=("head" if returnOrderId == "head" else "irreversible"),
-                bitshares_instance=self.bitshares
-            )
-            tx = chain.awaitTxConfirmation(tx)
+            # Make blocking broadcasts
+            prevblocking = self.bitshares.blocking
+            self.bitshares.blocking = returnOrderId
+
+        tx = self.bitshares.finalizeOp(order, account["name"], "active")
+
+        if returnOrderId:
             tx["orderid"] = tx["operation_results"][0][1]
+            self.bitshares.blocking = prevblocking
+
         return tx
 
     def sell(
@@ -509,15 +520,17 @@ class Market(dict):
             "expiration": formatTimeFromNow(expiration),
             "fill_or_kill": killfill,
         })
-        tx = self.bitshares.finalizeOp(order, account["name"], "active")
         if returnOrderId:
-            chain = Blockchain(
-                mode=("head" if returnOrderId == "head" else "irreversible"),
-                bitshares_instance=self.bitshares
-            )
-            tx = chain.awaitTxConfirmation(tx)
+            # Make blocking broadcasts
+            prevblocking = self.bitshares.blocking
+            self.bitshares.blocking = returnOrderId
+
+        tx = self.bitshares.finalizeOp(order, account["name"], "active")
+
+        if returnOrderId:
             tx["orderid"] = tx["operation_results"][0][1]
-        return tx
+            self.bitshares.blocking = prevblocking
+
 
     def cancel(self, orderNumber, account=None):
         """ Cancels an order you have placed in a given market. Requires

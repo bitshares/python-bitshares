@@ -175,7 +175,7 @@ class Blockchain(object):
                 r.update(op["op"][1])
                 yield r
 
-    def awaitTxConfirmation(self, transaction, limit=50):
+    def awaitTxConfirmation(self, transaction, limit=10):
         """ Returns the transaction as seen by the blockchain after being included into a block
 
             .. note:: If you want instant confirmation, you need to instantiate
@@ -190,8 +190,9 @@ class Blockchain(object):
                       transaction contented and thus identifies a transaction
                       uniquely.
         """
-        counter = 10
-        for block in self.blocks():
+        counter = 0
+        start = self.get_current_block_num() - 2
+        for block in self.blocks(start=start):
             counter += 1
             for tx in block["transactions"]:
                 if sorted(tx["signatures"]) == sorted(transaction["signatures"]):

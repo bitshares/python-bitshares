@@ -1,4 +1,5 @@
 from .account import Account
+from .blockchain import Blockchain
 from bitsharesbase.objects import Operation
 from bitsharesbase.account import PrivateKey, PublicKey
 from bitsharesbase.signedtransactions import Signed_Transaction
@@ -176,13 +177,22 @@ class TransactionBuilder(dict):
             log.warning("Not broadcasting anything!")
             return self
 
+        tx = self.json()
         # Broadcast
         try:
-            self.bitshares.rpc.broadcast_transaction(self.json(), api="network_broadcast")
+            self.bitshares.rpc.broadcast_transaction(tx, api="network_broadcast")
         except Exception as e:
             raise e
 
         self.clear()
+
+        if self.bitshares.blocking:
+            chain = Blockchain(
+                mode=("head" if self.bitshares.blocking == "head" else "irreversible"),
+                bitshares_instance=self.bitshares
+            )
+            tx = chain.awaitTxConfirmation(tx)
+            return tx
 
         return self
 
@@ -191,6 +201,7 @@ class TransactionBuilder(dict):
         """
         self.ops = []
         self.wifs = []
+        self.pop("signatures", None)
         super(TransactionBuilder, self).__init__({})
 
     def addSigningInformation(self, account, permission):

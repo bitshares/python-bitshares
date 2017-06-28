@@ -42,6 +42,7 @@ class BitShares(object):
         :param int proposal_expiration: Expiration time (in seconds) for the proposal *(optional)*
         :param int proposal_review: Review period (in seconds) for the proposal *(optional)*
         :param int expiration: Delay in seconds until transactions are supposed to expire *(optional)*
+        :param str blocking: Wait for broadcasted transactions to be included in a block and return full transaction (can be "head" or "irrversible")
         :param bool bundle: Do not broadcast transactions right away, but allow to bundle operations *(optional)*
 
         Three wallet operation modes are possible:
@@ -122,6 +123,7 @@ class BitShares(object):
         self.proposal_expiration = int(kwargs.get("proposal_expiration", 60 * 60 * 24))
         self.proposal_review = int(kwargs.get("proposal_review", 0))
         self.bundle = bool(kwargs.get("bundle", False))
+        self.blocking = kwargs.get("blocking", False)
 
         # Store config for access through other Classes
         self.config = config
