@@ -125,7 +125,6 @@ class Market(dict):
         # Core Exchange rate
         data["core_exchange_rate"] = Price(
             self["quote"]["options"]["core_exchange_rate"],
-            base=self["base"],
             bitshares_instance=self.bitshares
         )
 
@@ -136,7 +135,6 @@ class Market(dict):
             if backing_asset_id == self["base"]["id"]:
                 data["quoteSettlement_price"] = Price(
                     bitasset["current_feed"]["settlement_price"],
-                    base=self["base"],
                     bitshares_instance=self.bitshares
                 )
         elif "bitasset_data_id" in self["base"]:
@@ -145,7 +143,6 @@ class Market(dict):
             if backing_asset_id == self["quote"]["id"]:
                 data["baseSettlement_price"] = Price(
                     bitasset["current_feed"]["settlement_price"],
-                    base=self["base"],
                     bitshares_instance=self.bitshares
                 )
 
