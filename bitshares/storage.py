@@ -221,6 +221,7 @@ class Configuration(DataDir):
         "node": "wss://node.bitshares.eu",
         "rpcpassword": "",
         "rpcuser": "",
+        "order-expiration": 7 * 24 * 60 * 60,
     }
 
     def __init__(self):

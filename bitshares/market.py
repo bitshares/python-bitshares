@@ -356,7 +356,7 @@ class Market(dict):
         self,
         price,
         amount,
-        expiration=7 * 24 * 60 * 60,
+        expiration=None,
         killfill=False,
         account=None,
         returnOrderId=False
@@ -395,6 +395,8 @@ class Market(dict):
                     * This means that you actually place a sell order for 1000 BTS in order to obtain **at least** 10 USD
                     * If an order on the market exists that sells USD for cheaper, you will end up with more than 10 USD
         """
+        if not expiration:
+            expiration = self.bitshares.config["order-expiration"]
         if not account:
             if "default_account" in self.bitshares.config:
                 account = self.bitshares.config["default_account"]
@@ -453,7 +455,7 @@ class Market(dict):
         self,
         price,
         amount,
-        expiration=7 * 24 * 60 * 60,
+        expiration=None,
         killfill=False,
         account=None,
         returnOrderId=False
@@ -480,6 +482,8 @@ class Market(dict):
                 market. I.e. in the BTC/BTS market, prices are BTS per BTC.
                 That way you can multiply prices with `1.05` to get a +5%.
         """
+        if not expiration:
+            expiration = self.bitshares.config["order-expiration"]
         if not account:
             if "default_account" in self.bitshares.config:
                 account = self.bitshares.config["default_account"]
@@ -530,7 +534,6 @@ class Market(dict):
         if returnOrderId:
             tx["orderid"] = tx["operation_results"][0][1]
             self.bitshares.blocking = prevblocking
-
 
     def cancel(self, orderNumber, account=None):
         """ Cancels an order you have placed in a given market. Requires
