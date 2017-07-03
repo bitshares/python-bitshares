@@ -466,6 +466,38 @@ class FilledOrder(Price):
     __str__ = __repr__
 
 
+class MarginCall(Price):
+    """ This class inherits :class:`bitshares.price.Price` but has the ``base``
+        and ``quote`` Amounts not only be used to represent the **call
+        price** (as a ratio of base and quote).
+
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+    """
+    def __init__(self, call, bitshares_instance=None, **kwargs):
+
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
+
+        if isinstance(call, dict) and "call_price" in call:
+            super(MarginCall, self).__init__(
+                call.get("call_price"),
+                base=call["call_price"].get("base"),
+                quote=call["call_price"].get("quote"),
+            )
+
+        else:
+            raise ValueError("Couldn't parse 'Call'.")
+
+    def __repr__(self):
+        t = "Margin Call: "
+        if "quote" in self and self["quote"]:
+            t += "%s " % str(self["quote"])
+        if "base" in self and self["base"]:
+            t += "%s " % str(self["base"])
+        return t + "@ " + Price.__repr__(self)
+
+    __str__ = __repr__
+
+
 class PriceFeed(dict):
     """ This class is used to represent a price feed consisting of
 

@@ -3,7 +3,7 @@ from events import Events
 from bitsharesapi.websocket import BitSharesWebsocket
 from bitshares.instance import shared_bitshares_instance
 from bitshares.market import Market
-from bitshares.price import Order, FilledOrder
+from bitshares.price import Order, FilledOrder, MarginCall
 from bitshares.account import Account, AccountUpdate
 log = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
@@ -122,7 +122,8 @@ class Notify(Events):
             notifications. It will return instances of either
 
             * :class:`bitshares.price.Order` or
-            * :class:`bitshares.price.FilledOrder`
+            * :class:`bitshares.price.FilledOrder` or
+            * :class:`bitshares.price.MarginCall`
 
             Also possible are limit order updates (margin calls)
 
@@ -148,6 +149,8 @@ class Notify(Events):
                             self.on_market(FilledOrder(i))
                         elif "for_sale" in i and "sell_price" in i:
                             self.on_market(Order(i))
+                        elif "collateral" in i and "call_price" in i:
+                            self.on_market(MarginCall(i))
                         else:
                             if i:
                                 log.error(
