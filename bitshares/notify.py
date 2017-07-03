@@ -3,7 +3,7 @@ from events import Events
 from bitsharesapi.websocket import BitSharesWebsocket
 from bitshares.instance import shared_bitshares_instance
 from bitshares.market import Market
-from bitshares.price import Order, FilledOrder, MarginCall
+from bitshares.price import Order, FilledOrder, UpdateCallOrder
 from bitshares.account import Account, AccountUpdate
 log = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
@@ -81,15 +81,6 @@ class Notify(Events):
                 market["quote"]["id"],
             ])
 
-        # Accounts
-        account_ids = []
-        for account_name in accounts:
-            account = Account(
-                account_name,
-                bitshares_instance=self.bitshares
-            )
-            account_ids.append(account["id"])
-
         # Callbacks
         if on_tx:
             self.on_tx += on_tx
@@ -107,7 +98,7 @@ class Notify(Events):
             urls=self.bitshares.rpc.urls,
             user=self.bitshares.rpc.user,
             password=self.bitshares.rpc.password,
-            accounts=account_ids,
+            accounts=accounts,
             markets=market_ids,
             objects=objects,
             on_tx=on_tx,
@@ -123,7 +114,7 @@ class Notify(Events):
 
             * :class:`bitshares.price.Order` or
             * :class:`bitshares.price.FilledOrder` or
-            * :class:`bitshares.price.MarginCall`
+            * :class:`bitshares.price.UpdateCallOrder`
 
             Also possible are limit order updates (margin calls)
 
@@ -150,7 +141,7 @@ class Notify(Events):
                         elif "for_sale" in i and "sell_price" in i:
                             self.on_market(Order(i))
                         elif "collateral" in i and "call_price" in i:
-                            self.on_market(MarginCall(i))
+                            self.on_market(UpdateCallOrder(i))
                         else:
                             if i:
                                 log.error(

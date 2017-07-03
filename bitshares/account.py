@@ -254,4 +254,6 @@ class AccountUpdate(dict):
             :class:`bitshares.account.Account` from this class, you can
             use the ``account`` attribute.
         """
-        return Account(self["owner"])
+        account = Account(self["owner"])
+        account.refresh()
+        return account

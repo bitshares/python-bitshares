@@ -11,7 +11,7 @@ from .exceptions import NumRetriesReached
 from events import Events
 
 log = logging.getLogger(__name__)
-# logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 
 class BitSharesWebsocket(Events):
@@ -131,7 +131,7 @@ class BitSharesWebsocket(Events):
             self.urls = cycle([urls])
 
         # Instanciate Events
-        Events.__init__(self, *args, **kwargs)
+        Events.__init__(self)
         self.events = Events()
 
         # Store the objects we are interested in
@@ -184,9 +184,11 @@ class BitSharesWebsocket(Events):
         if self.subscription_accounts and self.on_account:
             # Unfortunately, account subscriptions don't have their own
             # callback number
-            self.accounts = self.get_full_accounts(self.subscription_accounts, True)
+            log.debug("Subscribing to accounts %s" % str(self.subscription_accounts))
+            self.get_full_accounts(self.subscription_accounts, True)
 
         if self.subscription_markets and self.on_market:
+            log.debug("Subscribing to markets %s" % str(self.subscription_markets))
             for market in self.subscription_markets:
                 # Technially, every market could have it's own
                 # callback number
@@ -298,7 +300,6 @@ class BitSharesWebsocket(Events):
                 self.ws = websocket.WebSocketApp(
                     self.url,
                     on_message=self.on_message,
-                    # on_data=self.on_message,
                     on_error=self.on_error,
                     on_close=self.on_close,
                     on_open=self.on_open

@@ -466,7 +466,7 @@ class FilledOrder(Price):
     __str__ = __repr__
 
 
-class MarginCall(Price):
+class UpdateCallOrder(Price):
     """ This class inherits :class:`bitshares.price.Price` but has the ``base``
         and ``quote`` Amounts not only be used to represent the **call
         price** (as a ratio of base and quote).
@@ -478,7 +478,7 @@ class MarginCall(Price):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
 
         if isinstance(call, dict) and "call_price" in call:
-            super(MarginCall, self).__init__(
+            super(UpdateCallOrder, self).__init__(
                 call.get("call_price"),
                 base=call["call_price"].get("base"),
                 quote=call["call_price"].get("quote"),
