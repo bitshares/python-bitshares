@@ -90,6 +90,9 @@ class Account(dict):
             self.refresh()
         return super(Account, self).__getitem__(key)
 
+    def __repr__(self):
+        return "<Account: {}".format(self.name)
+
     def items(self):
         if not self.cached:
             self.refresh()
@@ -257,3 +260,6 @@ class AccountUpdate(dict):
         account = Account(self["owner"])
         account.refresh()
         return account
+
+    def __repr__(self):
+        return "<AccountUpdate: {}>".format(self["owner"])
