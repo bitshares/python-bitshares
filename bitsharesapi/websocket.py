@@ -131,7 +131,7 @@ class BitSharesWebsocket(Events):
             self.urls = cycle([urls])
 
         # Instanciate Events
-        Events.__init__(self, *args, **kwargs)
+        Events.__init__(self)
         self.events = Events()
 
         # Store the objects we are interested in
@@ -168,7 +168,7 @@ class BitSharesWebsocket(Events):
 
         # Subscribe to events on the Backend and give them a
         # callback number that allows us to identify the event
-        if len(self.on_object):
+        if len(self.on_object) or len(self.subscription_accounts):
             self.set_subscribe_callback(
                 self.__events__.index('on_object'),
                 False)
@@ -184,9 +184,11 @@ class BitSharesWebsocket(Events):
         if self.subscription_accounts and self.on_account:
             # Unfortunately, account subscriptions don't have their own
             # callback number
-            self.accounts = self.get_full_accounts(self.subscription_accounts, True)
+            log.debug("Subscribing to accounts %s" % str(self.subscription_accounts))
+            self.get_full_accounts(self.subscription_accounts, True)
 
         if self.subscription_markets and self.on_market:
+            log.debug("Subscribing to markets %s" % str(self.subscription_markets))
             for market in self.subscription_markets:
                 # Technially, every market could have it's own
                 # callback number
@@ -264,7 +266,7 @@ class BitSharesWebsocket(Events):
             else:
                 try:
                     callbackname = self.__events__[id]
-                    log.info("Patching through to call %s" % callbackname)
+                    log.debug("Patching through to call %s" % callbackname)
                     [getattr(self.events, callbackname)(x) for x in data["params"][1]]
                 except Exception as e:
                     log.critical("Error in {}: {}\n\n{}".format(
@@ -298,7 +300,6 @@ class BitSharesWebsocket(Events):
                 self.ws = websocket.WebSocketApp(
                     self.url,
                     on_message=self.on_message,
-                    # on_data=self.on_message,
                     on_error=self.on_error,
                     on_close=self.on_close,
                     on_open=self.on_open

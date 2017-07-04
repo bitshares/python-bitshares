@@ -1,4 +1,5 @@
 from .account import Account
+from .blockchain import Blockchain
 from bitsharesbase.objects import Operation
 from bitsharesbase.account import PrivateKey, PublicKey
 from bitsharesbase.signedtransactions import Signed_Transaction
@@ -39,28 +40,40 @@ class TransactionBuilder(dict):
         """ Try to obtain the wif key from the wallet by telling which account
             and permission is supposed to sign the transaction
         """
-        assert permission in ["active", "owner"], "Invalid permission"
-        account = Account(account, bitshares_instance=self.bitshares)
-        required_treshold = account[permission]["weight_threshold"]
 
-        def fetchkeys(account, level=0):
+        def fetchkeys(account, perm, level=0):
             if level > 2:
                 return []
             r = []
-            for authority in account[permission]["key_auths"]:
+            for authority in account[perm]["key_auths"]:
                 wif = self.bitshares.wallet.getPrivateKeyForPublicKey(authority[0])
                 if wif:
                     r.append([wif, authority[1]])
 
             if sum([x[1] for x in r]) < required_treshold:
                 # go one level deeper
-                for authority in account[permission]["account_auths"]:
+                for authority in account[perm]["account_auths"]:
                     auth_account = Account(authority[0], bitshares_instance=self.bitshares)
-                    r.extend(fetchkeys(auth_account, level + 1))
+                    r.extend(fetchkeys(auth_account, perm, level + 1))
 
             return r
-        keys = fetchkeys(account)
-        self.wifs.extend([x[0] for x in keys])
+
+        assert permission in ["active", "owner"], "Invalid permission"
+
+        # is the account an instance of public key?
+        if isinstance(account, PublicKey):
+            self.wifs.append(
+                self.bitshares.wallet.getPrivateKeyForPublicKey(
+                    str(account)
+                )
+            )
+        else:
+            account = Account(account, bitshares_instance=self.bitshares)
+            required_treshold = account[permission]["weight_threshold"]
+            keys = fetchkeys(account, permission)
+            if permission != "owner":
+                keys.extend(fetchkeys(account, "owner"))
+            self.wifs.extend([x[0] for x in keys])
 
     def appendWif(self, wif):
         """ Add a wif that should be used for signing of the transaction.
@@ -88,6 +101,7 @@ class TransactionBuilder(dict):
                 "expiration_time": transactions.formatTimeFromNow(
                     self.bitshares.proposal_expiration),
                 "proposed_ops": [o.json() for o in ops],
+                "review_period_seconds": self.bitshares.proposal_review,
                 "extensions": []
             })
             ops = [Operation(ops)]
@@ -163,13 +177,22 @@ class TransactionBuilder(dict):
             log.warning("Not broadcasting anything!")
             return self
 
+        tx = self.json()
         # Broadcast
         try:
-            self.bitshares.rpc.broadcast_transaction(self.json(), api="network_broadcast")
+            self.bitshares.rpc.broadcast_transaction(tx, api="network_broadcast")
         except Exception as e:
             raise e
 
         self.clear()
+
+        if self.bitshares.blocking:
+            chain = Blockchain(
+                mode=("head" if self.bitshares.blocking == "head" else "irreversible"),
+                bitshares_instance=self.bitshares
+            )
+            tx = chain.awaitTxConfirmation(tx)
+            return tx
 
         return self
 
@@ -178,39 +201,48 @@ class TransactionBuilder(dict):
         """
         self.ops = []
         self.wifs = []
+        self.pop("signatures", None)
         super(TransactionBuilder, self).__init__({})
 
     def addSigningInformation(self, account, permission):
         """ This is a private method that adds side information to a
             unsigned/partial transaction in order to simplify later
             signing (e.g. for multisig or coldstorage)
+
+            FIXME: Does not work with owner keys!
         """
         self.constructTx()
-        accountObj = Account(account)
-        authority = accountObj[permission]
-        # We add a required_authorities to be able to identify
-        # how to sign later. This is an array, because we
-        # may later want to allow multiple operations per tx
-        self.update({"required_authorities": {
-            accountObj["name"]: authority
-        }})
-        for account_auth in authority["account_auths"]:
-            account_auth_account = Account(account_auth[0])
-            self["required_authorities"].update({
-                account_auth[0]: account_auth_account.get(permission)
-            })
-
-        # Try to resolve required signatures for offline signing
-        self["missing_signatures"] = [
-            x[0] for x in authority["key_auths"]
-        ]
-        # Add one recursion of keys from account_auths:
-        for account_auth in authority["account_auths"]:
-            account_auth_account = Account(account_auth[0])
-            self["missing_signatures"].extend(
-                [x[0] for x in account_auth_account[permission]["key_auths"]]
-            )
         self["blockchain"] = self.bitshares.rpc.chain_params
+
+        if isinstance(account, PublicKey):
+            self["missing_signatures"] = [
+                str(account)
+            ]
+        else:
+            accountObj = Account(account)
+            authority = accountObj[permission]
+            # We add a required_authorities to be able to identify
+            # how to sign later. This is an array, because we
+            # may later want to allow multiple operations per tx
+            self.update({"required_authorities": {
+                accountObj["name"]: authority
+            }})
+            for account_auth in authority["account_auths"]:
+                account_auth_account = Account(account_auth[0])
+                self["required_authorities"].update({
+                    account_auth[0]: account_auth_account.get(permission)
+                })
+
+            # Try to resolve required signatures for offline signing
+            self["missing_signatures"] = [
+                x[0] for x in authority["key_auths"]
+            ]
+            # Add one recursion of keys from account_auths:
+            for account_auth in authority["account_auths"]:
+                account_auth_account = Account(account_auth[0])
+                self["missing_signatures"].extend(
+                    [x[0] for x in account_auth_account[permission]["key_auths"]]
+                )
 
     def json(self):
         """ Show the transaction as plain json

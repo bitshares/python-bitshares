@@ -44,3 +44,4 @@ def test_permissions(perms, flags):
             raise Exception(
                 "Permissions prevent you from changing %s!" % p
             )
+    return True

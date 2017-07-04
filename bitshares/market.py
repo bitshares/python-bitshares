@@ -57,8 +57,10 @@ class Market(dict):
             quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
             base = Asset(base_symbol, bitshares_instance=self.bitshares)
             super(Market, self).__init__({"base": base, "quote": quote})
-        if len(args) == 0 and base and quote:
+        elif len(args) == 0 and base and quote:
             super(Market, self).__init__({"base": base, "quote": quote})
+        else:
+            raise ValueError("Unknown Market Format: %s" % str(args))
 
     def _get_assets_from_string(self, s):
         import re
@@ -77,6 +79,9 @@ class Market(dict):
             return (
                 self["quote"]["symbol"] == quote_symbol and
                 self["base"]["symbol"] == base_symbol
+            ) or (
+                self["quote"]["symbol"] == base_symbol and
+                self["base"]["symbol"] == quote_symbol
             )
         elif isinstance(other, Market):
             return (
@@ -118,29 +123,33 @@ class Market(dict):
         """
         data = {}
         # Core Exchange rate
+        cer = self["quote"]["options"]["core_exchange_rate"]
         data["core_exchange_rate"] = Price(
-            self["quote"]["options"]["core_exchange_rate"],
-            base=self["base"],
+            cer,
             bitshares_instance=self.bitshares
         )
+        if cer["base"]["asset_id"] == self["quote"]["id"]:
+            data["core_exchange_rate"] = data["core_exchange_rate"].invert()
 
         # smartcoin stuff
         if "bitasset_data_id" in self["quote"]:
             bitasset = self.bitshares.rpc.get_object(self["quote"]["bitasset_data_id"])
             backing_asset_id = bitasset["options"]["short_backing_asset"]
             if backing_asset_id == self["base"]["id"]:
+                sp = bitasset["current_feed"]["settlement_price"]
                 data["quoteSettlement_price"] = Price(
-                    bitasset["current_feed"]["settlement_price"],
-                    base=self["base"],
+                    sp,
                     bitshares_instance=self.bitshares
                 )
+                if sp["base"]["asset_id"] == self["quote"]["id"]:
+                    data["quoteSettlement_price"] = data["quoteSettlement_price"].invert()
+
         elif "bitasset_data_id" in self["base"]:
             bitasset = self.bitshares.rpc.get_object(self["base"]["bitasset_data_id"])
             backing_asset_id = bitasset["options"]["short_backing_asset"]
             if backing_asset_id == self["quote"]["id"]:
                 data["baseSettlement_price"] = Price(
                     bitasset["current_feed"]["settlement_price"],
-                    base=self["base"],
                     bitshares_instance=self.bitshares
                 )
 
@@ -347,7 +356,7 @@ class Market(dict):
         self,
         price,
         amount,
-        expiration=7 * 24 * 60 * 60,
+        expiration=None,
         killfill=False,
         account=None,
         returnOrderId=False
@@ -386,6 +395,8 @@ class Market(dict):
                     * This means that you actually place a sell order for 1000 BTS in order to obtain **at least** 10 USD
                     * If an order on the market exists that sells USD for cheaper, you will end up with more than 10 USD
         """
+        if not expiration:
+            expiration = self.bitshares.config["order-expiration"]
         if not account:
             if "default_account" in self.bitshares.config:
                 account = self.bitshares.config["default_account"]
@@ -426,21 +437,25 @@ class Market(dict):
             "expiration": formatTimeFromNow(expiration),
             "fill_or_kill": killfill,
         })
-        tx = self.bitshares.finalizeOp(order, account["name"], "active")
+
         if returnOrderId:
-            chain = Blockchain(
-                mode=("head" if returnOrderId == "head" else "irreversible"),
-                bitshares_instance=self.bitshares
-            )
-            tx = chain.awaitTxConfirmation(tx)
+            # Make blocking broadcasts
+            prevblocking = self.bitshares.blocking
+            self.bitshares.blocking = returnOrderId
+
+        tx = self.bitshares.finalizeOp(order, account["name"], "active")
+
+        if returnOrderId:
             tx["orderid"] = tx["operation_results"][0][1]
+            self.bitshares.blocking = prevblocking
+
         return tx
 
     def sell(
         self,
         price,
         amount,
-        expiration=7 * 24 * 60 * 60,
+        expiration=None,
         killfill=False,
         account=None,
         returnOrderId=False
@@ -467,6 +482,8 @@ class Market(dict):
                 market. I.e. in the BTC/BTS market, prices are BTS per BTC.
                 That way you can multiply prices with `1.05` to get a +5%.
         """
+        if not expiration:
+            expiration = self.bitshares.config["order-expiration"]
         if not account:
             if "default_account" in self.bitshares.config:
                 account = self.bitshares.config["default_account"]
@@ -507,15 +524,16 @@ class Market(dict):
             "expiration": formatTimeFromNow(expiration),
             "fill_or_kill": killfill,
         })
-        tx = self.bitshares.finalizeOp(order, account["name"], "active")
         if returnOrderId:
-            chain = Blockchain(
-                mode=("head" if returnOrderId == "head" else "irreversible"),
-                bitshares_instance=self.bitshares
-            )
-            tx = chain.awaitTxConfirmation(tx)
+            # Make blocking broadcasts
+            prevblocking = self.bitshares.blocking
+            self.bitshares.blocking = returnOrderId
+
+        tx = self.bitshares.finalizeOp(order, account["name"], "active")
+
+        if returnOrderId:
             tx["orderid"] = tx["operation_results"][0][1]
-        return tx
+            self.bitshares.blocking = prevblocking
 
     def cancel(self, orderNumber, account=None):
         """ Cancels an order you have placed in a given market. Requires
@@ -525,3 +543,27 @@ class Market(dict):
             :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
         """
         return self.bitshares.cancel(orderNumber, account=account)
+
+    def core_quote_market(self):
+        """ This returns an instance of the market that has the core market of the quote asset.
+            It means that quote needs to be a market pegged asset and returns a
+            market to it's collateral asset.
+        """
+        if not self["quote"].is_bitasset:
+            raise ValueError("Quote (%s) is not a bitasset!" % self["quote"]["symbol"])
+        self["quote"].full = True
+        self["quote"].refresh()
+        collateral = Asset(self["quote"]["bitasset_data"]["options"]["short_backing_asset"])
+        return Market(quote=self["quote"], base=collateral)
+
+    def core_base_market(self):
+        """ This returns an instance of the market that has the core market of the base asset.
+            It means that base needs to be a market pegged asset and returns a
+            market to it's collateral asset.
+        """
+        if not self["base"].is_bitasset:
+            raise ValueError("base (%s) is not a bitasset!" % self["base"]["symbol"])
+        self["base"].full = True
+        self["base"].refresh()
+        collateral = Asset(self["base"]["bitasset_data"]["options"]["short_backing_asset"])
+        return Market(quote=self["base"], base=collateral)

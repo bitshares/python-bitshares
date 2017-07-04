@@ -14,6 +14,7 @@ from .price import Price
 from .witness import Witness
 from .committee import Committee
 from .vesting import Vesting
+from .worker import Worker
 from .storage import configStorage as config
 from .exceptions import (
     AccountExistsException,
@@ -39,7 +40,9 @@ class BitShares(object):
         :param bool offline: Boolean to prevent connecting to network (defaults to ``False``) *(optional)*
         :param str proposer: Propose a transaction using this proposer *(optional)*
         :param int proposal_expiration: Expiration time (in seconds) for the proposal *(optional)*
+        :param int proposal_review: Review period (in seconds) for the proposal *(optional)*
         :param int expiration: Delay in seconds until transactions are supposed to expire *(optional)*
+        :param str blocking: Wait for broadcasted transactions to be included in a block and return full transaction (can be "head" or "irrversible")
         :param bool bundle: Do not broadcast transactions right away, but allow to bundle operations *(optional)*
 
         Three wallet operation modes are possible:
@@ -118,7 +121,9 @@ class BitShares(object):
         self.expiration = int(kwargs.get("expiration", 30))
         self.proposer = kwargs.get("proposer", None)
         self.proposal_expiration = int(kwargs.get("proposal_expiration", 60 * 60 * 24))
+        self.proposal_review = int(kwargs.get("proposal_review", 0))
         self.bundle = bool(kwargs.get("bundle", False))
+        self.blocking = kwargs.get("blocking", False)
 
         # Store config for access through other Classes
         self.config = config
@@ -763,6 +768,71 @@ class BitShares(object):
         })
         return self.finalizeOp(op, account["name"], "active")
 
+    def approveworker(self, workers, account=None):
+        """ Approve a worker
+
+            :param list workers: list of worker member name or id
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self)
+        options = account["options"]
+
+        if not isinstance(workers, (list, set)):
+            workers = set(workers)
+
+        for worker in workers:
+            worker = Worker(worker, bitshares_instance=self)
+            options["votes"].append(worker["vote_for"])
+        options["votes"] = list(set(options["votes"]))
+
+        op = operations.Account_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account": account["id"],
+            "new_options": options,
+            "extensions": {},
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def disapproveworker(self, workers, account=None):
+        """ Disapprove a worker
+
+            :param list workers: list of worker name or id
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self)
+        options = account["options"]
+
+        if not isinstance(workers, (list, set)):
+            workers = set(workers)
+
+        for worker in workers:
+            worker = Worker(worker, bitshares_instance=self)
+            if worker["vote_for"] in options["votes"]:
+                options["votes"].remove(worker["vote_for"])
+        options["votes"] = list(set(options["votes"]))
+
+        op = operations.Account_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account": account["id"],
+            "new_options": options,
+            "extensions": {},
+            "prefix": self.rpc.chain_params["prefix"]
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
     def cancel(self, orderNumbers, account=None):
         """ Cancels an order you have placed in a given market. Requires
             only the "orderNumbers". An order number takes the form
@@ -836,10 +906,13 @@ class BitShares(object):
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
-        if not approver:
+        is_key = approver and approver[:3] == self.rpc.chain_params["prefix"]
+        if not approver and not is_key:
             approver = account
-        else:
+        elif approver and not is_key:
             approver = Account(approver, bitshares_instance=self)
+        else:
+            approver = PublicKey(approver)
 
         if not isinstance(proposal_ids, (list, set)):
             proposal_ids = set(proposal_ids)
@@ -847,14 +920,26 @@ class BitShares(object):
         op = []
         for proposal_id in proposal_ids:
             proposal = Proposal(proposal_id, bitshares_instance=self)
-            op.append(operations.Proposal_update(**{
+            update_dict = {
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 'fee_paying_account': account["id"],
                 'proposal': proposal["id"],
-                'active_approvals_to_add': [approver["id"]],
                 "prefix": self.rpc.chain_params["prefix"]
-            }))
-        return self.finalizeOp(op, account["name"], "active")
+            }
+            if is_key:
+                update_dict.update({
+                    'key_approvals_to_add': [str(approver)],
+                })
+            else:
+                update_dict.update({
+                    'active_approvals_to_add': [approver["id"]],
+                })
+            op.append(operations.Proposal_update(**update_dict))
+        if is_key:
+            self.txbuffer.appendSigner(account["name"], "active")
+            return self.finalizeOp(op, approver, "active")
+        else:
+            return self.finalizeOp(op, approver["name"], "active")
 
     def disapproveproposal(self, proposal_ids, account=None, approver=None):
         """ Disapprove Proposal
@@ -991,3 +1076,29 @@ class BitShares(object):
             "new_signing_key": key,
         })
         return self.finalizeOp(op, account["name"], "active")
+
+    def reserve(self, amount, account=None):
+        """ Reserve/Burn an amount of this shares
+
+            This removes the shares from the supply
+
+            :param bitshares.amount.Amount amount: The amount to be burned.
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        assert isinstance(amount, Amount)
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+        op = operations.Asset_reserve(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "payer": account["id"],
+            "amount_to_reserve": {
+                "amount": int(amount),
+                "asset_id": amount["asset"]["id"]},
+            "extensions": []
+        })
+        return self.finalizeOp(op, account, "active")

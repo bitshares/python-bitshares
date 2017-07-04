@@ -391,11 +391,32 @@ class Asset_update_feed_producers(GrapheneObject):
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
 
+            kwargs["new_feed_producers"] = sorted(
+                kwargs["new_feed_producers"],
+                key=lambda x: float(x.split(".")[2]),
+            )
+
             super().__init__(OrderedDict([
                 ('fee', Asset(kwargs["fee"])),
                 ('issuer', ObjectId(kwargs["issuer"], "account")),
                 ('asset_to_update', ObjectId(kwargs["asset_to_update"], "asset")),
                 ('new_feed_producers',
                     Array([ObjectId(o, "account") for o in kwargs["new_feed_producers"]])),
+                ('extensions', Set([])),
+            ]))
+
+
+class Asset_reserve(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('payer', ObjectId(kwargs["payer"], "account")),
+                ('amount_to_reserve', Asset(kwargs["amount_to_reserve"])),
                 ('extensions', Set([])),
             ]))

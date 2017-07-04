@@ -1,5 +1,6 @@
 from fractions import Fraction
 from bitshares.instance import shared_bitshares_instance
+from .account import Account
 from .amount import Amount
 from .asset import Asset
 from .utils import formatTimeString
@@ -222,13 +223,18 @@ class Price(dict):
                 a["base"] = Amount(float(self["base"] * other["base"]), other["base"]["asset"])
             else:
                 raise ValueError("Multiplication of two unmatching prices!")
+        elif isinstance(other, Amount):
+            assert other["asset"]["id"] == self["quote"]["asset"]["id"]
+            a = other.copy() * self["price"]
+            a["asset"] = self["base"]["asset"].copy()
+            a["symbol"] = self["base"]["asset"]["symbol"]
         else:
             a["base"] *= other
         return a
 
     def __imul__(self, other):
         if isinstance(other, Price):
-            raise ValueError("Multiplication of two prices!?")
+            raise ValueError("'*=' Not supported for two prices")
         else:
             self["base"] *= other
         return self
@@ -460,6 +466,38 @@ class FilledOrder(Price):
     __str__ = __repr__
 
 
+class UpdateCallOrder(Price):
+    """ This class inherits :class:`bitshares.price.Price` but has the ``base``
+        and ``quote`` Amounts not only be used to represent the **call
+        price** (as a ratio of base and quote).
+
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+    """
+    def __init__(self, call, bitshares_instance=None, **kwargs):
+
+        self.bitshares = bitshares_instance or shared_bitshares_instance()
+
+        if isinstance(call, dict) and "call_price" in call:
+            super(UpdateCallOrder, self).__init__(
+                call.get("call_price"),
+                base=call["call_price"].get("base"),
+                quote=call["call_price"].get("quote"),
+            )
+
+        else:
+            raise ValueError("Couldn't parse 'Call'.")
+
+    def __repr__(self):
+        t = "Margin Call: "
+        if "quote" in self and self["quote"]:
+            t += "%s " % str(self["quote"])
+        if "base" in self and self["base"]:
+            t += "%s " % str(self["base"])
+        return t + "@ " + Price.__repr__(self)
+
+    __str__ = __repr__
+
+
 class PriceFeed(dict):
     """ This class is used to represent a price feed consisting of
 
@@ -478,7 +516,7 @@ class PriceFeed(dict):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
         if len(feed) == 2:
             super(PriceFeed, self).__init__({
-                "witness": Witness(feed[0], lazy=True),
+                "producer": Account(feed[0], lazy=True),
                 "date": parse_time(feed[1][0]),
                 "maintenance_collateral_ratio": feed[1][1]["maintenance_collateral_ratio"],
                 "maximum_short_squeeze_ratio": feed[1][1]["maximum_short_squeeze_ratio"],

@@ -1,7 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from setuptools import setup
-from pip.req import parse_requirements
 
 # Work around mbcs bug in distutils.
 # http://bugs.python.org/issue10945
@@ -12,7 +11,7 @@ except LookupError:
     ascii = codecs.lookup('ascii')
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == 'mbcs'))
 
-VERSION = '0.1.6'
+VERSION = '0.1.7'
 
 setup(
     name='bitshares',
@@ -46,6 +45,7 @@ setup(
         "appdirs",
         "Events",
         "scrypt",
+        "pycrypto",  # for AES
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

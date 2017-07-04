@@ -90,6 +90,9 @@ class Account(dict):
             self.refresh()
         return super(Account, self).__getitem__(key)
 
+    def __repr__(self):
+        return "<Account: {}".format(self.name)
+
     def items(self):
         if not self.cached:
             self.refresh()
@@ -117,10 +120,14 @@ class Account(dict):
         """ Obtain the balance of a specific Asset. This call returns instances of
             :class:`bitshares.amount.Amount`.
         """
+        from .amount import Amount
+        if isinstance(symbol, dict) and "symbol" in symbol:
+            symbol = symbol["symbol"]
         balances = self.balances
         for b in balances:
             if b["symbol"] == symbol:
                 return b
+        return Amount(0, symbol)
 
     @property
     def call_positions(self):
@@ -250,4 +257,9 @@ class AccountUpdate(dict):
             :class:`bitshares.account.Account` from this class, you can
             use the ``account`` attribute.
         """
-        return Account(self["owner"])
+        account = Account(self["owner"])
+        account.refresh()
+        return account
+
+    def __repr__(self):
+        return "<AccountUpdate: {}>".format(self["owner"])
