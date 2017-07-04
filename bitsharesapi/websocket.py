@@ -168,7 +168,7 @@ class BitSharesWebsocket(Events):
 
         # Subscribe to events on the Backend and give them a
         # callback number that allows us to identify the event
-        if len(self.on_object) or len(self.self.subscription_accounts):
+        if len(self.on_object) or len(self.subscription_accounts):
             self.set_subscribe_callback(
                 self.__events__.index('on_object'),
                 False)
