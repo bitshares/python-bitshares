@@ -196,6 +196,7 @@ class BitShares(object):
         elif self.bundle:
             # In case we want to add more ops to the tx (bundle)
             self.txbuffer.appendSigner(account, permission)
+            return self.txbuffer.json()
         else:
             # default behavior: sign + broadcast
             self.txbuffer.appendSigner(account, permission)
