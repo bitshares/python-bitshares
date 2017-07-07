@@ -40,7 +40,6 @@ class TransactionBuilder(dict):
         """ Try to obtain the wif key from the wallet by telling which account
             and permission is supposed to sign the transaction
         """
-
         def fetchkeys(account, perm, level=0):
             if level > 2:
                 return []
@@ -60,20 +59,23 @@ class TransactionBuilder(dict):
 
         assert permission in ["active", "owner"], "Invalid permission"
 
-        # is the account an instance of public key?
-        if isinstance(account, PublicKey):
-            self.wifs.append(
-                self.bitshares.wallet.getPrivateKeyForPublicKey(
-                    str(account)
+        if account not in self.available_signers:
+            # is the account an instance of public key?
+            if isinstance(account, PublicKey):
+                self.wifs.append(
+                    self.bitshares.wallet.getPrivateKeyForPublicKey(
+                        str(account)
+                    )
                 )
-            )
-        else:
-            account = Account(account, bitshares_instance=self.bitshares)
-            required_treshold = account[permission]["weight_threshold"]
-            keys = fetchkeys(account, permission)
-            if permission != "owner":
-                keys.extend(fetchkeys(account, "owner"))
-            self.wifs.extend([x[0] for x in keys])
+            else:
+                account = Account(account, bitshares_instance=self.bitshares)
+                required_treshold = account[permission]["weight_threshold"]
+                keys = fetchkeys(account, permission)
+                if permission != "owner":
+                    keys.extend(fetchkeys(account, "owner"))
+                self.wifs.extend([x[0] for x in keys])
+
+            self.available_signers.append(account)
 
     def appendWif(self, wif):
         """ Add a wif that should be used for signing of the transaction.
@@ -202,6 +204,7 @@ class TransactionBuilder(dict):
         self.ops = []
         self.wifs = []
         self.pop("signatures", None)
+        self.available_signers = []
         super(TransactionBuilder, self).__init__({})
 
     def addSigningInformation(self, account, permission):
