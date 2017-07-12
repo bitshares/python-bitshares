@@ -19,7 +19,8 @@ from .objects import (
     Permission,
     AccountOptions,
     AssetOptions,
-    ObjectId
+    ObjectId,
+    Worker_initializer,
 )
 
 default_prefix = "BTS"
@@ -419,4 +420,24 @@ class Asset_reserve(GrapheneObject):
                 ('payer', ObjectId(kwargs["payer"], "account")),
                 ('amount_to_reserve', Asset(kwargs["amount_to_reserve"])),
                 ('extensions', Set([])),
+            ]))
+
+
+class Worker_create(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('owner', ObjectId(kwargs["owner"], "account")),
+                ('work_begin_date', PointInTime(kwargs["work_begin_date"])),
+                ('work_end_date', PointInTime(kwargs["work_end_date"])),
+                ('daily_pay', Uint64(kwargs["daily_pay"])),
+                ('name', String(kwargs["name"])),
+                ('url', String(kwargs["url"])),
+                ('initializer', Worker_initializer(kwargs["initializer"])),
             ]))
