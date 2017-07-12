@@ -33,6 +33,7 @@ A private key can be added by using the
 **after** unlocking the wallet with the correct passphrase:
 
 .. code-block:: python
+
    from bitshares import BitShares
    bitshares = BitShares()
    bitshares.wallet.unlock("supersecret-passphrase")

@@ -866,9 +866,10 @@ class BitShares(object):
         """ Withdraw vesting balance
 
             :param str vesting_id: Id of the vesting object
-            :param bitshares.amount.Amount Amount to withdraw ("all" if not provided")
+            :param bitshares.amount.Amount Amount: to withdraw ("all" if not provided")
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
+
         """
         if not account:
             if "default_account" in config:
@@ -1101,5 +1102,70 @@ class BitShares(object):
                 "amount": int(amount),
                 "asset_id": amount["asset"]["id"]},
             "extensions": []
+        })
+        return self.finalizeOp(op, account, "active")
+
+    def create_worker(
+        self,
+        name,
+        daily_pay,
+        end,
+        url="",
+        begin=None,
+        payment_type="vesting",
+        pay_vesting_period_days=0,
+        account=None
+    ):
+        """ Reserve/Burn an amount of this shares
+
+            This removes the shares from the supply
+
+            **Required**
+
+            :param str name: Name of the worke
+            :param bitshares.amount.Amount daily_pay: The amount to be paid daily
+            :param datetime end: Date/time of end of the worker
+
+            **Optional**
+
+            :param str url: URL to read more about the worker
+            :param datetime begin: Date/time of begin of the worker
+            :param string payment_type: ["burn", "refund", "vesting"] (default: "vesting")
+            :param int pay_vesting_period_days: Days of vesting (default: 0)
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        from bitsharesbase.transactions import timeformat
+        assert isinstance(daily_pay, Amount)
+        assert daily_pay["symbol"] == "BTS"
+        if not begin:
+            begin = datetime.utcnow()
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account)
+
+        if payment_type == "refund":
+            initializer = [0, {}]
+        elif payment_type == "vesting":
+            initializer = [
+                1, {"pay_vesting_period_days": pay_vesting_period_days}
+            ]
+        elif payment_type == "burn":
+            initializer = [2, {}]
+        else:
+            raise ValueError('payment_type not in ["burn", "refund", "vesting"]')
+
+        op = operations.Worker_create(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "owner": account["id"],
+            "work_begin_date": begin.strftime(timeformat),
+            "work_end_date": end.strftime(timeformat),
+            "daily_pay": int(daily_pay),
+            "name": name,
+            "url": url,
+            "initializer": initializer
         })
         return self.finalizeOp(op, account, "active")

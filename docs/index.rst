@@ -102,6 +102,7 @@ General
    installation
    quickstart
    tutorials
+   configuration
    contribute
    support
 
