@@ -40,7 +40,7 @@ class Market(dict):
                   quote** and obtain/pay **only base**.
 
     """
-    market_sep_regex = "[/-:]"
+    market_sep_regex = "[/\-:]"
 
     def __init__(
         self,
