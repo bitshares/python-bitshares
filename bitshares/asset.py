@@ -71,8 +71,8 @@ class Asset(dict):
             self["dynamic_asset_data"] = self.bitshares.rpc.get_object(asset["dynamic_asset_data_id"])
 
         # Permissions and flags
-        self["permissions"] = todict(asset["options"]["issuer_permissions"])
-        self["flags"] = todict(asset["options"]["flags"])
+        self["permissions"] = todict(asset["options"].get("issuer_permissions"))
+        self["flags"] = todict(asset["options"].get("flags"))
         try:
             self["description"] = json.loads(asset["options"]["description"])
         except:
@@ -122,10 +122,77 @@ class Asset(dict):
     @property
     def feed(self):
         from .price import PriceFeed
+        assert self.is_bitasset
         self.ensure_full()
-        if not self.is_bitasset:
-            return
         return PriceFeed(self["bitasset_data"]["current_feed"])
+
+    @property
+    def calls(self):
+        return self.get_call_positions(10)
+
+    def get_call_orders(self, limit=100):
+        from .price import Price
+        from .amount import Amount
+        assert limit <= 100
+        assert self.is_bitasset
+        self.ensure_full()
+        r = list()
+        bitasset = self["bitasset_data"]
+        settlement_price = Price(bitasset["current_feed"]["settlement_price"])
+        ret = self.bitshares.rpc.get_call_orders(self["id"], limit)
+        for call in ret[:limit]:
+            call_price = Price(call["call_price"])
+            collateral_amount = Amount(
+                {
+                    "amount": call["collateral"],
+                    "asset_id": call["call_price"]["base"]["asset_id"]
+                },
+                bitshares_instance=self.bitshares
+            )
+            debt_amount = Amount(
+                {
+                    "amount": call["debt"],
+                    "asset_id": call["call_price"]["quote"]["asset_id"],
+                },
+                bitshares_instance=self.bitshares
+            )
+            r.append({
+                "account": Account(
+                    call["borrower"],
+                    lazy=True,
+                    bitshares_instance=self.bitshares
+                ),
+                "collateral": collateral_amount,
+                "debt": debt_amount,
+                "call_price": call_price,
+                "settlement_price": settlement_price,
+                "ratio": float(collateral_amount) / float(debt_amount) * float(settlement_price)
+            })
+        return r
+
+    @property
+    def settlements(self):
+        return self.get_settle_orders(10)
+
+    def get_settle_orders(self, limit=100):
+        from .amount import Amount
+        from .utils import formatTimeString
+        assert limit <= 100
+        assert self.is_bitasset
+        r = list()
+        ret = self.bitshares.rpc.get_settle_orders(self["id"], limit)
+        for settle in ret[:limit]:
+            r.append({
+                "account": Account(
+                    settle["owner"],
+                    lazy=True,
+                    bitshares_instance=self.bitshares
+                ),
+                "amount": Amount(settle["balance"],
+                    bitshares_instance=self.bitshares),
+                "date": formatTimeString(settle["settlement_date"])
+            })
+        return r
 
     def __getitem__(self, key):
         if not self.cached:
