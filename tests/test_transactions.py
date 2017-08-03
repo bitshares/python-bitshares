@@ -640,10 +640,11 @@ class Testcases(unittest.TestCase):
         tx = tx.sign([wif], chain=prefix)
         tx.verify([PrivateKey(wif).pubkey], "BTS")
         txWire = hexlify(bytes(tx)).decode("ascii")
-        compare = ("f68585abf4dce7c80457010f00000000000000000000d202964"
-                   "900000000000000011f75065cb1155bfcaabaf55d3357d69679"
-                   "c7c1fe589b6dc0919fe1dde1a305009c360823a40c28907299a"
-                   "40c241db9cad86e27369d0e5a76b5832d585505ff177d")
+        compare = ("f68585abf4dce7c804570122000000000000000000000000000"
+                   "0000000000000000000000000064d796e616d65056d7955524c"
+                   "017d0000012049a1430c8045ce7e7a3c0882f537aa9d4547fca"
+                   "65a6c17967c5daf47aad383175e9f95d0187398da8b8f5b4c78"
+                   "561f4427b0fc8758e4a3a92afab9388f849f5a")
         self.assertEqual(compare[:-130], txWire[:-130])
 
     def compareConstructedTX(self):
