@@ -40,12 +40,12 @@ setup(
         'Topic :: Office/Business :: Financial',
     ],
     install_requires=[
-        "graphenelib==0.5.2",
+        "graphenelib>=0.5.3",
         "websockets",
         "appdirs",
         "Events",
         "scrypt",
-        "pycrypto",  # for AES
+        "pycrypto",  # for AES, installed through graphenelib already
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
