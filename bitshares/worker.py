@@ -1,6 +1,7 @@
 from bitshares.instance import shared_bitshares_instance
 from .account import Account
 from .exceptions import WorkerDoesNotExistsException
+from .utils import formatTimeString
 
 
 class Worker(dict):
@@ -36,6 +37,8 @@ class Worker(dict):
         worker = self.bitshares.rpc.get_object(self.identifier)
         if not worker:
             raise WorkerDoesNotExistsException
+        worker["work_end_date"] = formatTimeString(worker["work_end_date"])
+        worker["work_begin_date"] = formatTimeString(worker["work_begin_date"])
         super(Worker, self).__init__(worker)
         self.cached = True
 
