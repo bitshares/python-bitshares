@@ -44,6 +44,7 @@ ops = [
     "transfer_from_blind",
     "asset_settle_cancel",
     "asset_claim_fees",
+    "fba_distribute"
 ]
 operations = {o: ops.index(o) for o in ops}
 
