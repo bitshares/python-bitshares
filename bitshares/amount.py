@@ -120,6 +120,9 @@ class Amount(dict):
         """
         return self["symbol"]
 
+    def tuple(self):
+        return float(self), self.symbol
+
     @property
     def asset(self):
         """ Returns the asset as instance of :class:`bitshares.asset.Asset`
