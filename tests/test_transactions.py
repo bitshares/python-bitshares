@@ -648,20 +648,49 @@ class Testcases(unittest.TestCase):
         self.assertEqual(compare[:-130], txWire[:-130])
 
     def compareConstructedTX(self):
-        #    def test_online(self):
-        #        self.maxDiff = None
-        op = operations.Worker_create(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "owner": "1.2.0",
-            "work_begin_date": "1970-01-01T00:00:00",
-            "work_end_date": "1970-01-01T00:00:00",
-            "daily_pay": 0,
-            "name": "Myname",
-            "url": "myURL",
-            "initializer": [
-                1, {"pay_vesting_period_days": 125}
-            ]
-        })
+        self.maxDiff = None
+
+        s = {"fee": {"amount": 1467634,
+                     "asset_id": "1.3.0"
+                     },
+             "registrar": "1.2.33",
+             "referrer": "1.2.27",
+             "referrer_percent": 3,
+             "name": "foobar-f124",
+             "owner": {"weight_threshold": 1,
+                       "account_auths": [],
+                       'key_auths': [['BTS6pbVDAjRFiw6fkiKYCrkz7PFeL7XNAfefrsREwg8MKpJ9VYV9x',
+                                     1], [
+                                     'BTS6zLNtyFVToBsBZDsgMhgjpwysYVbsQD6YhP3kRkQhANUB4w7Qp',
+                                     1]],
+                       "address_auths": []
+                       },
+             "active": {"weight_threshold": 1,
+                        "account_auths": [],
+                        'key_auths': [['BTS6pbVDAjRFiw6fkiKYCrkz7PFeL7XNAfefrsREwg8MKpJ9VYV9x',
+                                       1], [
+                                      'BTS6zLNtyFVToBsBZDsgMhgjpwysYVbsQD6YhP3kRkQhANUB4w7Qp',
+                                      1], [
+                                      'BTS8CemMDjdUWSV5wKotEimhK6c4dY7p2PdzC2qM1HpAP8aLtZfE7',
+                                      1
+                                      ]],
+                        "address_auths": []
+                        },
+             "options": {"memo_key": "BTS5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE",
+                         "voting_account": "1.2.5",
+                         "num_witness": 0,
+                         "num_committee": 0,
+                         "votes": [],
+                         "extensions": []
+                         },
+             "extensions": {
+                 "buyback_options": {
+                     "asset_to_buy": "1.3.127",
+                     "asset_to_buy_issuer": "1.2.31",
+                     "markets": ["1.3.20"]}
+                 }
+        }
+        op = operations.Account_create(**s)
         ops = [Operation(op)]
         tx = Signed_Transaction(
             ref_block_num=ref_block_num,

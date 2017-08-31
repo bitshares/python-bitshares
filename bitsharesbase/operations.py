@@ -21,6 +21,8 @@ from .objects import (
     AssetOptions,
     ObjectId,
     Worker_initializer,
+    SpecialAuthority,
+    AccountExtensions
 )
 
 default_prefix = "BTS"
@@ -253,6 +255,7 @@ class Override_transfer(GrapheneObject):
 
 
 class Account_create(GrapheneObject):
+
     def __init__(self, *args, **kwargs):
         # Allow for overwrite of prefix
         if isArgsThisClass(self, args):
@@ -271,7 +274,7 @@ class Account_create(GrapheneObject):
                 ('owner', Permission(kwargs["owner"], prefix=prefix)),
                 ('active', Permission(kwargs["active"], prefix=prefix)),
                 ('options', AccountOptions(kwargs["options"], prefix=prefix)),
-                ('extensions', Set([])),
+                ('extensions', AccountExtensions(kwargs["extensions"])),
             ]))
 
 

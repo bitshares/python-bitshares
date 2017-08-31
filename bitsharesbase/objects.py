@@ -17,6 +17,14 @@ from .operationids import operations
 default_prefix = "BTS"
 
 
+def AssetId(asset):
+    return ObjectId(asset, "asset")
+
+
+def AccountId(asset):
+    return ObjectId(asset, "account")
+
+
 class ObjectId(GPHObjectId):
     """ Encodes object/protocol ids
     """
@@ -232,30 +240,29 @@ class AssetOptions(GrapheneObject):
             ]))
 
 
-class Vesting_balance_worker_initializer(GrapheneObject):
-    def __init__(self, *args, **kwargs):
-        if isArgsThisClass(self, args):
-            self.data = args[0].data
-        else:
-            if len(args) == 1 and len(kwargs) == 0:
-                kwargs = args[0]
-            super().__init__(OrderedDict([
-                ('pay_vesting_period_days', Uint16(kwargs["pay_vesting_period_days"])),
-            ]))
-
-
-class Burn_worker_initializer(GrapheneObject):
-    def __init__(self, kwargs):
-        super().__init__(OrderedDict([]))
-
-
-class Refund_worker_initializer(GrapheneObject):
-    def __init__(self, kwargs):
-        super().__init__(OrderedDict([]))
-
-
 class Worker_initializer(Static_variant):
+
     def __init__(self, o):
+
+        class Burn_worker_initializer(GrapheneObject):
+            def __init__(self, kwargs):
+                super().__init__(OrderedDict([]))
+
+        class Refund_worker_initializer(GrapheneObject):
+            def __init__(self, kwargs):
+                super().__init__(OrderedDict([]))
+
+        class Vesting_balance_worker_initializer(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                if isArgsThisClass(self, args):
+                    self.data = args[0].data
+                else:
+                    if len(args) == 1 and len(kwargs) == 0:
+                        kwargs = args[0]
+                    super().__init__(OrderedDict([
+                        ('pay_vesting_period_days', Uint16(kwargs["pay_vesting_period_days"])),
+                    ]))
+
         id = o[0]
         if id == 0:
             data = Refund_worker_initializer(o[1])
@@ -266,3 +273,114 @@ class Worker_initializer(Static_variant):
         else:
             raise Exception("Unknown Worker_initializer")
         super().__init__(data, id)
+
+
+class SpecialAuthority(Static_variant):
+    def __init__(self, o):
+
+        class No_special_authority(GrapheneObject):
+            def __init__(self, kwargs):
+                super().__init__(OrderedDict([]))
+
+        class Top_holders_special_authority(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                if isArgsThisClass(self, args):
+                    self.data = args[0].data
+                else:
+                    if len(args) == 1 and len(kwargs) == 0:
+                        kwargs = args[0]
+                    super().__init__(OrderedDict([
+                        ('asset', ObjectId(kwargs["asset"], "asset"))
+                        ('num_top_holders', Uint8(kwargs["num_top_holders"]))
+                    ]))
+
+        id = o[0]
+        if id == 0:
+            data = No_special_authority(o[1])
+        elif id == 1:
+            data = Top_holders_special_authority(o[1])
+        else:
+            raise Exception("Unknown SpecialAuthority")
+        super().__init__(data, id)
+
+
+class Buyback_account_options(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(OrderedDict([
+                ('asset_to_buy', AssetId(kwargs["asset_to_buy"])),
+                ('asset_to_buy_issuer', AccountId(kwargs["asset_to_buy_issuer"])),
+                ('markets', Array([
+                    AssetId(x) for x in kwargs["markets"]
+                ])),
+            ]))
+
+
+class AccountExtensions(Array):
+    def __init__(self, *args, **kwargs):
+        # Extensions #################################
+        class Null_ext(GrapheneObject):
+            def __init__(self, kwargs):
+                super().__init__(OrderedDict([]))
+
+        class Owner_special_authority(GrapheneObject):
+            def __init__(self, kwargs):
+                super().__init__(OrderedDict([]))
+                # SpecialAuthority(kwargs["owner_special_authority"])
+
+        class Active_special_authority(GrapheneObject):
+            def __init__(self, kwargs):
+                super().__init__(OrderedDict([]))
+                # SpecialAuthority(kwargs["active_special_authority"])
+
+        class Buyback_options(GrapheneObject):
+            def __init__(self, kwargs):
+                # Allow for overwrite of prefix
+                if isArgsThisClass(self, args):
+                        self.data = args[0].data
+                else:
+                    if len(args) == 1 and len(kwargs) == 0:
+                        kwargs = args[0]
+                    super().__init__(OrderedDict([
+                        ('asset_to_buy', ObjectId(kwargs["asset_to_buy"], "asset")),
+                        ('asset_to_buy_issuer', ObjectId(kwargs["asset_to_buy_issuer"], "account")),
+                        ('markets', Array([
+                            ObjectId(x, "asset") for x in kwargs["markets"]
+                        ])),
+                    ]))
+        # End of Extensions definition ##############################
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+        self.json = dict()
+        a = []
+        for key, value in kwargs.items():
+            if key == "null_ext":
+                data = Null_ext(kwargs["null_ext"])
+                content = Static_variant(data, 0)
+                a.append(content)
+                self.json.update({"null_ext": kwargs["null_ext"]})
+            if key == "owner_special_authority":
+                raise NotImplementedError
+            if key == "active_special_authority":
+                raise NotImplementedError
+            if key == "buyback_options":
+                data = Buyback_options(kwargs["buyback_options"])
+                content = Static_variant(data, 3)
+                a.append(content)
+                self.json.update({"buyback_options": kwargs["buyback_options"]})
+
+        super().__init__(a)
+
+    def __str__(self):
+        """ We overload the __str__ function because the json
+            representation is different
+        """
+        return json.dumps(self.json)
