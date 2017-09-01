@@ -283,16 +283,11 @@ class SpecialAuthority(Static_variant):
                 super().__init__(OrderedDict([]))
 
         class Top_holders_special_authority(GrapheneObject):
-            def __init__(self, *args, **kwargs):
-                if isArgsThisClass(self, args):
-                    self.data = args[0].data
-                else:
-                    if len(args) == 1 and len(kwargs) == 0:
-                        kwargs = args[0]
-                    super().__init__(OrderedDict([
-                        ('asset', ObjectId(kwargs["asset"], "asset"))
-                        ('num_top_holders', Uint8(kwargs["num_top_holders"]))
-                    ]))
+            def __init__(self, kwargs):
+                super().__init__(OrderedDict([
+                    ('asset', ObjectId(kwargs["asset"], "asset")),
+                    ('num_top_holders', Uint8(kwargs["num_top_holders"])),
+                ]))
 
         id = o[0]
         if id == 0:
@@ -304,42 +299,31 @@ class SpecialAuthority(Static_variant):
         super().__init__(data, id)
 
 
-class Buyback_account_options(GrapheneObject):
-    def __init__(self, *args, **kwargs):
-        if isArgsThisClass(self, args):
-                self.data = args[0].data
-        else:
-            if len(args) == 1 and len(kwargs) == 0:
-                kwargs = args[0]
-            super().__init__(OrderedDict([
-                ('asset_to_buy', AssetId(kwargs["asset_to_buy"])),
-                ('asset_to_buy_issuer', AccountId(kwargs["asset_to_buy_issuer"])),
-                ('markets', Array([
-                    AssetId(x) for x in kwargs["markets"]
-                ])),
-            ]))
+class Extension(Array):
+    def __str__(self):
+        """ We overload the __str__ function because the json
+            representation is different for extensions
+        """
+        return json.dumps(self.json)
 
 
-class AccountExtensions(Array):
+class AccountCreateExtensions(Extension):
     def __init__(self, *args, **kwargs):
         # Extensions #################################
         class Null_ext(GrapheneObject):
             def __init__(self, kwargs):
                 super().__init__(OrderedDict([]))
 
-        class Owner_special_authority(GrapheneObject):
+        class Owner_special_authority(SpecialAuthority):
             def __init__(self, kwargs):
-                super().__init__(OrderedDict([]))
-                # SpecialAuthority(kwargs["owner_special_authority"])
+                super().__init__(kwargs)
 
-        class Active_special_authority(GrapheneObject):
+        class Active_special_authority(SpecialAuthority):
             def __init__(self, kwargs):
-                super().__init__(OrderedDict([]))
-                # SpecialAuthority(kwargs["active_special_authority"])
+                super().__init__(kwargs)
 
         class Buyback_options(GrapheneObject):
             def __init__(self, kwargs):
-                # Allow for overwrite of prefix
                 if isArgsThisClass(self, args):
                         self.data = args[0].data
                 else:
@@ -352,7 +336,7 @@ class AccountExtensions(Array):
                             ObjectId(x, "asset") for x in kwargs["markets"]
                         ])),
                     ]))
-        # End of Extensions definition ##############################
+        # End of Extensions definition ################
         if isArgsThisClass(self, args):
             self.data = args[0].data
         else:
@@ -361,26 +345,36 @@ class AccountExtensions(Array):
 
         self.json = dict()
         a = []
-        for key, value in kwargs.items():
+        sorted_options = [
+            "null_ext",
+            "owner_special_authority",
+            "active_special_authority",
+            "buyback_options"
+        ]
+        sorting = sorted(kwargs.items(), key=lambda x: sorted_options.index(x[0]))
+        for key, value in sorting:
+            self.json.update({key: value})
             if key == "null_ext":
-                data = Null_ext(kwargs["null_ext"])
-                content = Static_variant(data, 0)
-                a.append(content)
-                self.json.update({"null_ext": kwargs["null_ext"]})
-            if key == "owner_special_authority":
-                raise NotImplementedError
-            if key == "active_special_authority":
-                raise NotImplementedError
-            if key == "buyback_options":
-                data = Buyback_options(kwargs["buyback_options"])
-                content = Static_variant(data, 3)
-                a.append(content)
-                self.json.update({"buyback_options": kwargs["buyback_options"]})
+                a.append(Static_variant(
+                    Null_ext({key: value}),
+                    sorted_options.index(key))
+                )
+            elif key == "owner_special_authority":
+                a.append(Static_variant(
+                    Owner_special_authority(value),
+                    sorted_options.index(key))
+                )
+            elif key == "active_special_authority":
+                a.append(Static_variant(
+                    Active_special_authority(value),
+                    sorted_options.index(key))
+                )
+            elif key == "buyback_options":
+                a.append(Static_variant(
+                    Buyback_options(value),
+                    sorted_options.index(key))
+                )
+            else:
+                raise NotImplementedError("Extension {} is unknown".format(key))
 
         super().__init__(a)
-
-    def __str__(self):
-        """ We overload the __str__ function because the json
-            representation is different
-        """
-        return json.dumps(self.json)

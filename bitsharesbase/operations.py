@@ -22,7 +22,7 @@ from .objects import (
     ObjectId,
     Worker_initializer,
     SpecialAuthority,
-    AccountExtensions
+    AccountCreateExtensions
 )
 
 default_prefix = "BTS"
@@ -274,7 +274,7 @@ class Account_create(GrapheneObject):
                 ('owner', Permission(kwargs["owner"], prefix=prefix)),
                 ('active', Permission(kwargs["active"], prefix=prefix)),
                 ('options', AccountOptions(kwargs["options"], prefix=prefix)),
-                ('extensions', AccountExtensions(kwargs["extensions"])),
+                ('extensions', AccountCreateExtensions(kwargs["extensions"])),
             ]))
 
 

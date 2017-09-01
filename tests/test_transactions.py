@@ -332,8 +332,17 @@ class Testcases(unittest.TestCase):
                          "votes": [],
                          "extensions": []
                          },
-             "extensions": {}
-             }
+             "extensions": {
+                 "buyback_options": {
+                     "asset_to_buy": "1.3.127",
+                     "asset_to_buy_issuer": "1.2.31",
+                     "markets": ["1.3.20"]},
+                 "null_ext": {},
+                 "owner_special_authority":
+                     [1, {"asset": "1.3.127",
+                          "num_top_holders": 10}]
+        }}
+
         op = operations.Account_create(**s)
         ops = [Operation(op)]
         tx = Signed_Transaction(ref_block_num=ref_block_num,
@@ -352,9 +361,10 @@ class Testcases(unittest.TestCase):
                    "5c1ab8a9d12b0b26154ac78e56e7c4257d8bcf6901000314aa202c91"
                    "58990b3ec51a1aa49b2ab5d300c97b391df3beb34bb74f3c62699e01"
                    "0000024ab336b4b14ba6d881675d1c782912783c43dbbe31693aa710"
-                   "ac1896bd7c3d61050000000000000000011f61ad276120bc3f189296"
-                   "2bfff7db5e8ce04d5adec9309c80529e3a978a4fa1073225a6d56929"
-                   "e34c9d2a563e67a8f4a227e4fadb4a3bb6ec91bfdf4e57b80efd")
+                   "ac1896bd7c3d6105000000000000030001017f0a037f1f0114000120"
+                   "508168b9615d48bd11846b3b9bcf000d1424a7915fb1cfa7f61150b5"
+                   "435c060b3147c056a1f889633c43d1b88cb463e8083fa2b62a585af9"
+                   "e1b7a7c23d83ae78")
         self.assertEqual(compare[:-130], txWire[:-130])
 
     def test_update_account(self):
@@ -687,9 +697,13 @@ class Testcases(unittest.TestCase):
                  "buyback_options": {
                      "asset_to_buy": "1.3.127",
                      "asset_to_buy_issuer": "1.2.31",
-                     "markets": ["1.3.20"]}
-                 }
-        }
+                     "markets": ["1.3.20"]},
+                 "null_ext": {},
+                 "owner_special_authority":
+                     [1, {"asset": "1.3.127",
+                          "num_top_holders": 10}]
+        }}
+
         op = operations.Account_create(**s)
         ops = [Operation(op)]
         tx = Signed_Transaction(
