@@ -329,6 +329,7 @@ class AccountCreateExtensions(Extension):
                 else:
                     if len(args) == 1 and len(kwargs) == 0:
                         kwargs = args[0]
+#                    assert "1.3.0" in kwargs["markets"], "CORE asset must be in 'markets' to pay fees"
                     super().__init__(OrderedDict([
                         ('asset_to_buy', ObjectId(kwargs["asset_to_buy"], "asset")),
                         ('asset_to_buy_issuer', ObjectId(kwargs["asset_to_buy_issuer"], "account")),
