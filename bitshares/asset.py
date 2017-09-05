@@ -4,9 +4,10 @@ from bitshares.instance import shared_bitshares_instance
 from bitsharesbase import operations
 from bitsharesbase.asset_permissions import whitelist, asset_permissions, force_flag, test_permissions, todict
 from .exceptions import AssetDoesNotExistsException
+from .blockchainobject import BlockchainObject
 
 
-class Asset(dict):
+class Asset(BlockchainObject):
     """ Deals with Assets of the network.
 
         :param str Asset: Symbol name or object id of an asset
@@ -20,8 +21,7 @@ class Asset(dict):
                   load on the API server. Instances of this class can be
                   refreshed with ``Asset.refresh()``.
     """
-
-    assets_cache = dict()
+    type_id = 3
 
     def __init__(
         self,
@@ -30,38 +30,18 @@ class Asset(dict):
         full=False,
         bitshares_instance=None
     ):
-        self.cached = False
         self.full = full
-        self.asset = None
-
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
-
-        if isinstance(asset, Asset):
-            self.asset = asset.get("symbol")
-            super(Asset, self).__init__(asset)
-            self.cached = True
-            self._cache(asset)
-        elif isinstance(asset, str):
-            self.asset = asset
-            if self.asset in Asset.assets_cache:
-                if (
-                    not full or (
-                        full and "dynamic_asset_data" in
-                        Asset.assets_cache[self.asset])):
-                    super(Asset, self).__init__(Asset.assets_cache[self.asset])
-                else:
-                    self.refresh()
-                self.cached = True
-            elif not lazy and not self.cached:
-                self.refresh()
-                self.cached = True
-        else:
-            raise ValueError("Asset() expects a symbol, id or an instance of Asset")
+        super().__init__(
+            asset,
+            lazy=False,
+            full=False,
+            bitshares_instance=None
+        )
 
     def refresh(self):
         """ Refresh the data from the API server
         """
-        asset = self.bitshares.rpc.get_asset(self.asset)
+        asset = self.bitshares.rpc.get_asset(self.identifier)
         if not asset:
             raise AssetDoesNotExistsException
         super(Asset, self).__init__(asset)
@@ -77,13 +57,6 @@ class Asset(dict):
             self["description"] = json.loads(asset["options"]["description"])
         except:
             self["description"] = asset["options"]["description"]
-
-        self.cached = True
-        self._cache(asset)
-
-    def _cache(self, asset):
-        # store in cache
-        Asset.assets_cache[asset["symbol"]] = asset
 
     @property
     def is_bitasset(self):
@@ -188,8 +161,10 @@ class Asset(dict):
                     lazy=True,
                     bitshares_instance=self.bitshares
                 ),
-                "amount": Amount(settle["balance"],
-                    bitshares_instance=self.bitshares),
+                "amount": Amount(
+                    settle["balance"],
+                    bitshares_instance=self.bitshares
+                ),
                 "date": formatTimeString(settle["settlement_date"])
             })
         return r

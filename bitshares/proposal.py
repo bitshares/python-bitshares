@@ -12,24 +12,10 @@ class Proposal(dict):
         :param bitshares bitshares_instance: BitShares() instance to use when accesing a RPC
 
     """
-    def __init__(
-        self,
-        id,
-        bitshares_instance=None,
-    ):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
-
-        if isinstance(id, str):
-            self.id = id
-            self.refresh()
-        elif isinstance(id, dict) and "id" in id:
-            self.id = id["id"]
-            super(Proposal, self).__init__(id)
+    type_id = 10
 
     def refresh(self):
-        a, b, c = self.id.split(".")
-        assert int(a) == 1 and int(b) == 10, "Valid proposal ids are 1.10.x"
-        proposal = self.bitshares.rpc.get_objects([self.id])
+        proposal = self.bitshares.rpc.get_objects([self.identifier])
         if not any(proposal):
             raise ProposalDoesNotExistException
         super(Proposal, self).__init__(proposal[0])

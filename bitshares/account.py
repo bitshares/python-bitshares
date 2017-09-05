@@ -1,8 +1,9 @@
 from bitshares.instance import shared_bitshares_instance
 from .exceptions import AccountDoesNotExistsException
+from .blockchainobject import BlockchainObject
 
 
-class Account(dict):
+class Account(BlockchainObject):
     """ This class allows to easily access Account data
 
         :param str account_name: Name of the account
@@ -29,7 +30,7 @@ class Account(dict):
 
     """
 
-    accounts_cache = dict()
+    type_id = 2
 
     def __init__(
         self,
@@ -38,65 +39,37 @@ class Account(dict):
         full=False,
         bitshares_instance=None
     ):
-        self.cached = False
         self.full = full
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
-
-        if isinstance(account, Account):
-            super(Account, self).__init__(account)
-            self.name = account["name"]
-        elif isinstance(account, str):
-            self.name = account.strip().lower()
-        else:
-            raise ValueError("Account() expects an account name, id or an instance of Account")
-
-        if self.name in Account.accounts_cache and not self.full:
-            super(Account, self).__init__(Account.accounts_cache[self.name])
-            self.cached = True
-        elif not lazy and not self.cached:
-            self.refresh()
-            self.cached = True
+        super().__init__(
+            account,
+            lazy=False,
+            full=False,
+            bitshares_instance=None
+        )
 
     def refresh(self):
         """ Refresh/Obtain an account's data from the API server
         """
         import re
-        if re.match("^1\.2\.[0-9]*$", self.name):
-            account = self.bitshares.rpc.get_objects([self.name])[0]
+        if re.match("^1\.2\.[0-9]*$", self.identifier):
+            account = self.bitshares.rpc.get_objects([self.identifier])[0]
         else:
-            account = self.bitshares.rpc.lookup_account_names([self.name])[0]
+            account = self.bitshares.rpc.lookup_account_names([self.identifier])[0]
         if not account:
-            raise AccountDoesNotExistsException(self.name)
+            raise AccountDoesNotExistsException(self.identifier)
 
         if self.full:
             account = self.bitshares.rpc.get_full_accounts([account["id"]], False)[0][1]
             super(Account, self).__init__(account["account"])
-            self._cache(account["account"])
             for k, v in account.items():
                 if k != "account":
                     self[k] = v
         else:
             super(Account, self).__init__(account)
-            self._cache(account)
-        self.cached = True
-        self.name = self["name"]
 
-    def _cache(self, account):
-        # store in cache
-        Account.accounts_cache[account["name"]] = account
-
-    def __getitem__(self, key):
-        if not self.cached:
-            self.refresh()
-        return super(Account, self).__getitem__(key)
-
-    def __repr__(self):
-        return "<Account: {}".format(self.name)
-
-    def items(self):
-        if not self.cached:
-            self.refresh()
-        return super(Account, self).items()
+    @property
+    def name(self):
+        return self["name"]
 
     @property
     def is_ltm(self):

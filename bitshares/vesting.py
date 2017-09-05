@@ -1,38 +1,22 @@
 from .instance import shared_bitshares_instance
 from .account import Account
 from .exceptions import VestingBalanceDoesNotExistsException
-import logging
-log = logging.getLogger(__name__)
+from .blockchainobject import BlockchainObject
 
 
-class Vesting(dict):
+class Vesting(BlockchainObject):
     """ Read data about a Vesting Balance in the chain
 
         :param str id: Id of the vesting balance
         :param bitshares bitshares_instance: BitShares() instance to use when accesing a RPC
 
     """
-    def __init__(
-        self,
-        id,
-        bitshares_instance=None,
-    ):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
-        if isinstance(id, str):
-            self.id = id
-            self.refresh()
-        elif isinstance(id, dict) and "id" in id:
-            self.id = id["id"]
-            self.testid()
-            super(Vesting, self).__init__(id)
-
-    def testid(self):
-        a, b, c = self.id.split(".")
-        assert int(a) == 1 and int(b) == 13, "Valid vesting balances are 1.13.x"
+    type_id = 13
 
     def refresh(self):
-        self.testid()
-        obj = self.bitshares.rpc.get_objects([self.id])[0]
+        obj = self.bitshares.rpc.get_objects([self.identifier])[0]
+        if not obj:
+            raise VestingBalanceDoesNotExistsException
         super(Vesting, self).__init__(obj)
 
     @property
@@ -51,8 +35,7 @@ class Vesting(dict):
             ) if float(p["vesting_seconds"]) > 0.0 else 1
             return Amount(self["balance"]) * ratio
         else:
-            log.warning("This policy isn't implemented yet")
-            return 0
+            raise NotImplementedError("This policy isn't implemented yet")
 
     def claim(self, amount=None):
         return self.bitshares.vesting_balance_withdraw(

@@ -2,38 +2,19 @@ from bitshares.instance import shared_bitshares_instance
 from .account import Account
 from .exceptions import WorkerDoesNotExistsException
 from .utils import formatTimeString
+from .blockchainobject import BlockchainObject
 
 
-class Worker(dict):
+class Worker(BlockchainObject):
     """ Read data about a worker in the chain
 
         :param str id: id of the worker
         :param bitshares bitshares_instance: BitShares() instance to use when accesing a RPC
 
     """
-
-    def __init__(
-        self,
-        worker,
-        lazy=False,
-        bitshares_instance=None,
-    ):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
-        self.cached = False
-
-        if isinstance(worker, (Worker, dict)):
-            self.identifier = worker["id"]
-            super(Worker, self).__init__(worker)
-            self.cached = True
-        else:
-            self.identifier = worker
-            if not lazy:
-                self.refresh()
+    type_id = 14
 
     def refresh(self):
-        parts = self.identifier.split(".")
-        assert len(parts) == 3, "Worker() class needs a worker id"
-        assert int(parts[0]) == 1 and int(parts[1]) == 14, "Worker id's need to be 1.14.x!"
         worker = self.bitshares.rpc.get_object(self.identifier)
         if not worker:
             raise WorkerDoesNotExistsException
@@ -42,22 +23,9 @@ class Worker(dict):
         super(Worker, self).__init__(worker)
         self.cached = True
 
-    def __getitem__(self, key):
-        if not self.cached:
-            self.refresh()
-        return super(Worker, self).__getitem__(key)
-
-    def items(self):
-        if not self.cached:
-            self.refresh()
-        return super(Worker, self).items()
-
     @property
     def account(self):
         return Account(self["worker_account"])
-
-    def __repr__(self):
-        return "<Worker %s>" % str(self.identifier)
 
 
 class Workers(list):
