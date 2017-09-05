@@ -12,12 +12,12 @@ class Witness(BlockchainObject):
 
     """
     type_ids = [6, 2]
+
     def refresh(self):
-        _, b, _ = self.identifier.split(".")
-        if int(b) == 6:
+        parts = self.identifier.split(".")
+        if int(parts[1]) == 6:
             witness = self.bitshares.rpc.get_object(self.identifier)
         else:
-            account = Account(self.identifier, bitshares_instance=self.bitshares_instance)
             witness = self.bitshares.rpc.get_witness_by_account(self.identifier)
         if not witness:
             raise WitnessDoesNotExistsException
