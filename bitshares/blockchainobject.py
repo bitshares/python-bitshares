@@ -31,6 +31,11 @@ class BlockchainObject(dict):
         elif isinstance(data, dict):
             self.identifier = data.get("id")
             super().__init__(data)
+        elif isinstance(data, int):
+            # This is only for block number bascially
+            self.identifier = data
+            if not lazy and not self.cached:
+                self.refresh()
         else:
             self.identifier = data
             parts = self.identifier.split(".")
