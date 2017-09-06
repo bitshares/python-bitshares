@@ -15,10 +15,14 @@ class Witness(BlockchainObject):
 
     def refresh(self):
         parts = self.identifier.split(".")
-        if int(parts[1]) == 6:
-            witness = self.bitshares.rpc.get_object(self.identifier)
+        if len(parts) > 2:
+            if int(parts[1]) == 6:
+                witness = self.bitshares.rpc.get_object(self.identifier)
+            else:
+                witness = self.bitshares.rpc.get_witness_by_account(self.identifier)
         else:
-            witness = self.bitshares.rpc.get_witness_by_account(self.identifier)
+            account = Account(self.identifier, bitshares_instance=self.bitshares)
+            witness = self.bitshares.rpc.get_witness_by_account(account["id"])
         if not witness:
             raise WitnessDoesNotExistsException
         super(Witness, self).__init__(witness)
