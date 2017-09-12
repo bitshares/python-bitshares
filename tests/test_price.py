@@ -64,3 +64,12 @@ class Testcases(unittest.TestCase):
         self.assertEqual(p4["quote"]["symbol"], "GOLD")
         # 10 USD/GOLD * 0.2 EUR/USD = 2 EUR/GOLD = 0.5 GOLD/EUR
         self.assertEqual(float(p4), 2)
+
+    def test_div2(self):
+        p1 = Price(10.0, "USD/GOLD")
+        p2 = Price(5.0, "USD/GOLD")
+
+        # 10 USD/GOLD / 5 USD/EUR = 2 EUR/GOLD
+        p3 = p1 / p2
+        self.assertTrue(isinstance(p3, (float, int)))
+        self.assertEqual(float(p3), 2.0)
