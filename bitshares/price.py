@@ -268,7 +268,9 @@ class Price(dict):
         a = self.copy()
         if isinstance(other, Price):
             # Rotate/invert other
-            if self["quote"]["symbol"] in other.symbols():
+            if sorted(self.symbols()) == sorted(other.symbols()):
+                return float(self.as_base(self["base"]["symbol"])) / float(other.as_base(self["base"]["symbol"]))
+            elif self["quote"]["symbol"] in other.symbols():
                 other = other.as_base(self["quote"]["symbol"])
             elif self["base"]["symbol"] in other.symbols():
                 other = other.as_base(self["base"]["symbol"])

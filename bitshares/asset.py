@@ -180,7 +180,7 @@ class Asset(BlockchainObject):
         return super(Asset, self).items()
 
     def __repr__(self):
-        return "<Asset %s>" % str(self.asset)
+        return "<Asset %s>" % str(self["symbol"])
 
     def halt(self):
         """ Halt this asset from being moved or traded
