@@ -1,21 +1,45 @@
 from bitshares.instance import shared_bitshares_instance
+from datetime import datetime, timedelta
 
 
 class ObjectCache(dict):
 
     max_cache_objects = 1000
 
-    @staticmethod
-    def set_max_objects(d):
-        ObjectCache.max_cache_objects = d
+    def __init__(self, initial_data={}, max_cache_objects=1000):
+        super().__init__(initial_data)
+        ObjectCache.max_cache_objects = max_cache_objects
 
-    @staticmethod
-    def get_max_objects(d):
-        return ObjectCache.max_cache_objects
+    def __setitem__(self, key, value):
+        if key in self:
+            del self[key]
+        data = {
+            "expires": datetime.utcnow() + timedelta(seconds=10),
+            "data": value
+        }
+        dict.__setitem__(self, key, data)
 
-    @staticmethod
-    def size():
-        return len(ObjectCache)
+    def __getitem__(self, key):
+        print(self.items())
+        if key in self:
+            value = dict.__getitem__(self, key)
+            return value["data"]
+
+    def get(self, key, default):
+        if key in self:
+            return self[key]
+        else:
+            return default
+
+    def __contains__(self, key):
+        if dict.__contains__(self, key):
+            value = dict.__getitem__(self, key)
+            if datetime.utcnow() < value["expires"]:
+                return True
+        return False
+
+    def __str__(self):
+        return "ObjectCache(n={}, max_cache_objects={})".format(len(self.keys()), self.max_cache_objects)
 
 
 class BlockchainObject(dict):
@@ -24,7 +48,7 @@ class BlockchainObject(dict):
     type_id = None
     type_ids = []
 
-    _cache = dict()
+    _cache = ObjectCache()
 
     def __init__(
         self,
@@ -53,6 +77,10 @@ class BlockchainObject(dict):
             self.identifier = data
             if not lazy and not self.cached:
                 self.refresh()
+            # make sure to store the blocknumber for caching
+            self["id"] = str(data)
+            # Set identifier again as it is overwritten in super() in refresh()
+            self.identifier = data
         else:
             self.identifier = data
             parts = self.identifier.split(".")
@@ -65,7 +93,7 @@ class BlockchainObject(dict):
                 self.refresh()
 
         if use_cache and not lazy:
-            self.cache(self)
+            self.cache()
             self.cached = True
 
     def testid(self, id):
@@ -81,10 +109,10 @@ class BlockchainObject(dict):
         assert int(parts[1]) in self.type_ids,\
             "Valid id's for {} are {}.{}.x".format(self.__class__.__name__, self.space_id, self.type_ids)
 
-    def cache(self, data):
+    def cache(self):
         # store in cache
-        if "id" in data:
-            BlockchainObject._cache[data.get("id")] = data
+        if "id" in self:
+            BlockchainObject._cache[self.get("id")] = self
 
     def iscached(self, id):
         return id in BlockchainObject._cache

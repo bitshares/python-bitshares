@@ -34,7 +34,6 @@ class Block(BlockchainObject):
         if not block:
             raise BlockDoesNotExistsException
         super(Block, self).__init__(block)
-        self.cached = True
 
     def time(self):
         """ Return a datatime instance for the timestamp of this block
