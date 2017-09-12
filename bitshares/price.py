@@ -179,11 +179,16 @@ class Price(dict):
         else:
             return float('Inf')
 
+    def symbols(self):
+        return self["base"]["symbol"], self["quote"]["symbol"]
+
     def as_base(self, base):
         """ Returns the price instance so that the base asset is ``base``.
+
+            Note: This makes a copy of the object!
         """
         if base == self["base"]["symbol"]:
-            return self
+            return self.copy()
         elif base == self["quote"]["symbol"]:
             return self.copy().invert()
         else:
@@ -191,9 +196,11 @@ class Price(dict):
 
     def as_quote(self, quote):
         """ Returns the price instance so that the quote asset is ``quote``.
+
+            Note: This makes a copy of the object!
         """
         if quote == self["quote"]["symbol"]:
-            return self
+            return self.copy()
         elif quote == self["base"]["symbol"]:
             return self.copy().invert()
         else:
@@ -230,20 +237,15 @@ class Price(dict):
     def __mul__(self, other):
         a = self.copy()
         if isinstance(other, Price):
-            if (
-                self["quote"]["asset"]["symbol"] ==
-                other["base"]["asset"]["symbol"]
-            ):
-                a["base"] = Amount(float(self["base"] * other["base"]), self["base"]["asset"])
-                a["quote"] = Amount(float(self["quote"] * other["quote"]), other["quote"]["asset"])
-            elif (
-                self["base"]["asset"]["symbol"] ==
-                other["quote"]["asset"]["symbol"]
-            ):
-                a["quote"] = Amount(float(self["quote"] * other["quote"]), self["quote"]["asset"])
-                a["base"] = Amount(float(self["base"] * other["base"]), other["base"]["asset"])
+            # Rotate/invert other
+            if self["quote"]["symbol"] in other.symbols():
+                other = other.as_quote(self["quote"]["symbol"])
+            elif self["base"]["symbol"] in other.symbols():
+                other = other.as_quote(self["base"]["symbol"])
             else:
-                raise ValueError("Multiplication of two unmatching prices!")
+                raise InvalidAssetException
+            a["base"] = Amount(float(self["base"] * other["base"]), other["base"]["symbol"])
+            a["quote"] = Amount(float(self["quote"] * other["quote"]), self["quote"]["symbol"])
         elif isinstance(other, Amount):
             assert other["asset"]["id"] == self["quote"]["asset"]["id"]
             a = other.copy() * self["price"]
@@ -255,39 +257,48 @@ class Price(dict):
 
     def __imul__(self, other):
         if isinstance(other, Price):
-            raise ValueError("'*=' Not supported for two prices")
+            tmp = self * other
+            self["base"] = tmp["base"]
+            self["quote"] = tmp["quote"]
         else:
             self["base"] *= other
         return self
 
     def __div__(self, other):
+        a = self.copy()
         if isinstance(other, Price):
-            return self["price"] / other["price"]
+            # Rotate/invert other
+            if self["quote"]["symbol"] in other.symbols():
+                other = other.as_base(self["quote"]["symbol"])
+            elif self["base"]["symbol"] in other.symbols():
+                other = other.as_base(self["base"]["symbol"])
+            else:
+                raise InvalidAssetException
+            a["base"] = Amount(float(self["quote"] / other["quote"]), other["quote"]["symbol"])
+            a["quote"] = Amount(float(self["base"] / other["base"]), self["quote"]["symbol"])
+        elif isinstance(other, Amount):
+            assert other["asset"]["id"] == self["quote"]["asset"]["id"]
+            a = other.copy() / self["price"]
+            a["asset"] = self["base"]["asset"].copy()
+            a["symbol"] = self["base"]["asset"]["symbol"]
         else:
-            a = self.copy()
             a["base"] /= other
-            return a
+        return a
 
     def __idiv__(self, other):
         if isinstance(other, Price):
-            return self["price"] / other["price"]
+            tmp = self / other
+            self["base"] = tmp["base"]
+            self["quote"] = tmp["quote"]
         else:
             self["base"] /= other
         return self
 
     def __floordiv__(self, other):
-        if isinstance(other, Price):
-            return self["price"] / other["price"]
-        else:
-            a = self.copy()
-            a["base"] //= other
+        raise NotImplementedError("This is not possible as the price is a ratio")
 
     def __ifloordiv__(self, other):
-        if isinstance(other, Price):
-            return self["price"] / other["price"]
-        else:
-            self["base"] //= other
-            return self
+        raise NotImplementedError("This is not possible as the price is a ratio")
 
     def __lt__(self, other):
         if isinstance(other, Price):
