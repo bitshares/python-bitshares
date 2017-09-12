@@ -84,8 +84,15 @@ class BlockchainObject(dict):
             self.identifier = data
             parts = self.identifier.split(".")
             if len(parts) == 3:
-                # Here we assume we deal with an id
-                self.testid(self.identifier)
+                valid_objectid = False
+                try:
+                    [int(x) for x in parts]
+                    valid_objectid = True
+                except:
+                    pass
+                if valid_objectid:
+                    # Here we assume we deal with an id
+                    self.testid(self.identifier)
             if self.iscached(data):
                 super().__init__(self.getcache(data))
             elif not lazy and not self.cached:
