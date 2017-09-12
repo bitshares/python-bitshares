@@ -20,7 +20,6 @@ class ObjectCache(dict):
         dict.__setitem__(self, key, data)
 
     def __getitem__(self, key):
-        print(self.items())
         if key in self:
             value = dict.__getitem__(self, key)
             return value["data"]
