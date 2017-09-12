@@ -23,6 +23,12 @@ class AssetDoesNotExistsException(Exception):
     pass
 
 
+class InvalidAssetException(Exception):
+    """ The used asset is invalid in this context
+    """
+    pass
+
+
 class BlockDoesNotExistsException(Exception):
     """ The block does not exist
     """

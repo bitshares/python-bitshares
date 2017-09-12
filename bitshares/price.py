@@ -1,5 +1,6 @@
 from fractions import Fraction
 from bitshares.instance import shared_bitshares_instance
+from .exceptions import InvalidAssetException
 from .account import Account
 from .amount import Amount
 from .asset import Asset
@@ -177,6 +178,26 @@ class Price(dict):
             return a / b
         else:
             return float('Inf')
+
+    def as_base(self, base):
+        """ Returns the price instance so that the base asset is ``base``.
+        """
+        if base == self["base"]["symbol"]:
+            return self
+        elif base == self["quote"]["symbol"]:
+            return self.copy().invert()
+        else:
+            raise InvalidAssetException
+
+    def as_quote(self, quote):
+        """ Returns the price instance so that the quote asset is ``quote``.
+        """
+        if quote == self["quote"]["symbol"]:
+            return self
+        elif quote == self["base"]["symbol"]:
+            return self.copy().invert()
+        else:
+            raise InvalidAssetException
 
     def invert(self):
         """ Invert the price (e.g. go from ``USD/BTS`` into ``BTS/USD``)

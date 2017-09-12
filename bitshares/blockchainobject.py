@@ -1,6 +1,23 @@
 from bitshares.instance import shared_bitshares_instance
 
 
+class ObjectCache(dict):
+
+    max_cache_objects = 1000
+
+    @staticmethod
+    def set_max_objects(d):
+        ObjectCache.max_cache_objects = d
+
+    @staticmethod
+    def get_max_objects(d):
+        return ObjectCache.max_cache_objects
+
+    @staticmethod
+    def size():
+        return len(ObjectCache)
+
+
 class BlockchainObject(dict):
 
     space_id = 1
