@@ -15,7 +15,13 @@ class Witness(BlockchainObject):
 
     def refresh(self):
         parts = self.identifier.split(".")
-        if len(parts) > 2:
+        valid_objectid = False
+        try:
+            [int(x) for x in parts]
+            valid_objectid = True
+        except:
+            pass
+        if valid_objectid and len(parts) > 2:
             if int(parts[1]) == 6:
                 witness = self.bitshares.rpc.get_object(self.identifier)
             else:
