@@ -2,8 +2,9 @@ import json
 import logging
 import random
 import re
-from datetime import datetime, timedelta
+import collections
 
+from datetime import datetime, timedelta
 from bitsharesapi.bitsharesnoderpc import BitSharesNodeRPC
 from bitsharesbase.account import PrivateKey, PublicKey
 from bitsharesbase import transactions, operations
@@ -634,8 +635,8 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         options = account["options"]
 
-        if not isinstance(witnesses, (list, set)):
-            witnesses = set(witnesses)
+        if not isinstance(witnesses, collections.Iterable):
+            witnesses = {witnesses}
 
         for witness in witnesses:
             witness = Witness(witness, bitshares_instance=self)
@@ -671,8 +672,8 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         options = account["options"]
 
-        if not isinstance(witnesses, (list, set)):
-            witnesses = set(witnesses)
+        if not isinstance(witnesses, collections.Iterable):
+            witnesses = {witnesses}
 
         for witness in witnesses:
             witness = Witness(witness, bitshares_instance=self)
@@ -709,8 +710,8 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         options = account["options"]
 
-        if not isinstance(committees, (list, set)):
-            committees = set(committees)
+        if not isinstance(committees, collections.Iterable):
+            committees = {committees}
 
         for committee in committees:
             committee = Committee(committee, bitshares_instance=self)
@@ -746,8 +747,8 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         options = account["options"]
 
-        if not isinstance(committees, (list, set)):
-            committees = set(committees)
+        if not isinstance(committees, collections.Iterable):
+            committees = {committees}
 
         for committee in committees:
             committee = Committee(committee, bitshares_instance=self)
@@ -784,8 +785,8 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         options = account["options"]
 
-        if not isinstance(workers, (list, set)):
-            workers = set(workers)
+        if not isinstance(workers, collections.Iterable):
+            workers = {workers}
 
         for worker in workers:
             worker = Worker(worker, bitshares_instance=self)
@@ -816,8 +817,8 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         options = account["options"]
 
-        if not isinstance(workers, (list, set)):
-            workers = set(workers)
+        if not isinstance(workers, collections.Iterable):
+            workers = {workers}
 
         for worker in workers:
             worker = Worker(worker, bitshares_instance=self)
@@ -848,8 +849,8 @@ class BitShares(object):
             raise ValueError("You need to provide an account")
         account = Account(account, full=False, bitshares_instance=self)
 
-        if not isinstance(orderNumbers, (list, set)):
-            orderNumbers = set(orderNumbers)
+        if not isinstance(orderNumbers, collections.Iterable):
+            orderNumbers = {orderNumbers}
 
         op = []
         for order in orderNumbers:
@@ -916,8 +917,8 @@ class BitShares(object):
         else:
             approver = PublicKey(approver)
 
-        if not isinstance(proposal_ids, (list, set)):
-            proposal_ids = set(proposal_ids)
+        if not isinstance(proposal_ids, collections.Iterable):
+            proposal_ids = {proposal_ids}
 
         op = []
         for proposal_id in proposal_ids:
@@ -962,8 +963,8 @@ class BitShares(object):
         else:
             approver = Account(approver, bitshares_instance=self)
 
-        if not isinstance(proposal_ids, (list, set)):
-            proposal_ids = set(proposal_ids)
+        if not isinstance(proposal_ids, collections.Iterable):
+            proposal_ids = {proposal_ids}
 
         op = []
         for proposal_id in proposal_ids:
