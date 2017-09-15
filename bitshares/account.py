@@ -7,12 +7,15 @@ class Account(BlockchainObject):
     """ This class allows to easily access Account data
 
         :param str account_name: Name of the account
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares
+               instance
         :param bool lazy: Use lazy loading
-        :param bool full: Obtain all account data including orders, positions, etc.
+        :param bool full: Obtain all account data including orders, positions,
+               etc.
         :returns: Account data
         :rtype: dictionary
-        :raises bitshares.exceptions.AccountDoesNotExistsException: if account does not exist
+        :raises bitshares.exceptions.AccountDoesNotExistsException: if account
+                does not exist
 
         Instances of this class are dictionaries that come with additional
         methods (see below) that allow dealing with an account and it's
@@ -54,12 +57,15 @@ class Account(BlockchainObject):
         if re.match("^1\.2\.[0-9]*$", self.identifier):
             account = self.bitshares.rpc.get_objects([self.identifier])[0]
         else:
-            account = self.bitshares.rpc.lookup_account_names([self.identifier])[0]
+            account = self.bitshares.rpc.lookup_account_names(
+                [self.identifier])[0]
+            self.identifier = account["id"]
         if not account:
             raise AccountDoesNotExistsException(self.identifier)
 
         if self.full:
-            account = self.bitshares.rpc.get_full_accounts([account["id"]], False)[0][1]
+            account = self.bitshares.rpc.get_full_accounts(
+                [account["id"]], False)[0][1]
             super(Account, self).__init__(account["account"])
             for k, v in account.items():
                 if k != "account":
@@ -138,10 +144,14 @@ class Account(BlockchainObject):
             latest operation will be first. This call can be used in a
             ``for`` loop.
 
-            :param int first: sequence number of the first transaction to return (*optional*)
-            :param int limit: limit number of transactions to return (*optional*)
-            :param array only_ops: Limit generator by these operations (*optional*)
-            :param array exclude_ops: Exclude thse operations from generator (*optional*)
+            :param int first: sequence number of the first
+                transaction to return (*optional*)
+            :param int limit: limit number of transactions to
+                return (*optional*)
+            :param array only_ops: Limit generator by these
+                operations (*optional*)
+            :param array exclude_ops: Exclude thse operations from
+                generator (*optional*)
         """
         from bitsharesbase.operations import getOperationNameForId
         _limit = 100
@@ -171,9 +181,13 @@ class Account(BlockchainObject):
                 api="history"
             )
             for i in txs:
-                if exclude_ops and getOperationNameForId(i["op"][0]) in exclude_ops:
+                if exclude_ops and getOperationNameForId(
+                    i["op"][0]
+                ) in exclude_ops:
                     continue
-                if not only_ops or getOperationNameForId(i["op"][0]) in only_ops:
+                if not only_ops or getOperationNameForId(
+                    i["op"][0]
+                ) in only_ops:
                     cnt += 1
                     yield i
                     if limit >= 0 and cnt >= limit:
