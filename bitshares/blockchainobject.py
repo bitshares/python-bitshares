@@ -136,5 +136,10 @@ class BlockchainObject(dict):
             self.refresh()
         return super().items()
 
+    def __contains__(self, key):
+        if not self.cached:
+            self.refresh()
+        return super().__contains__(key)
+
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, str(self.identifier))
