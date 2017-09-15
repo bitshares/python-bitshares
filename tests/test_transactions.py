@@ -471,73 +471,53 @@ class Testcases(unittest.TestCase):
                    "40c241db9cad86e27369d0e5a76b5832d585505ff177d")
         self.doit()
 
-    def test_worker_create(self):
-        self.op = operations.Worker_create(**{
+    def test_asset_reserve(self):
+        self.op = operations.Asset_reserve(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "owner": "1.2.0",
-            "work_begin_date": "1970-01-01T00:00:00",
-            "work_end_date": "1970-01-01T00:00:00",
-            "daily_pay": 0,
-            "name": "Myname",
-            "url": "myURL",
-            "initializer": [
-                1, {"pay_vesting_period_days": 125}
-            ]
+            "payer": "1.2.0",
+            "amount_to_reserve": {"amount": 1234567890, "asset_id": "1.3.0"},
+            "extensions": []
         })
-        self.cm = ("f68585abf4dce7c804570122000000000000000000000000000"
-                   "0000000000000000000000000064d796e616d65056d7955524c"
-                   "017d0000012049a1430c8045ce7e7a3c0882f537aa9d4547fca"
-                   "65a6c17967c5daf47aad383175e9f95d0187398da8b8f5b4c78"
-                   "561f4427b0fc8758e4a3a92afab9388f849f5a")
+        self.cm = ("f68585abf4dce7c80457010f00000000000000000000d202964"
+                   "900000000000000011f75065cb1155bfcaabaf55d3357d69679"
+                   "c7c1fe589b6dc0919fe1dde1a305009c360823a40c28907299a"
+                   "40c241db9cad86e27369d0e5a76b5832d585505ff177d")
+        self.doit()
+
+    def test_bid_collateral(self):
+        self.op = operations.Bid_collateral(**{
+            'fee': {'amount': 100,
+                    'asset_id': '1.3.0'},
+            'additional_collateral': {
+                'amount': 10000,
+                'asset_id': '1.3.22'},
+            'debt_covered': {
+                'amount': 100000000,
+                'asset_id': '1.3.0'},
+            'bidder': '1.2.29',
+            'extensions': []
+        })
+        self.cm = ("f68585abf4dce7c80457012d6400000000000000001d1027000"
+                   "0000000001600e1f50500000000000000012043b82194bce84d"
+                   "80b6e03eecf1dc24366fc54ca3d4733b3eb3815ca22e4b38b71"
+                   "dff62b3d8f151b15a06eb4ae40fce964044297f8632b4817de6"
+                   "2e94750ce2c5")
         self.doit()
 
     def compareConstructedTX(self):
         self.maxDiff = None
-        s = {"fee": {"amount": 1467634,
-                     "asset_id": "1.3.0"
-                     },
-             "registrar": "1.2.33",
-             "referrer": "1.2.27",
-             "referrer_percent": 3,
-             "name": "foobar-f124",
-             "owner": {"weight_threshold": 1,
-                       "account_auths": [],
-                       'key_auths': [['BTS6pbVDAjRFiw6fkiKYCrkz7PFeL7XNAfefrsREwg8MKpJ9VYV9x',
-                                     1], [
-                                     'BTS6zLNtyFVToBsBZDsgMhgjpwysYVbsQD6YhP3kRkQhANUB4w7Qp',
-                                     1]],
-                       "address_auths": []
-                       },
-             "active": {"weight_threshold": 1,
-                        "account_auths": [],
-                        'key_auths': [['BTS6pbVDAjRFiw6fkiKYCrkz7PFeL7XNAfefrsREwg8MKpJ9VYV9x',
-                                       1], [
-                                      'BTS6zLNtyFVToBsBZDsgMhgjpwysYVbsQD6YhP3kRkQhANUB4w7Qp',
-                                      1], [
-                                      'BTS8CemMDjdUWSV5wKotEimhK6c4dY7p2PdzC2qM1HpAP8aLtZfE7',
-                                      1
-                                      ]],
-                        "address_auths": []
-                        },
-             "options": {"memo_key": "BTS5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE",
-                         "voting_account": "1.2.5",
-                         "num_witness": 0,
-                         "num_committee": 0,
-                         "votes": [],
-                         "extensions": []
-                         },
-             "extensions": {
-                 "buyback_options": {
-                     "asset_to_buy": "1.3.127",
-                     "asset_to_buy_issuer": "1.2.31",
-                     "markets": ["1.3.20"]},
-                 "null_ext": {},
-                 "owner_special_authority":
-                     [1, {"asset": "1.3.127",
-                          "num_top_holders": 10}]
-        }}
-
-        self.op = operations.Account_create(**s)
+        self.op = operations.Bid_collateral(**{
+            'fee': {'amount': 100,
+                    'asset_id': '1.3.0'},
+            'additional_collateral': {
+                'amount': 10000,
+                'asset_id': '1.3.22'},
+            'debt_covered': {
+                'amount': 100000000,
+                'asset_id': '1.3.0'},
+            'bidder': '1.2.29',
+            'extensions': []
+        })
         ops = [Operation(self.op)]
         tx = Signed_Transaction(
             ref_block_num=ref_block_num,
