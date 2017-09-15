@@ -635,7 +635,7 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         options = account["options"]
 
-        if not isinstance(witnesses, collections.Iterable):
+        if not isinstance(witnesses, (list, set, tuple)):
             witnesses = {witnesses}
 
         for witness in witnesses:
@@ -672,7 +672,7 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         options = account["options"]
 
-        if not isinstance(witnesses, collections.Iterable):
+        if not isinstance(witnesses, (list, set, tuple)):
             witnesses = {witnesses}
 
         for witness in witnesses:
@@ -710,7 +710,7 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         options = account["options"]
 
-        if not isinstance(committees, collections.Iterable):
+        if not isinstance(committees, (list, set, tuple)):
             committees = {committees}
 
         for committee in committees:
@@ -747,7 +747,7 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         options = account["options"]
 
-        if not isinstance(committees, collections.Iterable):
+        if not isinstance(committees, (list, set, tuple)):
             committees = {committees}
 
         for committee in committees:
@@ -785,7 +785,7 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         options = account["options"]
 
-        if not isinstance(workers, collections.Iterable):
+        if not isinstance(workers, (list, set, tuple)):
             workers = {workers}
 
         for worker in workers:
@@ -817,7 +817,7 @@ class BitShares(object):
         account = Account(account, bitshares_instance=self)
         options = account["options"]
 
-        if not isinstance(workers, collections.Iterable):
+        if not isinstance(workers, (list, set, tuple)):
             workers = {workers}
 
         for worker in workers:
@@ -849,7 +849,7 @@ class BitShares(object):
             raise ValueError("You need to provide an account")
         account = Account(account, full=False, bitshares_instance=self)
 
-        if not isinstance(orderNumbers, collections.Iterable):
+        if not isinstance(orderNumbers, (list, set, tuple)):
             orderNumbers = {orderNumbers}
 
         op = []
@@ -917,7 +917,7 @@ class BitShares(object):
         else:
             approver = PublicKey(approver)
 
-        if not isinstance(proposal_ids, collections.Iterable):
+        if not isinstance(proposal_ids, (list, set, tuple)):
             proposal_ids = {proposal_ids}
 
         op = []
@@ -963,7 +963,7 @@ class BitShares(object):
         else:
             approver = Account(approver, bitshares_instance=self)
 
-        if not isinstance(proposal_ids, collections.Iterable):
+        if not isinstance(proposal_ids, (list, set, tuple)):
             proposal_ids = {proposal_ids}
 
         op = []
