@@ -1,11 +1,12 @@
 from .instance import shared_bitshares_instance
 from .account import Account
 from .exceptions import ProposalDoesNotExistException
+from .blockchainobject import BlockchainObject
 import logging
 log = logging.getLogger(__name__)
 
 
-class Proposal(dict):
+class Proposal(BlockchainObject):
     """ Read data about a Proposal Balance in the chain
 
         :param str id: Id of the proposal
@@ -19,9 +20,6 @@ class Proposal(dict):
         if not any(proposal):
             raise ProposalDoesNotExistException
         super(Proposal, self).__init__(proposal[0])
-
-    def __repr__(self):
-        return "<proposal %s>" % str(self.id)
 
 
 class Proposals(list):
