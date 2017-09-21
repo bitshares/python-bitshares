@@ -181,13 +181,22 @@ class TransactionBuilder(dict):
 
         tx = self.json()
         # Broadcast
-        try:
-            self.bitshares.rpc.broadcast_transaction(tx, api="network_broadcast")
-        except Exception as e:
-            raise e
+        # FIXME: broadcast_transaction_synchronous
 
-        self.clear()
+        if self.bitshares.blocking:
+            try:
+                tx = self.bitshares.rpc.broadcast_transaction_synchronous(tx, api="network_broadcast")
+            except Exception as e:
+                raise e
+        else:
+            try:
+                self.bitshares.rpc.broadcast_transaction(tx, api="network_broadcast")
+            except Exception as e:
+                raise e
 
+        return tx
+
+        """ # Legacy code for blocking
         if self.bitshares.blocking:
             chain = Blockchain(
                 mode=("head" if self.bitshares.blocking == "head" else "irreversible"),
@@ -195,8 +204,7 @@ class TransactionBuilder(dict):
             )
             tx = chain.awaitTxConfirmation(tx)
             return tx
-
-        return self
+        """
 
     def clear(self):
         """ Clear the transaction builder and start from scratch
