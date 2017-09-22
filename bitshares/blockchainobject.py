@@ -59,7 +59,7 @@ class BlockchainObject(dict):
         lazy=True,
         use_cache=True,
         bitshares_instance=None,
-        **kwargs,
+        **kwargs
     ):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
         self.cached = False
