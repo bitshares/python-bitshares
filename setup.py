@@ -45,7 +45,7 @@ setup(
         "appdirs",
         "Events",
         "scrypt",
-        "pycrypto",  # for AES, installed through graphenelib already
+        "pycryptodome",  # for AES, installed through graphenelib already
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
