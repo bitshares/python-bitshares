@@ -38,8 +38,8 @@ class Asset(BlockchainObject):
         self.full = full
         super().__init__(
             asset,
-            lazy=False,
-            full=False,
+            lazy=lazy,
+            full=full,
             bitshares_instance=None
         )
 
@@ -65,6 +65,14 @@ class Asset(BlockchainObject):
             self["description"] = json.loads(asset["options"]["description"])
         except:
             self["description"] = asset["options"]["description"]
+
+    @property
+    def symbol(self):
+        return self["symbol"]
+
+    @property
+    def precision(self):
+        return self["precision"]
 
     @property
     def is_bitasset(self):

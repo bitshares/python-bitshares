@@ -1,5 +1,4 @@
 from .account import Account
-from .blockchain import Blockchain
 from bitsharesbase.objects import Operation
 from bitsharesbase.account import PrivateKey, PublicKey
 from bitsharesbase.signedtransactions import Signed_Transaction
@@ -18,13 +17,34 @@ class TransactionBuilder(dict):
     """ This class simplifies the creation of transactions by adding
         operations and signers.
     """
-
-    def __init__(self, tx={}, bitshares_instance=None):
+    def __init__(
+        self,
+        tx={},
+        proposer=None,
+        bitshares_instance=None
+    ):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
         self.clear()
         if not isinstance(tx, dict):
             raise ValueError("Invalid TransactionBuilder Format")
         super(TransactionBuilder, self).__init__(tx)
+        # Do we need to reconstruct the tx from self.ops?
+        self._require_reconstruction = True
+
+    def is_signed(self):
+        return "signatures" in self and self["signatures"]
+
+    def is_constructed(self):
+        return "expiration" in self and self["expiration"]
+
+    def is_require_reconstruction(self):
+        return self._require_reconstruction
+
+    def set_require_reconstruction(self):
+        self._require_reconstruction = True
+
+    def unset_require_reconstruction(self):
+        self._require_reconstruction = False
 
     def appendOps(self, ops):
         """ Append op(s) to the transaction builder
@@ -35,29 +55,34 @@ class TransactionBuilder(dict):
             self.ops.extend(ops)
         else:
             self.ops.append(ops)
+        self.set_require_reconstruction()
 
     def appendSigner(self, account, permission):
         """ Try to obtain the wif key from the wallet by telling which account
             and permission is supposed to sign the transaction
         """
+        assert permission in ["active", "owner"], "Invalid permission"
+        account = Account(account, bitshares_instance=self.bitshares)
+        required_treshold = account[permission]["weight_threshold"]
+
         def fetchkeys(account, perm, level=0):
             if level > 2:
                 return []
             r = []
             for authority in account[perm]["key_auths"]:
-                wif = self.bitshares.wallet.getPrivateKeyForPublicKey(authority[0])
+                wif = self.bitshares.wallet.getPrivateKeyForPublicKey(
+                    authority[0])
                 if wif:
                     r.append([wif, authority[1]])
 
             if sum([x[1] for x in r]) < required_treshold:
                 # go one level deeper
                 for authority in account[perm]["account_auths"]:
-                    auth_account = Account(authority[0], bitshares_instance=self.bitshares)
+                    auth_account = Account(
+                        authority[0], bitshares_instance=self.bitshares)
                     r.extend(fetchkeys(auth_account, perm, level + 1))
 
             return r
-
-        assert permission in ["active", "owner"], "Invalid permission"
 
         if account not in self.available_signers:
             # is the account an instance of public key?
@@ -112,14 +137,16 @@ class TransactionBuilder(dict):
 
         ops = transactions.addRequiredFees(self.bitshares.rpc, ops)
         expiration = transactions.formatTimeFromNow(self.bitshares.expiration)
-        ref_block_num, ref_block_prefix = transactions.getBlockParams(self.bitshares.rpc)
-        tx = Signed_Transaction(
+        ref_block_num, ref_block_prefix = transactions.getBlockParams(
+            self.bitshares.rpc)
+        self.tx = Signed_Transaction(
             ref_block_num=ref_block_num,
             ref_block_prefix=ref_block_prefix,
             expiration=expiration,
             operations=ops
         )
-        super(TransactionBuilder, self).__init__(tx.json())
+        super(TransactionBuilder, self).__init__(self.tx.json())
+        self.unset_require_reconstruction()
 
     def sign(self):
         """ Sign a provided transaction witht he provided key(s)
@@ -143,7 +170,8 @@ class TransactionBuilder(dict):
         # We need to set the default prefix, otherwise pubkeys are
         # presented wrongly!
         if self.bitshares.rpc:
-            operations.default_prefix = self.bitshares.rpc.chain_params["prefix"]
+            operations.default_prefix = (
+                self.bitshares.rpc.chain_params["prefix"])
         elif "blockchain" in self:
             operations.default_prefix = self["blockchain"]["prefix"]
 
@@ -168,51 +196,42 @@ class TransactionBuilder(dict):
             raise e
 
     def broadcast(self):
-        """ Broadcast a transaction to the BitShares network
+        """ Broadcast a transaction to the bitshares network
 
             :param tx tx: Signed transaction to broadcast
         """
-        if "signatures" not in self or not self["signatures"]:
+        if not self.is_signed():
             self.sign()
+
+        ret = self.json()
 
         if self.bitshares.nobroadcast:
             log.warning("Not broadcasting anything!")
-            return self
+            self.clear()
+            return ret
 
-        tx = self.json()
         # Broadcast
-        # FIXME: broadcast_transaction_synchronous
+        try:
+            if self.bitshares.blocking:
+                ret = self.bitshares.rpc.broadcast_transaction_synchronous(
+                    ret, api="network_broadcast")
+            else:
+                self.bitshares.rpc.broadcast_transaction(
+                    ret, api="network_broadcast")
+        except Exception as e:
+            raise e
 
-        if self.bitshares.blocking:
-            try:
-                tx = self.bitshares.rpc.broadcast_transaction_synchronous(tx, api="network_broadcast")
-            except Exception as e:
-                raise e
-        else:
-            try:
-                self.bitshares.rpc.broadcast_transaction(tx, api="network_broadcast")
-            except Exception as e:
-                raise e
-
-        return tx
-
-        """ # Legacy code for blocking
-        if self.bitshares.blocking:
-            chain = Blockchain(
-                mode=("head" if self.bitshares.blocking == "head" else "irreversible"),
-                bitshares_instance=self.bitshares
-            )
-            tx = chain.awaitTxConfirmation(tx)
-            return tx
-        """
+        self.clear()
+        return ret
 
     def clear(self):
         """ Clear the transaction builder and start from scratch
         """
         self.ops = []
         self.wifs = []
-        self.pop("signatures", None)
         self.available_signers = []
+        # This makes sure that is_constructed will return False afterwards
+        self["expiration"] = None
         super(TransactionBuilder, self).__init__({})
 
     def addSigningInformation(self, account, permission):
@@ -258,6 +277,8 @@ class TransactionBuilder(dict):
     def json(self):
         """ Show the transaction as plain json
         """
+        if not self.is_constructed() or self.is_require_reconstruction():
+            self.constructTx()
         return dict(self)
 
     def appendMissingSignatures(self):

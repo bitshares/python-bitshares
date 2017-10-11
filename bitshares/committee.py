@@ -24,4 +24,4 @@ class Committee(BlockchainObject):
 
     @property
     def account(self):
-        return Account(self.member)
+        return Account(self.identifier)

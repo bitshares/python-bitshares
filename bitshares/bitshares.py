@@ -126,6 +126,9 @@ class BitShares(object):
         self.bundle = bool(kwargs.get("bundle", False))
         self.blocking = kwargs.get("blocking", False)
 
+        # Multiple txbuffers can be stored here
+        self._txbuffers = []
+
         # Store config for access through other Classes
         self.config = config
 
@@ -136,8 +139,11 @@ class BitShares(object):
                          **kwargs)
 
         self.wallet = Wallet(self.rpc, **kwargs)
-        self.txbuffer = TransactionBuilder(bitshares_instance=self)
+        self.new_txbuffer()
 
+    # -------------------------------------------------------------------------
+    # Basic Calls
+    # -------------------------------------------------------------------------
     def connect(self,
                 node="",
                 rpcuser="",
@@ -186,6 +192,10 @@ class BitShares(object):
                 that require active permission with ops that require
                 posting permission. Neither can you use different
                 accounts for different operations!
+
+            ... note:: This uses ``bitshares.txbuffer`` as instance of
+                :class:`bitshares.transactionbuilder.TransactionBuilder`.
+                You may want to use your own txbuffer
         """
         # Append transaction
         self.txbuffer.appendOps(ops)
@@ -237,6 +247,42 @@ class BitShares(object):
         """ Returns the global properties
         """
         return self.rpc.get_dynamic_global_properties()
+
+    # -------------------------------------------------------------------------
+    # Transaction Buffers
+    # -------------------------------------------------------------------------
+    @property
+    def txbuffer(self):
+        """ Returns the currently active tx buffer
+        """
+        return self._txbuffers[self._current_txbuffer]
+
+    def set_txbuffer(self, i):
+        """ Lets you switch the current txbuffer
+
+            :param int i: Id of the txbuffer
+        """
+        self._current_txbuffer = i
+
+    def get_txbuffer(self, i):
+        """ Returns the txbuffer with id i
+        """
+        if i < len(self._txbuffers):
+            return self._txbuffers[i]
+
+    def new_txbuffer(self, *args, **kwargs):
+        """ Let's obtain a new txbuffer
+
+            :returns int txid: id of the new txbuffer
+        """
+        self._txbuffers.append(TransactionBuilder(
+            *args,
+            bitshares_instance=self,
+            **kwargs
+        ))
+        id = len(self._txbuffers) - 1
+        self.set_txbuffer(id)
+        return id
 
     def create_account(
         self,
@@ -620,6 +666,9 @@ class BitShares(object):
         })
         return self.finalizeOp(op, account["name"], "active")
 
+    # -------------------------------------------------------------------------
+    #  Approval and Disapproval of witnesses, workers, committee, and proposals
+    # -------------------------------------------------------------------------
     def approvewitness(self, witnesses, account=None):
         """ Approve a witness
 

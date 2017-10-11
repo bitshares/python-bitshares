@@ -97,7 +97,7 @@ class Memo(object):
             PrivateKey(memo_wif),
             PublicKey(
                 self.from_account["options"]["memo_key"],
-                prefix=self.peerplays.rpc.chain_params["prefix"]
+                prefix=self.bitshares.rpc.chain_params["prefix"]
             ),
             memo.get("nonce"),
             memo.get("message")

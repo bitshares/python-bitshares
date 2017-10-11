@@ -21,6 +21,10 @@ class Proposal(BlockchainObject):
             raise ProposalDoesNotExistException
         super(Proposal, self).__init__(proposal[0])
 
+    @property
+    def proposed_operations(self):
+        yield from self["proposed_transaction"]["operations"]
+
 
 class Proposals(list):
     """ Obtain a list of pending proposals for an account

@@ -38,15 +38,15 @@ class Account(BlockchainObject):
     def __init__(
         self,
         account,
-        lazy=False,
         full=False,
+        lazy=False,
         bitshares_instance=None
     ):
         self.full = full
         super().__init__(
             account,
-            lazy=False,
-            full=False,
+            lazy=lazy,
+            full=full,
             bitshares_instance=None
         )
 
@@ -59,9 +59,9 @@ class Account(BlockchainObject):
         else:
             account = self.bitshares.rpc.lookup_account_names(
                 [self.identifier])[0]
-            self.identifier = account["id"]
         if not account:
             raise AccountDoesNotExistsException(self.identifier)
+        self.identifier = account["id"]
 
         if self.full:
             account = self.bitshares.rpc.get_full_accounts(

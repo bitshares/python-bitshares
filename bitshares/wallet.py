@@ -1,9 +1,7 @@
 import logging
 import os
-
 from graphenebase import bip38
 from bitsharesbase.account import PrivateKey, GPHPrivateKey
-
 from .account import Account
 from .exceptions import (
     InvalidWifError,

@@ -56,7 +56,7 @@ class BlockchainObject(dict):
         klass=None,
         space_id=1,
         object_id=None,
-        lazy=True,
+        lazy=False,
         use_cache=True,
         bitshares_instance=None,
         **kwargs
@@ -117,7 +117,7 @@ class BlockchainObject(dict):
 
     def cache(self):
         # store in cache
-        if "id" in self:
+        if dict.__contains__(self, "id"):
             BlockchainObject._cache[self.get("id")] = self
 
     def iscached(self, id):
