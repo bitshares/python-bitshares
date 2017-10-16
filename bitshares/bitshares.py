@@ -1101,7 +1101,7 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         op = operations.Account_upgrade(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "account_to_upgrade": account["id"],
@@ -1144,7 +1144,7 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
         op = operations.Asset_reserve(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "payer": account["id"],
@@ -1195,7 +1195,7 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account)
+        account = Account(account, bitshares_instance=self)
 
         if payment_type == "refund":
             initializer = [0, {}]
@@ -1217,5 +1217,30 @@ class BitShares(object):
             "name": name,
             "url": url,
             "initializer": initializer
+        })
+        return self.finalizeOp(op, account, "active")
+
+    def fund_fee_pool(self, symbol, amount, account=None):
+        """ Fund the fee pool of an asset
+
+            :param str symbol: The symbol to fund the fee pool of
+            :param float amount: The amount to be burned.
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        assert isinstance(amount, float)
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self)
+        asset = Asset(symbol, bitshares_instance=self)
+        op = operations.Asset_fund_fee_pool(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "from_account": account["id"],
+            "asset_id": asset["id"],
+            "amount": int(float(amount) * 10 ** asset["precision"]),
+            "extensions": []
         })
         return self.finalizeOp(op, account, "active")
