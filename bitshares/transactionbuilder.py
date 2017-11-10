@@ -215,6 +215,7 @@ class TransactionBuilder(dict):
             if self.bitshares.blocking:
                 ret = self.bitshares.rpc.broadcast_transaction_synchronous(
                     ret, api="network_broadcast")
+                ret.update(**ret["trx"])
             else:
                 self.bitshares.rpc.broadcast_transaction(
                     ret, api="network_broadcast")
