@@ -1050,6 +1050,8 @@ class BitShares(object):
                       price feed for ``symbol``. For witness produced
                       feeds this means ``account`` is a witness account!
         """
+        assert mcr > 100
+        assert mssr > 100
         assert isinstance(settlement_price, Price), "settlement_price needs to be instance of `bitshares.price.Price`!"
         if not account:
             if "default_account" in config:
