@@ -114,5 +114,5 @@ def decode_memo(priv, pub, nonce, message):
     message = cleartext[4:]
     try:
         return _unpad(message.decode('utf8'), 16)
-    except:
+    except Exception as e:
         raise ValueError(message)
