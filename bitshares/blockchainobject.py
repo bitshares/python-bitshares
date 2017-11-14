@@ -52,18 +52,34 @@ class BlockchainObject(dict):
     def __init__(
         self,
         data,
-        *args,
         klass=None,
         space_id=1,
         object_id=None,
         lazy=False,
         use_cache=True,
         bitshares_instance=None,
+        *args,
         **kwargs
     ):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
         self.cached = False
         self.identifier = None
+
+        def test_valid_objectid(i):
+            if "." not in i:
+                return False
+            parts = i.split(".")
+            if len(parts) == 3:
+                try:
+                    [int(x) for x in parts]
+                    return True
+                except:
+                    pass
+                return False
+
+        # We don't read lists, sets, or tuples
+        if isinstance(data, (list, set, tuple)):
+            raise ValueError("Cannot interpret lists! Please load elements individually!")
 
         if klass and isinstance(data, klass):
             self.identifier = data.get("id")
@@ -82,17 +98,9 @@ class BlockchainObject(dict):
             self.identifier = data
         else:
             self.identifier = data
-            parts = self.identifier.split(".")
-            if len(parts) == 3:
-                valid_objectid = False
-                try:
-                    [int(x) for x in parts]
-                    valid_objectid = True
-                except:
-                    pass
-                if valid_objectid:
-                    # Here we assume we deal with an id
-                    self.testid(self.identifier)
+            if test_valid_objectid(self.identifier):
+                # Here we assume we deal with an id
+                self.testid(self.identifier)
             if self.iscached(data):
                 super().__init__(self.getcache(data))
             elif not lazy and not self.cached:
