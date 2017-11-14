@@ -238,14 +238,24 @@ class Price(dict):
         a = self.copy()
         if isinstance(other, Price):
             # Rotate/invert other
-            if self["quote"]["symbol"] in other.symbols():
-                other = other.as_quote(self["quote"]["symbol"])
-            elif self["base"]["symbol"] in other.symbols():
-                other = other.as_quote(self["base"]["symbol"])
-            else:
+            if (
+                self["quote"]["symbol"] not in other.symbols() and
+                self["base"]["symbol"] not in other.symbols()
+            ):
                 raise InvalidAssetException
-            a["base"] = Amount(float(self["base"] * other["base"]), other["base"]["symbol"])
-            a["quote"] = Amount(float(self["quote"] * other["quote"]), self["quote"]["symbol"])
+
+            # base/quote = a/b
+            # a/b * b/c = a/c
+            a = self.copy()
+            if self["quote"]["symbol"] == other["base"]["symbol"]:
+                a["base"] = Amount(float(self["base"]) * float(other["base"]), self["base"]["symbol"])
+                a["quote"] = Amount(float(self["quote"]) * float(other["quote"]), other["quote"]["symbol"])
+            # a/b * c/a =  c/b
+            elif self["base"]["symbol"] == other["quote"]["symbol"]:
+                a["base"] = Amount(float(self["base"]) * float(other["base"]), other["base"]["symbol"])
+                a["quote"] = Amount(float(self["quote"]) * float(other["quote"]), self["quote"]["symbol"])
+            else:
+                raise ValueError("Wrong rotation of prices")
         elif isinstance(other, Amount):
             assert other["asset"]["id"] == self["quote"]["asset"]["id"]
             a = other.copy() * self["price"]
