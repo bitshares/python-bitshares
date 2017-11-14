@@ -4,7 +4,7 @@ from binascii import hexlify, unhexlify
 try:
     from Crypto.Cipher import AES
 except ImportError:
-    raise ImportError("Missing dependency: pycrypto")
+    raise ImportError("Missing dependency: pycryptodome")
 from .account import PrivateKey, PublicKey
 import struct
 
