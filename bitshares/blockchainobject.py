@@ -4,17 +4,21 @@ from datetime import datetime, timedelta
 
 class ObjectCache(dict):
 
-    max_cache_objects = 1000
-
-    def __init__(self, initial_data={}, max_cache_objects=1000):
+    def __init__(self, initial_data={}, default_expiration=10):
         super().__init__(initial_data)
-        ObjectCache.max_cache_objects = max_cache_objects
+        self.default_expiration = default_expiration
+
+    def clear(self):
+        """ Clears the whole cache
+        """
+        dict.__init__(self, dict())
 
     def __setitem__(self, key, value):
         if key in self:
             del self[key]
         data = {
-            "expires": datetime.utcnow() + timedelta(seconds=10),
+            "expires": datetime.utcnow() + timedelta(
+                seconds=self.default_expiration),
             "data": value
         }
         dict.__setitem__(self, key, data)
@@ -38,7 +42,8 @@ class ObjectCache(dict):
         return False
 
     def __str__(self):
-        return "ObjectCache(n={}, max_cache_objects={})".format(len(self.keys()), self.max_cache_objects)
+        return "ObjectCache(n={}, default_expiration={})".format(
+            len(self.keys()), self.default_expiration)
 
 
 class BlockchainObject(dict):
@@ -65,21 +70,10 @@ class BlockchainObject(dict):
         self.cached = False
         self.identifier = None
 
-        def test_valid_objectid(i):
-            if "." not in i:
-                return False
-            parts = i.split(".")
-            if len(parts) == 3:
-                try:
-                    [int(x) for x in parts]
-                    return True
-                except:
-                    pass
-                return False
-
         # We don't read lists, sets, or tuples
         if isinstance(data, (list, set, tuple)):
-            raise ValueError("Cannot interpret lists! Please load elements individually!")
+            raise ValueError(
+                "Cannot interpret lists! Please load elements individually!")
 
         if klass and isinstance(data, klass):
             self.identifier = data.get("id")
@@ -98,7 +92,7 @@ class BlockchainObject(dict):
             self.identifier = data
         else:
             self.identifier = data
-            if test_valid_objectid(self.identifier):
+            if self.test_valid_objectid(self.identifier):
                 # Here we assume we deal with an id
                 self.testid(self.identifier)
             if self.iscached(data):
@@ -110,6 +104,23 @@ class BlockchainObject(dict):
             self.cache()
             self.cached = True
 
+    @staticmethod
+    def clear_cache():
+        if BlockchainObject._cache:
+            BlockchainObject._cache.clear()
+
+    def test_valid_objectid(self, i):
+        if "." not in i:
+            return False
+        parts = i.split(".")
+        if len(parts) == 3:
+            try:
+                [int(x) for x in parts]
+                return True
+            except:
+                pass
+            return False
+
     def testid(self, id):
         parts = id.split(".")
         if not self.type_id:
@@ -119,9 +130,11 @@ class BlockchainObject(dict):
             self.type_ids = [self.type_id]
 
         assert int(parts[0]) == self.space_id,\
-            "Valid id's for {} are {}.{}.x".format(self.__class__.__name__, self.space_id, self.type_ida)
+            "Valid id's for {} are {}.{}.x".format(
+                self.__class__.__name__, self.space_id, self.type_id)
         assert int(parts[1]) in self.type_ids,\
-            "Valid id's for {} are {}.{}.x".format(self.__class__.__name__, self.space_id, self.type_ids)
+            "Valid id's for {} are {}.{}.x".format(
+                self.__class__.__name__, self.space_id, self.type_ids)
 
     def cache(self):
         # store in cache
@@ -150,4 +163,5 @@ class BlockchainObject(dict):
         return super().__contains__(key)
 
     def __repr__(self):
-        return "<%s %s>" % (self.__class__.__name__, str(self.identifier))
+        return "<%s %s>" % (
+            self.__class__.__name__, str(self.identifier))

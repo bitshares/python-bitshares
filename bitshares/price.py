@@ -5,7 +5,6 @@ from .account import Account
 from .amount import Amount
 from .asset import Asset
 from .utils import formatTimeString
-from .witness import Witness
 from .utils import parse_time
 
 
@@ -393,7 +392,6 @@ class Order(Price):
                 'deleted' key which is set to ``True`` and all other
                 data be ``None``.
     """
-
     def __init__(self, *args, bitshares_instance=None, **kwargs):
 
         self.bitshares = bitshares_instance or shared_bitshares_instance()

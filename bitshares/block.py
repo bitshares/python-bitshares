@@ -1,14 +1,14 @@
-from bitshares.instance import shared_bitshares_instance
-from .blockchainobject import BlockchainObject
 from .exceptions import BlockDoesNotExistsException
 from .utils import parse_time
+from .blockchainobject import BlockchainObject
 
 
 class Block(BlockchainObject):
     """ Read a single block from the chain
 
         :param int block: block number
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares
+            instance
         :param bool lazy: Use lazy loading
 
         Instances of this class are dictionaries that come with additional

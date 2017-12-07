@@ -11,7 +11,8 @@ class Testcases(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(Testcases, self).__init__(*args, **kwargs)
         bitshares = BitShares(
-            "wss://node.bitshares.eu"
+            "wss://node.bitshares.eu",
+            nobroadcast=True,
         )
         set_shared_bitshares_instance(bitshares)
 

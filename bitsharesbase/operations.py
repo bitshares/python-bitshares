@@ -39,13 +39,19 @@ def getOperationNameForId(i):
 
 class Transfer(GrapheneObject):
     def __init__(self, *args, **kwargs):
+        # Allow for overwrite of prefix
         if isArgsThisClass(self, args):
                 self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
+            prefix = kwargs.get("prefix", default_prefix)
             if "memo" in kwargs and kwargs["memo"]:
-                memo = Optional(Memo(kwargs["memo"]))
+                if isinstance(kwargs["memo"], dict):
+                    kwargs["memo"]["prefix"] = prefix
+                    memo = Optional(Memo(**kwargs["memo"]))
+                else:
+                    memo = Optional(Memo(kwargs["memo"]))
             else:
                 memo = Optional(None)
             super().__init__(OrderedDict([

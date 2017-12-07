@@ -40,7 +40,7 @@ setup(
         'Topic :: Office/Business :: Financial',
     ],
     install_requires=[
-        "graphenelib>=0.5.3",
+        "graphenelib>=0.5.5",
         "websockets",
         "appdirs",
         "Events",

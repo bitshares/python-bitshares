@@ -48,7 +48,7 @@ class Asset(BlockchainObject):
         """
         asset = self.bitshares.rpc.get_asset(self.identifier)
         if not asset:
-            raise AssetDoesNotExistsException
+            raise AssetDoesNotExistsException(self.identifier)
         super(Asset, self).__init__(asset)
         if self.full:
             if "bitasset_data_id" in asset:

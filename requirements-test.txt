@@ -5,3 +5,4 @@ Events==0.2.2
 pyyaml
 pytest
 coverage
+mock

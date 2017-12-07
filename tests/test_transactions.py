@@ -139,7 +139,6 @@ class Testcases(unittest.TestCase):
             "to": pub,
             "nonce": nonce,
             "message": encrypted_memo,
-            "chain": prefix
         }
         memoObj = objects.Memo(**memoStruct)
         self.op = operations.Transfer(**{
@@ -147,7 +146,8 @@ class Testcases(unittest.TestCase):
             "from": from_account_id,
             "to": to_account_id,
             "amount": amount,
-            "memo": memoObj
+            "memo": memoObj,
+            "prefix": prefix
         })
         self.cm = ("f68585abf4dce7c804570100000000000000000000000140420"
                    "f0000000000040102c0ded2bc1f1305fb0faac5e6c03ee3a192"
@@ -264,7 +264,8 @@ class Testcases(unittest.TestCase):
                 "owner_special_authority":
                     [1, {"asset": "1.3.127",
                          "num_top_holders": 10}]
-            }
+            },
+            "prefix": "BTS"
         })
         self.cm = ("f68585abf4dce7c804570105f26416000000000000211b03000b666f"
                    "6f6261722d6631323401000000000202fe8cc11cc8251de6977636b5"
@@ -306,7 +307,8 @@ class Testcases(unittest.TestCase):
                             "votes": [],
                             "extensions": []
                             },
-            "extensions": {}
+            "extensions": {},
+            "prefix": "BTS"
         })
         self.cm = ("f68585abf4dce7c804570106f264160000000000000"
                    "f010100000001d6ee0501000102fe8cc11cc8251de6"

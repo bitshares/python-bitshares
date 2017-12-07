@@ -165,7 +165,7 @@ class Account(BlockchainObject):
             api="history"
         )
         if not mostrecent:
-            raise StopIteration
+            return
 
         if not first:
             # first = int(mostrecent[0].get("id").split(".")[2]) + 1
@@ -191,7 +191,7 @@ class Account(BlockchainObject):
                     cnt += 1
                     yield i
                     if limit >= 0 and cnt >= limit:
-                        raise StopIteration
+                        return
 
             if not txs:
                 break
