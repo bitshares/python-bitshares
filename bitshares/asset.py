@@ -67,6 +67,15 @@ class Asset(BlockchainObject):
             self["description"] = asset["options"]["description"]
 
     @property
+    def is_fully_loaded(self):
+        """ Is this instance fully loaded / e.g. all data available?
+        """
+        return (
+            self.full and
+            "bitasset_data_id" in self and
+            "bitasset_data" in self
+        )
+    @property
     def symbol(self):
         return self["symbol"]
 
@@ -93,7 +102,7 @@ class Asset(BlockchainObject):
         return self["flags"]
 
     def ensure_full(self):
-        if not self.full:
+        if not self.is_fully_loaded:
             self.full = True
             self.refresh()
 
