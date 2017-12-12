@@ -165,6 +165,7 @@ class Wallet():
             raise WalletExists("You already have created a wallet!")
         self.masterpwd = self.MasterPassword(pwd)
         self.masterpassword = self.masterpwd.decrypted_master
+        self.masterpwd.saveEncrytpedMaster()
 
     def encrypt_wif(self, wif):
         """ Encrypt a wif key
