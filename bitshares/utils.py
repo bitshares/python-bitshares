@@ -1,3 +1,4 @@
+import re
 import time
 from datetime import datetime
 
@@ -35,3 +36,12 @@ def parse_time(block_time):
     """Take a string representation of time from the blockchain, and parse it into datetime object.
     """
     return datetime.strptime(block_time, timeFormat)
+
+
+def assets_from_string(text):
+    """Correctly split a string containing an asset pair.
+
+    Splits the string into two assets with the separator being on of the
+    following: ``:``, ``/``, or ``-``.
+    """
+    return re.split(r'[\-:/]', text)
