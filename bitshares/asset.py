@@ -128,7 +128,7 @@ class Asset(dict):
 
     @property
     def calls(self):
-        return self.get_call_positions(10)
+        return self.get_call_orders(10)
 
     def get_call_orders(self, limit=100):
         from .price import Price
