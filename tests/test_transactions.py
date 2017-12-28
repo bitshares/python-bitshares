@@ -473,19 +473,6 @@ class Testcases(unittest.TestCase):
                    "40c241db9cad86e27369d0e5a76b5832d585505ff177d")
         self.doit()
 
-    def test_asset_reserve(self):
-        self.op = operations.Asset_reserve(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "payer": "1.2.0",
-            "amount_to_reserve": {"amount": 1234567890, "asset_id": "1.3.0"},
-            "extensions": []
-        })
-        self.cm = ("f68585abf4dce7c80457010f00000000000000000000d202964"
-                   "900000000000000011f75065cb1155bfcaabaf55d3357d69679"
-                   "c7c1fe589b6dc0919fe1dde1a305009c360823a40c28907299a"
-                   "40c241db9cad86e27369d0e5a76b5832d585505ff177d")
-        self.doit()
-
     def test_bid_collateral(self):
         self.op = operations.Bid_collateral(**{
             'fee': {'amount': 100,
