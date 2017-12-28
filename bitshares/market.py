@@ -57,6 +57,8 @@ class Market(dict):
             super(Market, self).__init__({"base": base, "quote": quote})
         elif len(args) == 0 and base and quote:
             super(Market, self).__init__({"base": base, "quote": quote})
+        elif len(args) == 2 and not base and not quote:
+            super(Market, self).__init__({"base": args[1], "quote": args[0]})
         else:
             raise ValueError("Unknown Market Format: %s" % str(args))
 

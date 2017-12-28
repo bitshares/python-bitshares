@@ -1217,6 +1217,7 @@ class BitShares(object):
         assert mcr > 100
         assert mssr > 100
         assert isinstance(settlement_price, Price), "settlement_price needs to be instance of `bitshares.price.Price`!"
+        assert cer is None or isinstance(cer, Price), "cer needs to be instance of `bitshares.price.Price`!"
         if not account:
             if "default_account" in config:
                 account = config["default_account"]
@@ -1224,31 +1225,36 @@ class BitShares(object):
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
         asset = Asset(symbol, bitshares_instance=self, full=True)
+        backing_asset = asset["bitasset_data"]["options"]["short_backing_asset"]
         assert asset["id"] == settlement_price["base"]["asset"]["id"] or \
             asset["id"] == settlement_price["quote"]["asset"]["id"], \
             "Price needs to contain the asset of the symbol you'd like to produce a feed for!"
         assert asset.is_bitasset, "Symbol needs to be a bitasset!"
-        assert settlement_price["base"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"] or \
-            settlement_price["quote"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"], \
+        assert settlement_price["base"]["asset"]["id"] == backing_asset or \
+            settlement_price["quote"]["asset"]["id"] == backing_asset, \
             "The Price needs to be relative to the backing collateral!"
 
-        # Base needs to be short backing asset
-        if settlement_price["base"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"]:
-            settlement_price = settlement_price.invert()
+        settlement_price = settlement_price.as_base(symbol)
 
         if cer:
-            if cer["base"]["asset"]["id"] == asset["bitasset_data"]["options"]["short_backing_asset"]:
-                cer = cer.invert()
+            cer = cer.as_base(symbol)
+            if cer["quote"]["asset"]["id"] != "1.3.0":
+                raise ValueError(
+                    "CER must be defined against core asset '1.3.0'")
         else:
-            cer = settlement_price * 1.05
+            if settlement_price["quote"]["asset"]["id"] != "1.3.0":
+                raise ValueError(
+                    "CER must be manually provided because it relates to core asset '1.3.0'"
+                )
+            cer = settlement_price.as_quote(symbol) * 0.95
 
         op = operations.Asset_publish_feed(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "publisher": account["id"],
             "asset_id": asset["id"],
             "feed": {
-                "settlement_price": settlement_price.json(),
-                "core_exchange_rate": cer.json(),
+                "settlement_price": settlement_price.as_base(symbol).json(),
+                "core_exchange_rate": cer.as_base(symbol).json(),
                 "maximum_short_squeeze_ratio": int(mssr * 10),
                 "maintenance_collateral_ratio": int(mcr * 10),
             },
