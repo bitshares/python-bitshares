@@ -88,6 +88,7 @@ class Dex():
             quote = Asset(debt["call_price"]["quote"]["asset_id"], full=True)
             if not quote.is_bitasset:
                 continue
+            quote.ensure_full()
             bitasset = quote["bitasset_data"]
             settlement_price = Price(bitasset["current_feed"]["settlement_price"])
             if not settlement_price:

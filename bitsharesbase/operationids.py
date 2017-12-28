@@ -1,49 +1,54 @@
 #: Operation ids
-operations = {}
-operations["transfer"] = 0
-operations["limit_order_create"] = 1
-operations["limit_order_cancel"] = 2
-operations["call_order_update"] = 3
-operations["fill_order"] = 4
-operations["account_create"] = 5
-operations["account_update"] = 6
-operations["account_whitelist"] = 7
-operations["account_upgrade"] = 8
-operations["account_transfer"] = 9
-operations["asset_create"] = 10
-operations["asset_update"] = 11
-operations["asset_update_bitasset"] = 12
-operations["asset_update_feed_producers"] = 13
-operations["asset_issue"] = 14
-operations["asset_reserve"] = 15
-operations["asset_fund_fee_pool"] = 16
-operations["asset_settle"] = 17
-operations["asset_global_settle"] = 18
-operations["asset_publish_feed"] = 19
-operations["witness_create"] = 20
-operations["witness_update"] = 21
-operations["proposal_create"] = 22
-operations["proposal_update"] = 23
-operations["proposal_delete"] = 24
-operations["withdraw_permission_create"] = 25
-operations["withdraw_permission_update"] = 26
-operations["withdraw_permission_claim"] = 27
-operations["withdraw_permission_delete"] = 28
-operations["committee_member_create"] = 29
-operations["committee_member_update"] = 30
-operations["committee_member_update_global_parameters"] = 31
-operations["vesting_balance_create"] = 32
-operations["vesting_balance_withdraw"] = 33
-operations["worker_create"] = 34
-operations["custom"] = 35
-operations["assert"] = 36
-operations["balance_claim"] = 37
-operations["override_transfer"] = 38
-operations["transfer_to_blind"] = 39
-operations["blind_transfer"] = 40
-operations["transfer_from_blind"] = 41
-operations["asset_settle_cancel"] = 42
-operations["asset_claim_fees"] = 43
+ops = [
+    "transfer",
+    "limit_order_create",
+    "limit_order_cancel",
+    "call_order_update",
+    "fill_order",
+    "account_create",
+    "account_update",
+    "account_whitelist",
+    "account_upgrade",
+    "account_transfer",
+    "asset_create",
+    "asset_update",
+    "asset_update_bitasset",
+    "asset_update_feed_producers",
+    "asset_issue",
+    "asset_reserve",
+    "asset_fund_fee_pool",
+    "asset_settle",
+    "asset_global_settle",
+    "asset_publish_feed",
+    "witness_create",
+    "witness_update",
+    "proposal_create",
+    "proposal_update",
+    "proposal_delete",
+    "withdraw_permission_create",
+    "withdraw_permission_update",
+    "withdraw_permission_claim",
+    "withdraw_permission_delete",
+    "committee_member_create",
+    "committee_member_update",
+    "committee_member_update_global_parameters",
+    "vesting_balance_create",
+    "vesting_balance_withdraw",
+    "worker_create",
+    "custom",
+    "assert",
+    "balance_claim",
+    "override_transfer",
+    "transfer_to_blind",
+    "blind_transfer",
+    "transfer_from_blind",
+    "asset_settle_cancel",
+    "asset_claim_fees",
+    "fba_distribute",
+    "bid_collateral",
+    "execute_bid",
+]
+operations = {o: ops.index(o) for o in ops}
 
 
 def getOperationNameForId(i):

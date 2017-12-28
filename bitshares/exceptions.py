@@ -23,32 +23,8 @@ class AssetDoesNotExistsException(Exception):
     pass
 
 
-class BlockDoesNotExistsException(Exception):
-    """ The block does not exist
-    """
-    pass
-
-
-class WitnessDoesNotExistsException(Exception):
-    """ The witness does not exist
-    """
-    pass
-
-
-class CommitteeMemberDoesNotExistsException(Exception):
-    """ Committee Member does not exist
-    """
-    pass
-
-
-class VestingBalanceDoesNotExistsException(Exception):
-    """ Vesting Balance does not exist
-    """
-    pass
-
-
-class ProposalDoesNotExistException(Exception):
-    """ The proposal does not exist
+class InvalidAssetException(Exception):
+    """ An invalid asset has been provided
     """
     pass
 
@@ -71,9 +47,27 @@ class InvalidWifError(Exception):
     pass
 
 
+class ProposalDoesNotExistException(Exception):
+    """ The proposal does not exist
+    """
+    pass
+
+
+class BlockDoesNotExistsException(Exception):
+    """ The block does not exist
+    """
+    pass
+
+
 class NoWalletException(Exception):
-    """ No Wallet could be found, please use :func:`bitshares.wallet.create` to
+    """ No Wallet could be found, please use :func:`peerplays.wallet.create` to
         create a new wallet
+    """
+    pass
+
+
+class WitnessDoesNotExistsException(Exception):
+    """ The witness does not exist
     """
     pass
 
@@ -84,7 +78,25 @@ class WrongMasterPasswordException(Exception):
     pass
 
 
+class CommitteeMemberDoesNotExistsException(Exception):
+    """ Committee Member does not exist
+    """
+    pass
+
+
+class VestingBalanceDoesNotExistsException(Exception):
+    """ Vesting Balance does not exist
+    """
+    pass
+
+
 class WorkerDoesNotExistsException(Exception):
     """ Worker does not exist
+    """
+    pass
+
+
+class ObjectNotInProposalBuffer(Exception):
+    """ Object was not found in proposal
     """
     pass

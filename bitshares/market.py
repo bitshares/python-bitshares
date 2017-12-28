@@ -1,13 +1,11 @@
 from bitshares.instance import shared_bitshares_instance
 from datetime import datetime, timedelta
-from .utils import formatTimeFromNow, formatTime, formatTimeString
+from .utils import formatTimeFromNow, formatTime
 from .asset import Asset
 from .amount import Amount
 from .price import Price, Order, FilledOrder
 from .account import Account
-from .blockchain import Blockchain
 from bitsharesbase import operations
-from bitsharesbase.objects import Operation
 
 
 class Market(dict):
@@ -59,6 +57,8 @@ class Market(dict):
             super(Market, self).__init__({"base": base, "quote": quote})
         elif len(args) == 0 and base and quote:
             super(Market, self).__init__({"base": base, "quote": quote})
+        elif len(args) == 2 and not base and not quote:
+            super(Market, self).__init__({"base": args[1], "quote": args[0]})
         else:
             raise ValueError("Unknown Market Format: %s" % str(args))
 
@@ -403,23 +403,15 @@ class Market(dict):
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self.bitshares)
+
         if isinstance(price, Price):
-            if (
-                price["quote"]["symbol"] == self["quote"]["symbol"] and
-                price["base"]["symbol"] == self["base"]["symbol"]
-            ):
-                pass
-            elif (
-                price["base"]["symbol"] == self["quote"]["symbol"] and
-                price["quote"]["symbol"] == self["base"]["symbol"]
-            ):
-                price = price.invert()
-            else:
-                raise ValueError("The assets in the price do not match the market!")
+            price = price.as_base(self["base"]["symbol"])
 
         if isinstance(amount, Amount):
             amount = Amount(amount, bitshares_instance=self.bitshares)
-            assert(amount["asset"]["symbol"] == self["quote"]["symbol"])
+            assert(amount["asset"]["symbol"] == self["quote"]["symbol"]), \
+                "Price: {} does not match amount: {}".format(
+                    str(price), str(amount))
         else:
             amount = Amount(amount, self["quote"]["symbol"], bitshares_instance=self.bitshares)
 
@@ -491,22 +483,13 @@ class Market(dict):
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self.bitshares)
         if isinstance(price, Price):
-            if (
-                price["quote"]["symbol"] == self["quote"]["symbol"] and
-                price["base"]["symbol"] == self["base"]["symbol"]
-            ):
-                pass
-            elif (
-                price["base"]["symbol"] == self["quote"]["symbol"] and
-                price["quote"]["symbol"] == self["base"]["symbol"]
-            ):
-                price = price.invert()
-            else:
-                raise ValueError("The assets in the price do not match the market!")
+            price = price.as_base(self["base"]["symbol"])
 
         if isinstance(amount, Amount):
             amount = Amount(amount, bitshares_instance=self.bitshares)
-            assert(amount["asset"]["symbol"] == self["quote"]["symbol"])
+            assert(amount["asset"]["symbol"] == self["quote"]["symbol"]), \
+                "Price: {} does not match amount: {}".format(
+                    str(price), str(amount))
         else:
             amount = Amount(amount, self["quote"]["symbol"], bitshares_instance=self.bitshares)
 

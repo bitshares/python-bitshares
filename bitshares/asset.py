@@ -1,18 +1,24 @@
 import json
 from bitshares.account import Account
-from bitshares.instance import shared_bitshares_instance
 from bitsharesbase import operations
-from bitsharesbase.asset_permissions import whitelist, asset_permissions, force_flag, test_permissions, todict
+from bitsharesbase.asset_permissions import (
+    asset_permissions,
+    force_flag,
+    test_permissions,
+    todict
+)
 from .exceptions import AssetDoesNotExistsException
+from .blockchainobject import BlockchainObject
 
 
-class Asset(dict):
+class Asset(BlockchainObject):
     """ Deals with Assets of the network.
 
         :param str Asset: Symbol name or object id of an asset
         :param bool lazy: Lazy loading
         :param bool full: Also obtain bitasset-data and dynamic asset dat
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares
+            instance
         :returns: All data of an asset
         :rtype: dict
 
@@ -20,8 +26,7 @@ class Asset(dict):
                   load on the API server. Instances of this class can be
                   refreshed with ``Asset.refresh()``.
     """
-
-    assets_cache = dict()
+    type_id = 3
 
     def __init__(
         self,
@@ -30,60 +35,53 @@ class Asset(dict):
         full=False,
         bitshares_instance=None
     ):
-        self.cached = False
         self.full = full
-        self.asset = None
-
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
-
-        if isinstance(asset, Asset):
-            self.asset = asset.get("symbol")
-            super(Asset, self).__init__(asset)
-            self.cached = True
-            self._cache(asset)
-        elif isinstance(asset, str):
-            self.asset = asset
-            if self.asset in Asset.assets_cache:
-                if (
-                    not full or (
-                        full and "dynamic_asset_data" in
-                        Asset.assets_cache[self.asset])):
-                    super(Asset, self).__init__(Asset.assets_cache[self.asset])
-                else:
-                    self.refresh()
-                self.cached = True
-            elif not lazy and not self.cached:
-                self.refresh()
-                self.cached = True
-        else:
-            raise ValueError("Asset() expects a symbol, id or an instance of Asset")
+        super().__init__(
+            asset,
+            lazy=lazy,
+            full=full,
+            bitshares_instance=None
+        )
 
     def refresh(self):
         """ Refresh the data from the API server
         """
-        asset = self.bitshares.rpc.get_asset(self.asset)
+        asset = self.bitshares.rpc.get_asset(self.identifier)
         if not asset:
-            raise AssetDoesNotExistsException
+            raise AssetDoesNotExistsException(self.identifier)
         super(Asset, self).__init__(asset)
         if self.full:
-            if self.is_bitasset:
-                self["bitasset_data"] = self.bitshares.rpc.get_object(asset["bitasset_data_id"])
-            self["dynamic_asset_data"] = self.bitshares.rpc.get_object(asset["dynamic_asset_data_id"])
+            if "bitasset_data_id" in asset:
+                self["bitasset_data"] = self.bitshares.rpc.get_object(
+                    asset["bitasset_data_id"])
+            self["dynamic_asset_data"] = self.bitshares.rpc.get_object(
+                asset["dynamic_asset_data_id"])
 
         # Permissions and flags
-        self["permissions"] = todict(asset["options"].get("issuer_permissions"))
+        self["permissions"] = todict(asset["options"].get(
+            "issuer_permissions"))
         self["flags"] = todict(asset["options"].get("flags"))
         try:
             self["description"] = json.loads(asset["options"]["description"])
         except:
             self["description"] = asset["options"]["description"]
 
-        self.cached = True
-        self._cache(asset)
+    @property
+    def is_fully_loaded(self):
+        """ Is this instance fully loaded / e.g. all data available?
+        """
+        return (
+            self.full and
+            "bitasset_data_id" in self and
+            "bitasset_data" in self
+        )
+    @property
+    def symbol(self):
+        return self["symbol"]
 
-    def _cache(self, asset):
-        # store in cache
-        Asset.assets_cache[asset["symbol"]] = asset
+    @property
+    def precision(self):
+        return self["precision"]
 
     @property
     def is_bitasset(self):
@@ -104,7 +102,7 @@ class Asset(dict):
         return self["flags"]
 
     def ensure_full(self):
-        if not self.full:
+        if not self.is_fully_loaded:
             self.full = True
             self.refresh()
 
@@ -166,7 +164,11 @@ class Asset(dict):
                 "debt": debt_amount,
                 "call_price": call_price,
                 "settlement_price": settlement_price,
-                "ratio": float(collateral_amount) / float(debt_amount) * float(settlement_price)
+                "ratio": (
+                    float(collateral_amount) /
+                    float(debt_amount) *
+                    float(settlement_price)
+                )
             })
         return r
 
@@ -188,24 +190,13 @@ class Asset(dict):
                     lazy=True,
                     bitshares_instance=self.bitshares
                 ),
-                "amount": Amount(settle["balance"],
-                    bitshares_instance=self.bitshares),
+                "amount": Amount(
+                    settle["balance"],
+                    bitshares_instance=self.bitshares
+                ),
                 "date": formatTimeString(settle["settlement_date"])
             })
         return r
-
-    def __getitem__(self, key):
-        if not self.cached:
-            self.refresh()
-        return super(Asset, self).__getitem__(key)
-
-    def items(self):
-        if not self.cached:
-            self.refresh()
-        return super(Asset, self).items()
-
-    def __repr__(self):
-        return "<Asset %s>" % str(self.asset)
 
     def halt(self):
         """ Halt this asset from being moved or traded
@@ -244,10 +235,14 @@ class Asset(dict):
         """ Release this asset and allow unrestricted transfer, trading,
             etc.
 
-            :param list whitelist_authorities: List of accounts that serve as whitelist authorities
-            :param list blacklist_authorities: List of accounts that serve as blacklist authorities
-            :param list whitelist_markets: List of assets to allow trading with
-            :param list blacklist_markets: List of assets to prevent trading with
+            :param list whitelist_authorities: List of accounts that
+                serve as whitelist authorities
+            :param list blacklist_authorities: List of accounts that
+                serve as blacklist authorities
+            :param list whitelist_markets: List of assets to allow
+                trading with
+            :param list blacklist_markets: List of assets to prevent
+                trading with
         """
         flags = {"white_list": False,
                  "transfer_restricted": False,
@@ -297,7 +292,8 @@ class Asset(dict):
 
             :param dict flag: dictionary of flags and boolean
         """
-        assert set(flags.keys()).issubset(asset_permissions.keys()), "unknown flag"
+        assert set(flags.keys()).issubset(
+            asset_permissions.keys()), "unknown flag"
 
         options = self["options"]
         test_permissions(options["issuer_permissions"], flags)
@@ -508,9 +504,11 @@ class Asset(dict):
     def update_feed_producers(self, producers):
         """ Update bitasset feed producers
 
-            :param list producers: List of accounts that are allowed to produce a feed
+            :param list producers: List of accounts that are
+            allowed to produce a feed
         """
-        assert self.is_bitasset, "Asset needs to be a bitasset/market pegged asset"
+        assert self.is_bitasset, \
+            "Asset needs to be a bitasset/market pegged asset"
         op = operations.Asset_update_feed_producers(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "issuer": self["issuer"],

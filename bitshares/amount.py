@@ -91,7 +91,7 @@ class Amount(dict):
 
         elif isinstance(amount, (int, float)) and asset and isinstance(asset, str):
             self["amount"] = amount
-            self["asset"] = Asset(asset)
+            self["asset"] = Asset(asset, bitshares_instance=self.bitshares)
             self["symbol"] = asset
 
         else:
@@ -120,6 +120,9 @@ class Amount(dict):
         """
         return self["symbol"]
 
+    def tuple(self):
+        return float(self), self.symbol
+
     @property
     def asset(self):
         """ Returns the asset as instance of :class:`bitshares.asset.Asset`
@@ -142,7 +145,7 @@ class Amount(dict):
         )
 
     def __float__(self):
-        return self["amount"]
+        return float(self["amount"])
 
     def __int__(self):
         return int(self["amount"] * 10 ** self["asset"]["precision"])
@@ -168,6 +171,7 @@ class Amount(dict):
     def __mul__(self, other):
         a = self.copy()
         if isinstance(other, Amount):
+            assert other["asset"] == self["asset"]
             a["amount"] *= other["amount"]
         else:
             a["amount"] *= other
@@ -225,6 +229,7 @@ class Amount(dict):
 
     def __imul__(self, other):
         if isinstance(other, Amount):
+            assert other["asset"] == self["asset"]
             self["amount"] *= other["amount"]
         else:
             self["amount"] *= other

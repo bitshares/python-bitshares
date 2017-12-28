@@ -190,9 +190,8 @@ class Blockchain(object):
                       transaction contented and thus identifies a transaction
                       uniquely.
         """
-        counter = 0
-        start = self.get_current_block_num() - 2
-        for block in self.blocks(start=start):
+        counter = 10
+        for block in self.blocks():
             counter += 1
             for tx in block["transactions"]:
                 if sorted(tx["signatures"]) == sorted(transaction["signatures"]):
