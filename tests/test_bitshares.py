@@ -1,3 +1,4 @@
+import mock
 import string
 import unittest
 import random
@@ -20,7 +21,7 @@ class Testcases(unittest.TestCase):
         self.bts = BitShares(
             "wss://node.testnet.bitshares.eu",
             nobroadcast=True,
-            keys={"active": wif, "owner": wif},
+            keys={"active": wif, "owner": wif, "memo": wif},
         )
         # from getpass import getpass
         # self.bts.wallet.unlock(getpass())
@@ -225,3 +226,18 @@ class Testcases(unittest.TestCase):
         self.assertIn(
             "0:11",
             op["new_options"]["votes"])
+
+    def test_sign_message(self):
+        def new_refresh(self):
+            dict.__init__(
+                self, {"name": "init0",
+                 "options": {
+                     "memo_key": "TEST6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"
+                 }})
+
+        with mock.patch(
+            "bitshares.account.Account.refresh",
+            new=new_refresh
+        ):
+            p = self.bts.sign_message("message foobar")
+            self.bts.verify_message(p)

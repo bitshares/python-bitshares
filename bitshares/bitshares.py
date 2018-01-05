@@ -22,6 +22,7 @@ from .exceptions import (
     AccountDoesNotExistsException,
     InsufficientAuthorityError,
     MissingKeyError,
+    InvalidMessageSignature,
 )
 from .wallet import Wallet
 from .transactionbuilder import TransactionBuilder, ProposalBuilder
@@ -1397,3 +1398,106 @@ class BitShares(object):
             "extensions": []
         })
         return self.finalizeOp(op, account, "active", **kwargs)
+
+    def sign_message(self, message, account=None, **kwargs):
+        """ Sign a message with an account's memo key
+
+            :param str message: Message to sign
+            :param str account: (optional) the account that owns the bet
+                (defaults to ``default_account``)
+
+            :returns: the signed message encapsulated in a known format
+        """
+        from graphenebase.ecdsa import sign_message
+        from binascii import hexlify
+        from . import (
+            SIGNED_MESSAGE_META,
+            SIGNED_MESSAGE_ENCAPSULATED
+        )
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+
+        # Data for message
+        account = Account(account, bitshares_instance=self)
+        info = self.info()
+        message = message.strip()
+        meta = dict(
+            timestamp=info["time"],
+            block=info["head_block_number"],
+            memokey=account["options"]["memo_key"],
+            account=account["name"])
+
+        # wif key
+        wif = self.wallet.getPrivateKeyForPublicKey(
+            account["options"]["memo_key"]
+        )
+        print(SIGNED_MESSAGE_META.format(**locals()))
+
+        # signature
+        signature = hexlify(sign_message(
+            SIGNED_MESSAGE_META.format(**locals()), wif
+        )).decode("ascii")
+
+        return SIGNED_MESSAGE_ENCAPSULATED.format(**locals())
+
+    def verify_message(self, message, **kwargs):
+        """ Verify a message with an account's memo key
+
+            :param str message: Ecapsulated Message to verify
+            :param str account: (optional) the account that owns the bet
+                (defaults to ``default_account``)
+
+            :returns: the signed message encapsulated in a known format
+        """
+        from graphenebase.ecdsa import verify_message
+        from binascii import hexlify, unhexlify
+        from . import (
+            SIGNED_MESSAGE_META,
+            SIGNED_MESSAGE_ENCAPSULATED
+        )
+        # Split message into its parts
+        obj = re.split(
+            (
+                "-----BEGIN BITSHARES SIGNED MESSAGE-----|"
+                "-----BEGIN META-----|"
+                "-----BEGIN SIGNATURE-----|"
+                "-----END BITSHARES SIGNED MESSAGE-----"
+            ),
+            message)
+        parts = [o.strip() for o in obj]
+        assert len(parts) == 5
+
+        message = parts[1]
+        signature = parts[3]
+        # Parse the meta data
+        meta = dict(re.findall(r'(\S+)=(.*)', parts[2]))
+
+        # Ensure we have all the data in meta
+        assert "account" in meta
+        assert "memokey" in meta
+        assert "block" in meta
+        assert "timestamp" in meta
+
+        # Load account from blockchain
+        account = Account(meta.get("account"), bitshares_instance=self)
+
+        # Test if memo key is the same as on the blockchain
+        if not account["options"]["memo_key"] == meta["memokey"]:
+            log.error(
+                "Memo Key of account {} on the Blockchain".format(account["name"]) +
+                "differs from memo key in the message: {} != {}".format(
+                    account["options"]["memo_key"], meta["memokey"]
+                )
+            )
+
+        # Reformat message
+        message = SIGNED_MESSAGE_META.format(**locals())
+        print(message)
+
+        pubkey = verify_message(message, unhexlify(signature))
+        pk = PublicKey(hexlify(pubkey).decode("ascii"))
+        if format(pk, self.rpc.chain_params["prefix"]) != meta["memokey"]:
+            raise InvalidMessageSignature

@@ -100,3 +100,15 @@ class ObjectNotInProposalBuffer(Exception):
     """ Object was not found in proposal
     """
     pass
+
+
+class InvalidMessageSignature(Exception):
+    """ The message signature does not fit the message
+    """
+    pass
+
+
+class KeyNotFound(Exception):
+    """ Key not found
+    """
+    pass
