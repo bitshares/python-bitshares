@@ -209,10 +209,12 @@ class TransactionBuilder(dict):
                 return []
             r = []
             for authority in account[perm]["key_auths"]:
-                wif = self.bitshares.wallet.getPrivateKeyForPublicKey(
-                    authority[0])
-                if wif:
+                try:
+                    wif = self.bitshares.wallet.getPrivateKeyForPublicKey(
+                        authority[0])
                     r.append([wif, authority[1]])
+                except Exception:
+                    pass
 
             if sum([x[1] for x in r]) < required_treshold:
                 # go one level deeper
