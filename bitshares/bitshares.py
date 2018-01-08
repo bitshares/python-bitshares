@@ -22,7 +22,6 @@ from .exceptions import (
     AccountDoesNotExistsException,
     InsufficientAuthorityError,
     MissingKeyError,
-    InvalidMessageSignature,
 )
 from .wallet import Wallet
 from .transactionbuilder import TransactionBuilder, ProposalBuilder
@@ -179,6 +178,10 @@ class BitShares(object):
             rpcpassword = config["rpcpassword"]
 
         self.rpc = BitSharesNodeRPC(node, rpcuser, rpcpassword, **kwargs)
+
+    @property
+    def prefix(self):
+        return self.rpc.chain_params["prefix"]
 
     def newWallet(self, pwd):
         """ Create a new wallet. This method is basically only calls
@@ -441,7 +444,7 @@ class BitShares(object):
                 "asset_id": amount.asset["id"]
             },
             "memo": memoObj.encrypt(memo),
-            "prefix": self.rpc.chain_params["prefix"]
+            "prefix": self.prefix
         })
         return self.finalizeOp(op, account, "active", **kwargs)
 
@@ -549,18 +552,18 @@ class BitShares(object):
                 self.wallet.addPrivateKey(memo_privkey)
         elif (owner_key and active_key and memo_key):
             active_pubkey = PublicKey(
-                active_key, prefix=self.rpc.chain_params["prefix"])
+                active_key, prefix=self.prefix)
             owner_pubkey = PublicKey(
-                owner_key, prefix=self.rpc.chain_params["prefix"])
+                owner_key, prefix=self.prefix)
             memo_pubkey = PublicKey(
-                memo_key, prefix=self.rpc.chain_params["prefix"])
+                memo_key, prefix=self.prefix)
         else:
             raise ValueError(
                 "Call incomplete! Provide either a password or public keys!"
             )
-        owner = format(owner_pubkey, self.rpc.chain_params["prefix"])
-        active = format(active_pubkey, self.rpc.chain_params["prefix"])
-        memo = format(memo_pubkey, self.rpc.chain_params["prefix"])
+        owner = format(owner_pubkey, self.prefix)
+        active = format(active_pubkey, self.prefix)
+        memo = format(memo_pubkey, self.prefix)
 
         owner_key_authority = [[owner, 1]]
         active_key_authority = [[active, 1]]
@@ -606,7 +609,7 @@ class BitShares(object):
                         "extensions": []
                         },
             "extensions": {},
-            "prefix": self.rpc.chain_params["prefix"]
+            "prefix": self.prefix
         }
         op = operations.Account_create(**op)
         return self.finalizeOp(op, registrar, "active", **kwargs)
@@ -627,7 +630,7 @@ class BitShares(object):
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "account_to_upgrade": account["id"],
             "upgrade_to_lifetime_member": True,
-            "prefix": self.rpc.chain_params["prefix"]
+            "prefix": self.prefix
         })
         return self.finalizeOp(op, account["name"], "active", **kwargs)
 
@@ -685,7 +688,7 @@ class BitShares(object):
 
         authority = deepcopy(account[permission])
         try:
-            pubkey = PublicKey(foreign, prefix=self.rpc.chain_params["prefix"])
+            pubkey = PublicKey(foreign, prefix=self.prefix)
             authority["key_auths"].append([
                 str(pubkey),
                 weight
@@ -710,7 +713,7 @@ class BitShares(object):
             "account": account["id"],
             permission: authority,
             "extensions": {},
-            "prefix": self.rpc.chain_params["prefix"]
+            "prefix": self.prefix
         })
         if permission == "owner":
             return self.finalizeOp(op, account["name"], "owner", **kwargs)
@@ -746,7 +749,7 @@ class BitShares(object):
         authority = account[permission]
 
         try:
-            pubkey = PublicKey(foreign, prefix=self.rpc.chain_params["prefix"])
+            pubkey = PublicKey(foreign, prefix=self.prefix)
             affected_items = list(
                 filter(lambda x: x[0] == str(pubkey),
                        authority["key_auths"]))
@@ -816,7 +819,7 @@ class BitShares(object):
         if not account:
             raise ValueError("You need to provide an account")
 
-        PublicKey(key, prefix=self.rpc.chain_params["prefix"])
+        PublicKey(key, prefix=self.prefix)
 
         account = Account(account, bitshares_instance=self)
         account["options"]["memo_key"] = key
@@ -864,7 +867,7 @@ class BitShares(object):
             "account": account["id"],
             "new_options": options,
             "extensions": {},
-            "prefix": self.rpc.chain_params["prefix"]
+            "prefix": self.prefix
         })
         return self.finalizeOp(op, account["name"], "active", **kwargs)
 
@@ -902,7 +905,7 @@ class BitShares(object):
             "account": account["id"],
             "new_options": options,
             "extensions": {},
-            "prefix": self.rpc.chain_params["prefix"]
+            "prefix": self.prefix
         })
         return self.finalizeOp(op, account["name"], "active", **kwargs)
 
@@ -939,7 +942,7 @@ class BitShares(object):
             "account": account["id"],
             "new_options": options,
             "extensions": {},
-            "prefix": self.rpc.chain_params["prefix"]
+            "prefix": self.prefix
         })
         return self.finalizeOp(op, account["name"], "active", **kwargs)
 
@@ -977,7 +980,7 @@ class BitShares(object):
             "account": account["id"],
             "new_options": options,
             "extensions": {},
-            "prefix": self.rpc.chain_params["prefix"]
+            "prefix": self.prefix
         })
         return self.finalizeOp(op, account["name"], "active", **kwargs)
 
@@ -997,7 +1000,7 @@ class BitShares(object):
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
-        is_key = approver and approver[:3] == self.rpc.chain_params["prefix"]
+        is_key = approver and approver[:3] == self.prefix
         if not approver and not is_key:
             approver = account
         elif approver and not is_key:
@@ -1016,7 +1019,7 @@ class BitShares(object):
                 'fee_paying_account': account["id"],
                 'proposal': proposal["id"],
                 'active_approvals_to_add': [approver["id"]],
-                "prefix": self.rpc.chain_params["prefix"]
+                "prefix": self.prefix
             }
             if is_key:
                 update_dict.update({
@@ -1063,7 +1066,7 @@ class BitShares(object):
                 'fee_paying_account': account["id"],
                 'proposal': proposal["id"],
                 'active_approvals_to_remove': [approver["id"]],
-                "prefix": self.rpc.chain_params["prefix"]
+                "prefix": self.prefix
             }))
         return self.finalizeOp(op, account["name"], "active", **kwargs)
 
@@ -1095,7 +1098,7 @@ class BitShares(object):
             "account": account["id"],
             "new_options": options,
             "extensions": {},
-            "prefix": self.rpc.chain_params["prefix"]
+            "prefix": self.prefix
         })
         return self.finalizeOp(op, account["name"], "active", **kwargs)
 
@@ -1128,7 +1131,7 @@ class BitShares(object):
             "account": account["id"],
             "new_options": options,
             "extensions": {},
-            "prefix": self.rpc.chain_params["prefix"]
+            "prefix": self.prefix
         })
         return self.finalizeOp(op, account["name"], "active", **kwargs)
 
@@ -1157,7 +1160,7 @@ class BitShares(object):
                     "fee_paying_account": account["id"],
                     "order": order,
                     "extensions": [],
-                    "prefix": self.rpc.chain_params["prefix"]}))
+                    "prefix": self.prefix}))
         return self.finalizeOp(op, account["name"], "active", **kwargs)
 
     def vesting_balance_withdraw(self, vesting_id, amount=None, account=None, **kwargs):
@@ -1188,7 +1191,7 @@ class BitShares(object):
                 "amount": int(amount),
                 "asset_id": amount["asset"]["id"]
             },
-            "prefix": self.rpc.chain_params["prefix"]
+            "prefix": self.prefix
         })
         return self.finalizeOp(op, account["name"], "active")
 
@@ -1259,7 +1262,7 @@ class BitShares(object):
                 "maximum_short_squeeze_ratio": int(mssr * 10),
                 "maintenance_collateral_ratio": int(mcr * 10),
             },
-            "prefix": self.rpc.chain_params["prefix"]
+            "prefix": self.prefix
         })
         return self.finalizeOp(op, account["name"], "active")
 
@@ -1274,7 +1277,7 @@ class BitShares(object):
         account = witness.account
         op = operations.Witness_update(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "prefix": self.rpc.chain_params["prefix"],
+            "prefix": self.prefix,
             "witness": witness["id"],
             "witness_account": account["id"],
             "new_url": url,
@@ -1398,106 +1401,3 @@ class BitShares(object):
             "extensions": []
         })
         return self.finalizeOp(op, account, "active", **kwargs)
-
-    def sign_message(self, message, account=None, **kwargs):
-        """ Sign a message with an account's memo key
-
-            :param str message: Message to sign
-            :param str account: (optional) the account that owns the bet
-                (defaults to ``default_account``)
-
-            :returns: the signed message encapsulated in a known format
-        """
-        from graphenebase.ecdsa import sign_message
-        from binascii import hexlify
-        from . import (
-            SIGNED_MESSAGE_META,
-            SIGNED_MESSAGE_ENCAPSULATED
-        )
-        if not account:
-            if "default_account" in config:
-                account = config["default_account"]
-        if not account:
-            raise ValueError("You need to provide an account")
-
-        # Data for message
-        account = Account(account, bitshares_instance=self)
-        info = self.info()
-        message = message.strip()
-        meta = dict(
-            timestamp=info["time"],
-            block=info["head_block_number"],
-            memokey=account["options"]["memo_key"],
-            account=account["name"])
-
-        # wif key
-        wif = self.wallet.getPrivateKeyForPublicKey(
-            account["options"]["memo_key"]
-        )
-        print(SIGNED_MESSAGE_META.format(**locals()))
-
-        # signature
-        signature = hexlify(sign_message(
-            SIGNED_MESSAGE_META.format(**locals()), wif
-        )).decode("ascii")
-
-        return SIGNED_MESSAGE_ENCAPSULATED.format(**locals())
-
-    def verify_message(self, message, **kwargs):
-        """ Verify a message with an account's memo key
-
-            :param str message: Ecapsulated Message to verify
-            :param str account: (optional) the account that owns the bet
-                (defaults to ``default_account``)
-
-            :returns: the signed message encapsulated in a known format
-        """
-        from graphenebase.ecdsa import verify_message
-        from binascii import hexlify, unhexlify
-        from . import (
-            SIGNED_MESSAGE_META,
-            SIGNED_MESSAGE_ENCAPSULATED
-        )
-        # Split message into its parts
-        obj = re.split(
-            (
-                "-----BEGIN BITSHARES SIGNED MESSAGE-----|"
-                "-----BEGIN META-----|"
-                "-----BEGIN SIGNATURE-----|"
-                "-----END BITSHARES SIGNED MESSAGE-----"
-            ),
-            message)
-        parts = [o.strip() for o in obj]
-        assert len(parts) == 5
-
-        message = parts[1]
-        signature = parts[3]
-        # Parse the meta data
-        meta = dict(re.findall(r'(\S+)=(.*)', parts[2]))
-
-        # Ensure we have all the data in meta
-        assert "account" in meta
-        assert "memokey" in meta
-        assert "block" in meta
-        assert "timestamp" in meta
-
-        # Load account from blockchain
-        account = Account(meta.get("account"), bitshares_instance=self)
-
-        # Test if memo key is the same as on the blockchain
-        if not account["options"]["memo_key"] == meta["memokey"]:
-            log.error(
-                "Memo Key of account {} on the Blockchain".format(account["name"]) +
-                "differs from memo key in the message: {} != {}".format(
-                    account["options"]["memo_key"], meta["memokey"]
-                )
-            )
-
-        # Reformat message
-        message = SIGNED_MESSAGE_META.format(**locals())
-        print(message)
-
-        pubkey = verify_message(message, unhexlify(signature))
-        pk = PublicKey(hexlify(pubkey).decode("ascii"))
-        if format(pk, self.rpc.chain_params["prefix"]) != meta["memokey"]:
-            raise InvalidMessageSignature

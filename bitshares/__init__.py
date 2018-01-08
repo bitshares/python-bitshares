@@ -16,23 +16,6 @@ __all__ = [
     "wallet",
     "committee",
     "vesting",
-    "proposal"
+    "proposal",
+    "message"
 ]
-
-SIGNED_MESSAGE_META = """{message}
-account={meta[account]}
-memokey={meta[memokey]}
-block={meta[block]}
-timestamp={meta[timestamp]}"""
-
-SIGNED_MESSAGE_ENCAPSULATED = """
------BEGIN BITSHARES SIGNED MESSAGE-----
-{message}
------BEGIN META-----
-account={meta[account]}
-memokey={meta[memokey]}
-block={meta[block]}
-timestamp={meta[timestamp]}
------BEGIN SIGNATURE-----
-{signature}
------END BITSHARES SIGNED MESSAGE-----"""
