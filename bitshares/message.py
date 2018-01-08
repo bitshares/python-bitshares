@@ -58,7 +58,7 @@ class Message():
             raise ValueError("You need to provide an account")
 
         # Data for message
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, bitshares_instance=self.bitshares)
         info = self.bitshares.info()
         meta = dict(
             timestamp=info["time"],
@@ -72,17 +72,14 @@ class Message():
         )
 
         # signature
+        message = self.message
         signature = hexlify(sign_message(
-            SIGNED_MESSAGE_META.format(
-                message=self.message,
-                **locals(),
-            ),
+            SIGNED_MESSAGE_META.format(**locals()),
             wif
         )).decode("ascii")
 
-        return SIGNED_MESSAGE_ENCAPSULATED.format(
-            message=self.message,
-            **locals())
+        message = self.message
+        return SIGNED_MESSAGE_ENCAPSULATED.format(**locals())
 
     def verify(self, **kwargs):
         """ Verify a message with an account's memo key
@@ -109,7 +106,7 @@ class Message():
         assert "timestamp" in meta
 
         # Load account from blockchain
-        account = Account(meta.get("account"), bitshares_instance=self)
+        account = Account(meta.get("account"), bitshares_instance=self.bitshares)
 
         # Test if memo key is the same as on the blockchain
         if not account["options"]["memo_key"] == meta["memokey"]:
