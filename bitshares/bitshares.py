@@ -1,8 +1,5 @@
 import json
 import logging
-import random
-import re
-import collections
 
 from datetime import datetime, timedelta
 from bitsharesapi.bitsharesnoderpc import BitSharesNodeRPC
@@ -19,9 +16,6 @@ from .worker import Worker
 from .storage import configStorage as config
 from .exceptions import (
     AccountExistsException,
-    AccountDoesNotExistsException,
-    InsufficientAuthorityError,
-    MissingKeyError,
 )
 from .wallet import Wallet
 from .transactionbuilder import TransactionBuilder, ProposalBuilder

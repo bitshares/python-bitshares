@@ -75,6 +75,7 @@ class Asset(BlockchainObject):
             "bitasset_data_id" in self and
             "bitasset_data" in self
         )
+
     @property
     def symbol(self):
         return self["symbol"]

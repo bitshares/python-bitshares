@@ -239,5 +239,5 @@ class Testcases(unittest.TestCase):
             "bitshares.account.Account.refresh",
             new=new_refresh
         ):
-            p = self.bts.sign_message("message foobar")
-            self.bts.verify_message(p)
+            p = Message("message foobar").sign()
+            Message(p).verify()
