@@ -5,6 +5,12 @@ class WalletExists(Exception):
     pass
 
 
+class WalletLocked(Exception):
+    """ Wallet is locked
+    """
+    pass
+
+
 class AccountExistsException(Exception):
     """ The requested account already exists
     """
