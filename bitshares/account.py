@@ -47,7 +47,7 @@ class Account(BlockchainObject):
             account,
             lazy=lazy,
             full=full,
-            bitshares_instance=None
+            bitshares_instance=bitshares_instance
         )
 
     def refresh(self):

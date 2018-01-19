@@ -63,7 +63,7 @@ class Memo(object):
             PrivateKey(memo_wif),
             PublicKey(
                 self.to_account["options"]["memo_key"],
-                prefix=self.bitshares.rpc.chain_params["prefix"]
+                prefix=self.bitshares.prefix
             ),
             nonce,
             memo
