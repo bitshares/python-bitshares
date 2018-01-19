@@ -8,6 +8,7 @@ from bitsharesbase.operationids import getOperationNameForId
 from bitshares.amount import Amount
 from bitsharesbase.account import PrivateKey
 from bitshares.instance import set_shared_bitshares_instance
+from bitshares.message import Message
 
 wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
 core_unit = "TEST"
