@@ -129,7 +129,10 @@ class Account(BlockchainObject):
         """
         from .price import Order
         self.ensure_full()
-        return [Order(o) for o in self["limit_orders"]]
+        return [
+            Order(o, bitshares_instance=self.bitshares)
+            for o in self["limit_orders"]
+        ]
 
     @property
     def is_fully_loaded(self):
