@@ -130,6 +130,8 @@ class Wallet():
     def locked(self):
         """ Is the wallet database locked?
         """
+        if Wallet.keys:  # Keys have been manually provided!
+            return False
         try:
             self.tryUnlockFromEnv()
         except:
