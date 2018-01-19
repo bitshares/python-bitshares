@@ -518,6 +518,8 @@ class Market(dict):
             tx["orderid"] = tx["operation_results"][0][1]
             self.bitshares.blocking = prevblocking
 
+        return tx
+
     def cancel(self, orderNumber, account=None):
         """ Cancels an order you have placed in a given market. Requires
             only the "orderNumber". An order number takes the form
