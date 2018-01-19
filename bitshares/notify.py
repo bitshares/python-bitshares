@@ -4,7 +4,7 @@ from bitsharesapi.websocket import BitSharesWebsocket
 from bitshares.instance import shared_bitshares_instance
 from bitshares.market import Market
 from bitshares.price import Order, FilledOrder, UpdateCallOrder
-from bitshares.account import Account, AccountUpdate
+from bitshares.account import AccountUpdate
 log = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -125,7 +125,10 @@ class Notify(Events):
             if isinstance(d, str):
                 # Single order has been placed
                 log.debug("Calling on_market with Order()")
-                self.on_market(Order(d))
+                self.on_market(Order(
+                    d,
+                    bitshares_instance=self.bitshares
+                ))
                 continue
             elif isinstance(d, dict):
                 d = [d]
@@ -137,11 +140,20 @@ class Notify(Events):
                 for i in p:
                     if isinstance(i, dict):
                         if "pays" in i and "receives" in i:
-                            self.on_market(FilledOrder(i))
+                            self.on_market(FilledOrder(
+                                i,
+                                bitshares_instance=self.bitshares
+                            ))
                         elif "for_sale" in i and "sell_price" in i:
-                            self.on_market(Order(i))
+                            self.on_market(Order(
+                                i,
+                                bitshares_instance=self.bitshares
+                            ))
                         elif "collateral" in i and "call_price" in i:
-                            self.on_market(UpdateCallOrder(i))
+                            self.on_market(UpdateCallOrder(
+                                i,
+                                bitshares_instance=self.bitshares
+                            ))
                         else:
                             if i:
                                 log.error(
@@ -152,7 +164,10 @@ class Notify(Events):
         """ This is used for processing of account Updates. It will
             return instances of :class:bitshares.account.AccountUpdate`
         """
-        self.on_account(AccountUpdate(message))
+        self.on_account(AccountUpdate(
+            message,
+            bitshares_instance=self.bitshares
+        ))
 
     def listen(self):
         """ This call initiates the listening/notification process. It

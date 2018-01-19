@@ -1,36 +1,26 @@
-from .instance import shared_bitshares_instance
 from .account import Account
 from .exceptions import VestingBalanceDoesNotExistsException
-import logging
-log = logging.getLogger(__name__)
+from .blockchainobject import BlockchainObject
 
 
-class Vesting(dict):
+class Vesting(BlockchainObject):
     """ Read data about a Vesting Balance in the chain
 
         :param str id: Id of the vesting balance
         :param bitshares bitshares_instance: BitShares() instance to use when accesing a RPC
 
     """
-    def __init__(
-        self,
-        id,
-        bitshares_instance=None,
-    ):
-        self.id = id
-
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
-        self.refresh()
+    type_id = 13
 
     def refresh(self):
-        a, b, c = self.id.split(".")
-        assert int(a) == 1 and int(b) == 13, "Valid vesting balances are 1.13.x"
-        obj = self.bitshares.rpc.get_objects([self.id])[0]
-        super(Vesting, self).__init__(obj)
+        obj = self.bitshares.rpc.get_objects([self.identifier])[0]
+        if not obj:
+            raise VestingBalanceDoesNotExistsException
+        super(Vesting, self).__init__(obj, bitshares_instance=self.bitshares)
 
     @property
     def account(self):
-        return Account(self["owner"])
+        return Account(self["owner"], bitshares_instance=self.bitshares)
 
     @property
     def claimable(self):
@@ -42,10 +32,12 @@ class Vesting(dict):
                     float(self["balance"]["amount"])) /
                 float(p["vesting_seconds"])
             ) if float(p["vesting_seconds"]) > 0.0 else 1
-            return Amount(self["balance"]) * ratio
+            return Amount(
+                self["balance"],
+                bitshares_instance=self.bitshares
+            ) * ratio
         else:
-            log.warning("This policy isn't implemented yet")
-            return 0
+            raise NotImplementedError("This policy isn't implemented yet")
 
     def claim(self, amount=None):
         return self.bitshares.vesting_balance_withdraw(

@@ -1,10 +1,10 @@
 from fractions import Fraction
 from bitshares.instance import shared_bitshares_instance
+from .exceptions import InvalidAssetException
 from .account import Account
 from .amount import Amount
 from .asset import Asset
 from .utils import formatTimeString
-from .witness import Witness
 from .utils import parse_time, assets_from_string
 
 
@@ -99,7 +99,7 @@ class Price(dict):
         elif len(args) == 1 and isinstance(args[0], dict) and "receives" in args[0]:
             # Filled order
             assert base_asset, "Need a 'base_asset' asset"
-            base_asset = Asset(base_asset)
+            base_asset = Asset(base_asset, bitshares_instance=self.bitshares)
             if args[0]["receives"]["asset_id"] == base_asset["id"]:
                 # If the seller received "base" in a quote_base market, than
                 # it has been a sell order of quote
@@ -120,8 +120,8 @@ class Price(dict):
 
         elif (len(args) == 1 and isinstance(base, str) and isinstance(quote, str)):
             price = args[0]
-            base = Asset(base)
-            quote = Asset(quote)
+            base = Asset(base, bitshares_instance=self.bitshares)
+            quote = Asset(quote, bitshares_instance=self.bitshares)
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
             self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
             self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
@@ -178,6 +178,33 @@ class Price(dict):
         else:
             return float('Inf')
 
+    def symbols(self):
+        return self["base"]["symbol"], self["quote"]["symbol"]
+
+    def as_base(self, base):
+        """ Returns the price instance so that the base asset is ``base``.
+
+            Note: This makes a copy of the object!
+        """
+        if base == self["base"]["symbol"]:
+            return self.copy()
+        elif base == self["quote"]["symbol"]:
+            return self.copy().invert()
+        else:
+            raise InvalidAssetException
+
+    def as_quote(self, quote):
+        """ Returns the price instance so that the quote asset is ``quote``.
+
+            Note: This makes a copy of the object!
+        """
+        if quote == self["quote"]["symbol"]:
+            return self.copy()
+        elif quote == self["base"]["symbol"]:
+            return self.copy().invert()
+        else:
+            raise InvalidAssetException
+
     def invert(self):
         """ Invert the price (e.g. go from ``USD/BTS`` into ``BTS/USD``)
         """
@@ -209,20 +236,37 @@ class Price(dict):
     def __mul__(self, other):
         a = self.copy()
         if isinstance(other, Price):
+            # Rotate/invert other
             if (
-                self["quote"]["asset"]["symbol"] ==
-                other["base"]["asset"]["symbol"]
+                self["quote"]["symbol"] not in other.symbols() and
+                self["base"]["symbol"] not in other.symbols()
             ):
-                a["base"] = Amount(float(self["base"] * other["base"]), self["base"]["asset"])
-                a["quote"] = Amount(float(self["quote"] * other["quote"]), other["quote"]["asset"])
-            elif (
-                self["base"]["asset"]["symbol"] ==
-                other["quote"]["asset"]["symbol"]
-            ):
-                a["quote"] = Amount(float(self["quote"] * other["quote"]), self["quote"]["asset"])
-                a["base"] = Amount(float(self["base"] * other["base"]), other["base"]["asset"])
+                raise InvalidAssetException
+
+            # base/quote = a/b
+            # a/b * b/c = a/c
+            a = self.copy()
+            if self["quote"]["symbol"] == other["base"]["symbol"]:
+                a["base"] = Amount(
+                    float(self["base"]) * float(other["base"]), self["base"]["symbol"],
+                    bitshares_instance=self.bitshares
+                )
+                a["quote"] = Amount(
+                    float(self["quote"]) * float(other["quote"]), other["quote"]["symbol"],
+                    bitshares_instance=self.bitshares
+                )
+            # a/b * c/a =  c/b
+            elif self["base"]["symbol"] == other["quote"]["symbol"]:
+                a["base"] = Amount(
+                    float(self["base"]) * float(other["base"]), other["base"]["symbol"],
+                    bitshares_instance=self.bitshares
+                )
+                a["quote"] = Amount(
+                    float(self["quote"]) * float(other["quote"]), self["quote"]["symbol"],
+                    bitshares_instance=self.bitshares
+                )
             else:
-                raise ValueError("Multiplication of two unmatching prices!")
+                raise ValueError("Wrong rotation of prices")
         elif isinstance(other, Amount):
             assert other["asset"]["id"] == self["quote"]["asset"]["id"]
             a = other.copy() * self["price"]
@@ -234,39 +278,56 @@ class Price(dict):
 
     def __imul__(self, other):
         if isinstance(other, Price):
-            raise ValueError("'*=' Not supported for two prices")
+            tmp = self * other
+            self["base"] = tmp["base"]
+            self["quote"] = tmp["quote"]
         else:
             self["base"] *= other
         return self
 
     def __div__(self, other):
+        a = self.copy()
         if isinstance(other, Price):
-            return self["price"] / other["price"]
+            # Rotate/invert other
+            if sorted(self.symbols()) == sorted(other.symbols()):
+                return float(self.as_base(self["base"]["symbol"])) / float(other.as_base(self["base"]["symbol"]))
+            elif self["quote"]["symbol"] in other.symbols():
+                other = other.as_base(self["quote"]["symbol"])
+            elif self["base"]["symbol"] in other.symbols():
+                other = other.as_base(self["base"]["symbol"])
+            else:
+                raise InvalidAssetException
+            a["base"] = Amount(
+                float(self["quote"] / other["quote"]), other["quote"]["symbol"],
+                bitshares_instance=self.bitshares
+            )
+            a["quote"] = Amount(
+                float(self["base"] / other["base"]), self["quote"]["symbol"],
+                bitshares_instance=self.bitshares
+            )
+        elif isinstance(other, Amount):
+            assert other["asset"]["id"] == self["quote"]["asset"]["id"]
+            a = other.copy() / self["price"]
+            a["asset"] = self["base"]["asset"].copy()
+            a["symbol"] = self["base"]["asset"]["symbol"]
         else:
-            a = self.copy()
             a["base"] /= other
-            return a
+        return a
 
     def __idiv__(self, other):
         if isinstance(other, Price):
-            return self["price"] / other["price"]
+            tmp = self / other
+            self["base"] = tmp["base"]
+            self["quote"] = tmp["quote"]
         else:
             self["base"] /= other
         return self
 
     def __floordiv__(self, other):
-        if isinstance(other, Price):
-            return self["price"] / other["price"]
-        else:
-            a = self.copy()
-            a["base"] //= other
+        raise NotImplementedError("This is not possible as the price is a ratio")
 
     def __ifloordiv__(self, other):
-        if isinstance(other, Price):
-            return self["price"] / other["price"]
-        else:
-            self["base"] //= other
-            return self
+        raise NotImplementedError("This is not possible as the price is a ratio")
 
     def __lt__(self, other):
         if isinstance(other, Price):
@@ -349,7 +410,6 @@ class Order(Price):
                 'deleted' key which is set to ``True`` and all other
                 data be ``None``.
     """
-
     def __init__(self, *args, bitshares_instance=None, **kwargs):
 
         self.bitshares = bitshares_instance or shared_bitshares_instance()
@@ -433,6 +493,8 @@ class FilledOrder(Price):
                 quote=kwargs.get("quote"),
             )
             self["time"] = formatTimeString(order["date"])
+            self["side1_account_id"] = order["side1_account_id"]
+            self["side2_account_id"] = order["side2_account_id"]
 
         elif isinstance(order, dict):
             # filled orders from account history
@@ -516,7 +578,11 @@ class PriceFeed(dict):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
         if len(feed) == 2:
             super(PriceFeed, self).__init__({
-                "producer": Account(feed[0], lazy=True),
+                "producer": Account(
+                    feed[0],
+                    lazy=True,
+                    bitshares_instance=self.bitshares
+                ),
                 "date": parse_time(feed[1][0]),
                 "maintenance_collateral_ratio": feed[1][1]["maintenance_collateral_ratio"],
                 "maximum_short_squeeze_ratio": feed[1][1]["maximum_short_squeeze_ratio"],

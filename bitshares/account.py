@@ -1,17 +1,21 @@
 from bitshares.instance import shared_bitshares_instance
 from .exceptions import AccountDoesNotExistsException
+from .blockchainobject import BlockchainObject
 
 
-class Account(dict):
+class Account(BlockchainObject):
     """ This class allows to easily access Account data
 
         :param str account_name: Name of the account
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param bitshares.bitshares.BitShares bitshares_instance: BitShares
+               instance
         :param bool lazy: Use lazy loading
-        :param bool full: Obtain all account data including orders, positions, etc.
+        :param bool full: Obtain all account data including orders, positions,
+               etc.
         :returns: Account data
         :rtype: dictionary
-        :raises bitshares.exceptions.AccountDoesNotExistsException: if account does not exist
+        :raises bitshares.exceptions.AccountDoesNotExistsException: if account
+                does not exist
 
         Instances of this class are dictionaries that come with additional
         methods (see below) that allow dealing with an account and it's
@@ -29,74 +33,49 @@ class Account(dict):
 
     """
 
-    accounts_cache = dict()
+    type_id = 2
 
     def __init__(
         self,
         account,
-        lazy=False,
         full=False,
+        lazy=False,
         bitshares_instance=None
     ):
-        self.cached = False
         self.full = full
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
-
-        if isinstance(account, Account):
-            super(Account, self).__init__(account)
-            self.name = account["name"]
-        elif isinstance(account, str):
-            self.name = account.strip().lower()
-        else:
-            raise ValueError("Account() expects an account name, id or an instance of Account")
-
-        if self.name in Account.accounts_cache and not self.full:
-            super(Account, self).__init__(Account.accounts_cache[self.name])
-            self.cached = True
-        elif not lazy and not self.cached:
-            self.refresh()
-            self.cached = True
+        super().__init__(
+            account,
+            lazy=lazy,
+            full=full,
+            bitshares_instance=None
+        )
 
     def refresh(self):
         """ Refresh/Obtain an account's data from the API server
         """
         import re
-        if re.match("^1\.2\.[0-9]*$", self.name):
-            account = self.bitshares.rpc.get_objects([self.name])[0]
+        if re.match("^1\.2\.[0-9]*$", self.identifier):
+            account = self.bitshares.rpc.get_objects([self.identifier])[0]
         else:
-            account = self.bitshares.rpc.lookup_account_names([self.name])[0]
+            account = self.bitshares.rpc.lookup_account_names(
+                [self.identifier])[0]
         if not account:
-            raise AccountDoesNotExistsException(self.name)
+            raise AccountDoesNotExistsException(self.identifier)
+        self.identifier = account["id"]
 
         if self.full:
-            account = self.bitshares.rpc.get_full_accounts([account["id"]], False)[0][1]
+            account = self.bitshares.rpc.get_full_accounts(
+                [account["id"]], False)[0][1]
             super(Account, self).__init__(account["account"])
-            self._cache(account["account"])
             for k, v in account.items():
                 if k != "account":
                     self[k] = v
         else:
             super(Account, self).__init__(account)
-            self._cache(account)
-        self.cached = True
-        self.name = self["name"]
 
-    def _cache(self, account):
-        # store in cache
-        Account.accounts_cache[account["name"]] = account
-
-    def __getitem__(self, key):
-        if not self.cached:
-            self.refresh()
-        return super(Account, self).__getitem__(key)
-
-    def __repr__(self):
-        return "<Account: {}".format(self.name)
-
-    def items(self):
-        if not self.cached:
-            self.refresh()
-        return super(Account, self).items()
+    @property
+    def name(self):
+        return self["name"]
 
     @property
     def is_ltm(self):
@@ -139,9 +118,7 @@ class Account(dict):
     def callpositions(self):
         """ List call positions (collateralized positions :doc:`mpa`)
         """
-        if not self.full:
-            self.full = True
-            self.refresh()
+        self.ensure_full()
         from .dex import Dex
         dex = Dex(bitshares_instance=self.bitshares)
         return dex.list_debt_positions(self)
@@ -151,10 +128,19 @@ class Account(dict):
         """ Returns open Orders
         """
         from .price import Order
-        if not self.full:
+        self.ensure_full()
+        return [Order(o) for o in self["limit_orders"]]
+
+    @property
+    def is_fully_loaded(self):
+        """ Is this instance fully loaded / e.g. all data available?
+        """
+        return (self.full and "votes" in self)
+
+    def ensure_full(self):
+        if not self.is_fully_loaded:
             self.full = True
             self.refresh()
-        return [Order(o) for o in self["limit_orders"]]
 
     def history(
         self, first=None,
@@ -165,10 +151,14 @@ class Account(dict):
             latest operation will be first. This call can be used in a
             ``for`` loop.
 
-            :param int first: sequence number of the first transaction to return (*optional*)
-            :param int limit: limit number of transactions to return (*optional*)
-            :param array only_ops: Limit generator by these operations (*optional*)
-            :param array exclude_ops: Exclude thse operations from generator (*optional*)
+            :param int first: sequence number of the first
+                transaction to return (*optional*)
+            :param int limit: limit number of transactions to
+                return (*optional*)
+            :param array only_ops: Limit generator by these
+                operations (*optional*)
+            :param array exclude_ops: Exclude thse operations from
+                generator (*optional*)
         """
         from bitsharesbase.operations import getOperationNameForId
         _limit = 100
@@ -182,7 +172,7 @@ class Account(dict):
             api="history"
         )
         if not mostrecent:
-            raise StopIteration
+            return
 
         if not first:
             # first = int(mostrecent[0].get("id").split(".")[2]) + 1
@@ -198,13 +188,17 @@ class Account(dict):
                 api="history"
             )
             for i in txs:
-                if exclude_ops and getOperationNameForId(i["op"][0]) in exclude_ops:
+                if exclude_ops and getOperationNameForId(
+                    i["op"][0]
+                ) in exclude_ops:
                     continue
-                if not only_ops or getOperationNameForId(i["op"][0]) in only_ops:
+                if not only_ops or getOperationNameForId(
+                    i["op"][0]
+                ) in only_ops:
                     cnt += 1
                     yield i
                     if limit >= 0 and cnt >= limit:
-                        raise StopIteration
+                        return
 
             if not txs:
                 break

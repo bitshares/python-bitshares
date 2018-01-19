@@ -3,12 +3,8 @@ from bitshares.instance import shared_bitshares_instance
 from .account import Account
 from .asset import Asset
 from .amount import Amount
-from .market import Market
-from .price import Price, Order
-from .exceptions import NoWalletException
-from .utils import formatTimeFromNow
+from .price import Price
 from bitsharesbase import operations
-from bitsharesbase.objects import Operation
 
 
 class Dex():
@@ -84,15 +80,30 @@ class Dex():
 
         r = {}
         for debt in account.get("call_orders"):
-            base = Asset(debt["call_price"]["base"]["asset_id"], full=True)
-            quote = Asset(debt["call_price"]["quote"]["asset_id"], full=True)
+            base = Asset(
+                debt["call_price"]["base"]["asset_id"],
+                full=True,
+                bitshares_instance=self.bitshares
+            )
+            quote = Asset(
+                debt["call_price"]["quote"]["asset_id"],
+                full=True,
+                bitshares_instance=self.bitshares
+            )
             if not quote.is_bitasset:
                 continue
+            quote.ensure_full()
             bitasset = quote["bitasset_data"]
-            settlement_price = Price(bitasset["current_feed"]["settlement_price"])
+            settlement_price = Price(
+                bitasset["current_feed"]["settlement_price"],
+                bitshares_instance=self.bitshares
+            )
             if not settlement_price:
                 continue
-            call_price = Price(debt["call_price"])
+            call_price = Price(
+                debt["call_price"],
+                bitshares_instance=self.bitshares
+            )
             collateral_amount = Amount({
                 "amount": debt["collateral"],
                 "asset": base
@@ -159,7 +170,11 @@ class Dex():
 
         # We sell quote and pay with base
         symbol = delta["symbol"]
-        asset = Asset(symbol, full=True)
+        asset = Asset(
+            symbol,
+            full=True,
+            bitshares_instance=self.bitshares
+        )
         if not asset.is_bitasset:
             raise ValueError("%s is not a bitasset!" % symbol)
         bitasset = asset["bitasset_data"]
@@ -176,8 +191,14 @@ class Dex():
             raise ValueError("Collateral Ratio has to be higher than %5.2f" % maintenance_col_ratio)
 
         # Derive Amount of Collateral
-        collateral_asset = Asset(backing_asset_id)
-        settlement_price = Price(bitasset["current_feed"]["settlement_price"])
+        collateral_asset = Asset(
+            backing_asset_id,
+            bitshares_instance=self.bitshares
+        )
+        settlement_price = Price(
+            bitasset["current_feed"]["settlement_price"],
+            bitshares_instance=self.bitshares
+        )
 
         if symbol in current_debts:
             amount_of_collateral = (

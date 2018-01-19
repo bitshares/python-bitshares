@@ -21,6 +21,8 @@ from .objects import (
     AssetOptions,
     ObjectId,
     Worker_initializer,
+    SpecialAuthority,
+    AccountCreateExtensions
 )
 
 default_prefix = "BTS"
@@ -37,13 +39,19 @@ def getOperationNameForId(i):
 
 class Transfer(GrapheneObject):
     def __init__(self, *args, **kwargs):
+        # Allow for overwrite of prefix
         if isArgsThisClass(self, args):
                 self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
+            prefix = kwargs.get("prefix", default_prefix)
             if "memo" in kwargs and kwargs["memo"]:
-                memo = Optional(Memo(kwargs["memo"]))
+                if isinstance(kwargs["memo"], dict):
+                    kwargs["memo"]["prefix"] = prefix
+                    memo = Optional(Memo(**kwargs["memo"]))
+                else:
+                    memo = Optional(Memo(kwargs["memo"]))
             else:
                 memo = Optional(None)
             super().__init__(OrderedDict([
@@ -253,6 +261,7 @@ class Override_transfer(GrapheneObject):
 
 
 class Account_create(GrapheneObject):
+
     def __init__(self, *args, **kwargs):
         # Allow for overwrite of prefix
         if isArgsThisClass(self, args):
@@ -271,7 +280,7 @@ class Account_create(GrapheneObject):
                 ('owner', Permission(kwargs["owner"], prefix=prefix)),
                 ('active', Permission(kwargs["active"], prefix=prefix)),
                 ('options', AccountOptions(kwargs["options"], prefix=prefix)),
-                ('extensions', Set([])),
+                ('extensions', AccountCreateExtensions(kwargs["extensions"])),
             ]))
 
 
@@ -440,4 +449,22 @@ class Worker_create(GrapheneObject):
                 ('name', String(kwargs["name"])),
                 ('url', String(kwargs["url"])),
                 ('initializer', Worker_initializer(kwargs["initializer"])),
+            ]))
+
+
+class Bid_collateral(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('bidder', ObjectId(kwargs["bidder"], "account")),
+                ('additional_collateral', Asset(
+                    kwargs["additional_collateral"])),
+                ('debt_covered', Asset(kwargs["debt_covered"])),
+                ('extensions', Set([])),
             ]))

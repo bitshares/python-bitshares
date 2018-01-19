@@ -1,48 +1,44 @@
-from bitshares.instance import shared_bitshares_instance
 from .account import Account
 from .exceptions import CommitteeMemberDoesNotExistsException
+from .blockchainobject import BlockchainObject
 
 
-class Committee(dict):
+class Committee(BlockchainObject):
     """ Read data about a Committee Member in the chain
 
         :param str member: Name of the Committee Member
-        :param bitshares bitshares_instance: BitShares() instance to use when accesing a RPC
+        :param bitshares bitshares_instance: BitShares() instance to use when
+            accesing a RPC
         :param bool lazy: Use lazy loading
 
     """
-    def __init__(
-        self,
-        member,
-        bitshares_instance=None,
-        lazy=False
-    ):
-        self.cached = False
-        self.member = member
-
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
-
-        if not lazy:
-            self.refresh()
+    type_id = 5
 
     def refresh(self):
-        account = Account(self.member)
-        member = self.bitshares.rpc.get_committee_member_by_account(account["id"])
+        if self.test_valid_objectid(self.identifier):
+            _, i, _ = self.identifier.split(".")
+            if int(i) == 2:
+                account = Account(
+                    self.identifier, bitshares_instance=self.bitshares)
+                member = self.bitshares.rpc.get_committee_member_by_account(
+                    account["id"])
+            elif int(i) == 5:
+                member = self.bitshares.rpc.get_object(self.identifier)
+            else:
+                raise CommitteeMemberDoesNotExistsException
+        else:
+            # maybe identifier is an account name
+            account = Account(
+                self.identifier, bitshares_instance=self.bitshares)
+            member = self.bitshares.rpc.get_committee_member_by_account(
+                account["id"])
+
         if not member:
             raise CommitteeMemberDoesNotExistsException
-        super(Committee, self).__init__(member)
-        self.cached = True
-
-    def __getitem__(self, key):
-        if not self.cached:
-            self.refresh()
-        return super(Committee, self).__getitem__(key)
-
-    def items(self):
-        if not self.cached:
-            self.refresh()
-        return super(Committee, self).items()
+        super(Committee, self).__init__(
+            member, bitshares_instance=self.bitshares)
+        self.account_id = account["id"]
 
     @property
     def account(self):
-        return Account(self.member)
+        return Account(self.account_id)
