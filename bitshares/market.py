@@ -536,7 +536,10 @@ class Market(dict):
             raise ValueError("Quote (%s) is not a bitasset!" % self["quote"]["symbol"])
         self["quote"].full = True
         self["quote"].refresh()
-        collateral = Asset(self["quote"]["bitasset_data"]["options"]["short_backing_asset"])
+        collateral = Asset(
+            self["quote"]["bitasset_data"]["options"]["short_backing_asset"],
+            bitshares_instance=self.bitshares
+        )
         return Market(quote=self["quote"], base=collateral)
 
     def core_base_market(self):
@@ -548,5 +551,8 @@ class Market(dict):
             raise ValueError("base (%s) is not a bitasset!" % self["base"]["symbol"])
         self["base"].full = True
         self["base"].refresh()
-        collateral = Asset(self["base"]["bitasset_data"]["options"]["short_backing_asset"])
+        collateral = Asset(
+            self["base"]["bitasset_data"]["options"]["short_backing_asset"],
+            bitshares_instance=self.bitshares
+        )
         return Market(quote=self["base"], base=collateral)

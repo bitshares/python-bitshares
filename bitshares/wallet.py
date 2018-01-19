@@ -325,7 +325,7 @@ class Wallet():
         """
         for id in self.getAccountsFromPublicKey(pub):
             try:
-                account = Account(id)
+                account = Account(id)   # FIXME: self.bitshares is not available in wallet!
             except:
                 continue
             yield {"name": account["name"],
@@ -342,7 +342,7 @@ class Wallet():
             return {"name": None, "type": None, "pubkey": pub}
         else:
             try:
-                account = Account(name)
+                account = Account(name)   # FIXME: self.bitshares is not available in wallet!
             except:
                 return
             return {"name": account["name"],

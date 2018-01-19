@@ -40,7 +40,7 @@ class Asset(BlockchainObject):
             asset,
             lazy=lazy,
             full=full,
-            bitshares_instance=None
+            bitshares_instance=bitshares_instance
         )
 
     def refresh(self):
@@ -49,7 +49,7 @@ class Asset(BlockchainObject):
         asset = self.bitshares.rpc.get_asset(self.identifier)
         if not asset:
             raise AssetDoesNotExistsException(self.identifier)
-        super(Asset, self).__init__(asset)
+        super(Asset, self).__init__(asset, bitshares_instance=self.bitshares)
         if self.full:
             if "bitasset_data_id" in asset:
                 self["bitasset_data"] = self.bitshares.rpc.get_object(
@@ -115,7 +115,10 @@ class Asset(BlockchainObject):
             return
         r = []
         for feed in self["bitasset_data"]["feeds"]:
-            r.append(PriceFeed(feed))
+            r.append(PriceFeed(
+                feed,
+                bitshares_instance=self.bitshares
+            ))
         return r
 
     @property
@@ -123,7 +126,10 @@ class Asset(BlockchainObject):
         from .price import PriceFeed
         assert self.is_bitasset
         self.ensure_full()
-        return PriceFeed(self["bitasset_data"]["current_feed"])
+        return PriceFeed(
+            self["bitasset_data"]["current_feed"],
+            bitshares_instance=self.bitshares
+        )
 
     @property
     def calls(self):
@@ -137,10 +143,16 @@ class Asset(BlockchainObject):
         self.ensure_full()
         r = list()
         bitasset = self["bitasset_data"]
-        settlement_price = Price(bitasset["current_feed"]["settlement_price"])
+        settlement_price = Price(
+            bitasset["current_feed"]["settlement_price"],
+            bitshares_instance=self.bitshares
+        )
         ret = self.bitshares.rpc.get_call_orders(self["id"], limit)
         for call in ret[:limit]:
-            call_price = Price(call["call_price"])
+            call_price = Price(
+                call["call_price"],
+                bitshares_instance=self.bitshares
+            )
             collateral_amount = Amount(
                 {
                     "amount": call["collateral"],
@@ -202,7 +214,10 @@ class Asset(BlockchainObject):
     def halt(self):
         """ Halt this asset from being moved or traded
         """
-        nullaccount = Account("null-account")  # We set the null-account
+        nullaccount = Account(
+            "null-account",  # We set the null-account
+            bitshares_instance=self.bitshares
+        )
         flags = {"white_list": True,
                  "transfer_restricted": True,
                  }

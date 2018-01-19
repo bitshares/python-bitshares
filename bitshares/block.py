@@ -33,7 +33,7 @@ class Block(BlockchainObject):
         block = self.bitshares.rpc.get_block(self.identifier)
         if not block:
             raise BlockDoesNotExistsException
-        super(Block, self).__init__(block)
+        super(Block, self).__init__(block, bitshares_instance=self.bitshares)
 
     def time(self):
         """ Return a datatime instance for the timestamp of this block
@@ -49,7 +49,10 @@ class BlockHeader(BlockchainObject):
         block = self.bitshares.rpc.get_block_header(self.identifier)
         if not block:
             raise BlockDoesNotExistsException
-        super(BlockHeader, self).__init__(block)
+        super(BlockHeader, self).__init__(
+            block,
+            bitshares_instance=self.bitshares
+        )
 
     def time(self):
         """ Return a datatime instance for the timestamp of this block
