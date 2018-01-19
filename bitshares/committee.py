@@ -18,7 +18,8 @@ class Committee(BlockchainObject):
         if self.test_valid_objectid(self.identifier):
             _, i, _ = self.identifier.split(".")
             if int(i) == 2:
-                account = Account(self.identifier)
+                account = Account(
+                    self.identifier, bitshares_instance=self.bitshares)
                 member = self.bitshares.rpc.get_committee_member_by_account(
                     account["id"])
             elif int(i) == 5:
@@ -27,13 +28,15 @@ class Committee(BlockchainObject):
                 raise CommitteeMemberDoesNotExistsException
         else:
             # maybe identifier is an account name
-            account = Account(self.identifier)
+            account = Account(
+                self.identifier, bitshares_instance=self.bitshares)
             member = self.bitshares.rpc.get_committee_member_by_account(
                 account["id"])
 
         if not member:
             raise CommitteeMemberDoesNotExistsException
-        super(Committee, self).__init__(member)
+        super(Committee, self).__init__(
+            member, bitshares_instance=self.bitshares)
         self.account_id = account["id"]
 
     @property

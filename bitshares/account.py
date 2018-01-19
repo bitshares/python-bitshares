@@ -47,7 +47,7 @@ class Account(BlockchainObject):
             account,
             lazy=lazy,
             full=full,
-            bitshares_instance=None
+            bitshares_instance=bitshares_instance
         )
 
     def refresh(self):
@@ -118,9 +118,7 @@ class Account(BlockchainObject):
     def callpositions(self):
         """ List call positions (collateralized positions :doc:`mpa`)
         """
-        if not self.full:
-            self.full = True
-            self.refresh()
+        self.ensure_full()
         from .dex import Dex
         dex = Dex(bitshares_instance=self.bitshares)
         return dex.list_debt_positions(self)
@@ -130,10 +128,22 @@ class Account(BlockchainObject):
         """ Returns open Orders
         """
         from .price import Order
-        if not self.full:
+        self.ensure_full()
+        return [
+            Order(o, bitshares_instance=self.bitshares)
+            for o in self["limit_orders"]
+        ]
+
+    @property
+    def is_fully_loaded(self):
+        """ Is this instance fully loaded / e.g. all data available?
+        """
+        return (self.full and "votes" in self)
+
+    def ensure_full(self):
+        if not self.is_fully_loaded:
             self.full = True
             self.refresh()
-        return [Order(o) for o in self["limit_orders"]]
 
     def history(
         self, first=None,

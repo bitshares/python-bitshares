@@ -1,6 +1,7 @@
 from bitshares.instance import shared_bitshares_instance
 from datetime import datetime, timedelta
-from .utils import formatTimeFromNow, formatTime
+from .utils import (
+    formatTimeFromNow, formatTime, formatTimeString, assets_from_string)
 from .asset import Asset
 from .amount import Amount
 from .price import Price, Order, FilledOrder
@@ -38,7 +39,6 @@ class Market(dict):
                   quote** and obtain/pay **only base**.
 
     """
-    market_sep_regex = "[/\-:]"
 
     def __init__(
         self,
@@ -51,7 +51,7 @@ class Market(dict):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
 
         if len(args) == 1 and isinstance(args[0], str):
-            quote_symbol, base_symbol = self._get_assets_from_string(args[0])
+            quote_symbol, base_symbol = assets_from_string(args[0])
             quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
             base = Asset(base_symbol, bitshares_instance=self.bitshares)
             super(Market, self).__init__({"base": base, "quote": quote})
@@ -62,10 +62,6 @@ class Market(dict):
         else:
             raise ValueError("Unknown Market Format: %s" % str(args))
 
-    def _get_assets_from_string(self, s):
-        import re
-        return re.split(self.market_sep_regex, s)
-
     def get_string(self, separator=":"):
         """ Return a formated string that identifies the market, e.g. ``USD:BTS``
 
@@ -75,7 +71,7 @@ class Market(dict):
 
     def __eq__(self, other):
         if isinstance(other, str):
-            quote_symbol, base_symbol = self._get_assets_from_string(other)
+            quote_symbol, base_symbol = assets_from_string(other)
             return (
                 self["quote"]["symbol"] == quote_symbol and
                 self["base"]["symbol"] == base_symbol
@@ -518,6 +514,8 @@ class Market(dict):
             tx["orderid"] = tx["operation_results"][0][1]
             self.bitshares.blocking = prevblocking
 
+        return tx
+
     def cancel(self, orderNumber, account=None):
         """ Cancels an order you have placed in a given market. Requires
             only the "orderNumber". An order number takes the form
@@ -536,7 +534,10 @@ class Market(dict):
             raise ValueError("Quote (%s) is not a bitasset!" % self["quote"]["symbol"])
         self["quote"].full = True
         self["quote"].refresh()
-        collateral = Asset(self["quote"]["bitasset_data"]["options"]["short_backing_asset"])
+        collateral = Asset(
+            self["quote"]["bitasset_data"]["options"]["short_backing_asset"],
+            bitshares_instance=self.bitshares
+        )
         return Market(quote=self["quote"], base=collateral)
 
     def core_base_market(self):
@@ -548,5 +549,8 @@ class Market(dict):
             raise ValueError("base (%s) is not a bitasset!" % self["base"]["symbol"])
         self["base"].full = True
         self["base"].refresh()
-        collateral = Asset(self["base"]["bitasset_data"]["options"]["short_backing_asset"])
+        collateral = Asset(
+            self["base"]["bitasset_data"]["options"]["short_backing_asset"],
+            bitshares_instance=self.bitshares
+        )
         return Market(quote=self["base"], base=collateral)

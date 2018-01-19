@@ -4,6 +4,7 @@ from graphenebase import bip38
 from bitsharesbase.account import PrivateKey, GPHPrivateKey
 from .account import Account
 from .exceptions import (
+    KeyNotFound,
     InvalidWifError,
     WalletExists,
     WrongMasterPasswordException,
@@ -129,6 +130,8 @@ class Wallet():
     def locked(self):
         """ Is the wallet database locked?
         """
+        if Wallet.keys:  # Keys have been manually provided!
+            return False
         try:
             self.tryUnlockFromEnv()
         except:
@@ -223,8 +226,10 @@ class Wallet():
             if not self.created():
                 raise NoWalletException
 
-            return self.decrypt_wif(
-                self.keyStorage.getPrivateKeyForPublicKey(pub))
+            encwif = self.keyStorage.getPrivateKeyForPublicKey(pub)
+            if not encwif:
+                raise KeyNotFound("No private key for {} found".format(pub))
+            return self.decrypt_wif(encwif)
 
     def removePrivateKeyFromPublicKey(self, pub):
         """ Remove a key from the wallet database
@@ -320,7 +325,7 @@ class Wallet():
         """
         for id in self.getAccountsFromPublicKey(pub):
             try:
-                account = Account(id)
+                account = Account(id)   # FIXME: self.bitshares is not available in wallet!
             except:
                 continue
             yield {"name": account["name"],
@@ -337,7 +342,7 @@ class Wallet():
             return {"name": None, "type": None, "pubkey": pub}
         else:
             try:
-                account = Account(name)
+                account = Account(name)   # FIXME: self.bitshares is not available in wallet!
             except:
                 return
             return {"name": account["name"],

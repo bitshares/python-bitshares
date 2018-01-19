@@ -11,7 +11,7 @@ except LookupError:
     ascii = codecs.lookup('ascii')
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == 'mbcs'))
 
-VERSION = '0.1.9'
+VERSION = '0.1.10'
 
 setup(
     name='bitshares',
@@ -40,7 +40,7 @@ setup(
         'Topic :: Office/Business :: Financial',
     ],
     install_requires=[
-        "graphenelib>=0.5.5",
+        "graphenelib>=0.5.6",
         "websockets",
         "appdirs",
         "Events",

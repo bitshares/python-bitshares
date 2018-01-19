@@ -21,12 +21,13 @@ class Worker(BlockchainObject):
             raise WorkerDoesNotExistsException
         worker["work_end_date"] = formatTimeString(worker["work_end_date"])
         worker["work_begin_date"] = formatTimeString(worker["work_begin_date"])
-        super(Worker, self).__init__(worker)
+        super(Worker, self).__init__(worker, bitshares_instance=self.bitshares)
         self.cached = True
 
     @property
     def account(self):
-        return Account(self["worker_account"])
+        return Account(
+            self["worker_account"], bitshares_instance=self.bitshares)
 
 
 class Workers(list):
@@ -39,7 +40,7 @@ class Workers(list):
     def __init__(self, account_name=None, bitshares_instance=None):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
         if account_name:
-            account = Account(account_name)
+            account = Account(account_name, bitshares_instance=self.bitshares)
             self.workers = self.bitshares.rpc.get_workers_by_account(
                 account["id"])
         else:

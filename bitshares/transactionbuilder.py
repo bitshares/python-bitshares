@@ -6,7 +6,8 @@ from bitsharesbase import transactions, operations
 from .exceptions import (
     InsufficientAuthorityError,
     MissingKeyError,
-    InvalidWifError
+    InvalidWifError,
+    WalletLocked
 )
 from bitshares.instance import shared_bitshares_instance
 import logging
@@ -204,15 +205,20 @@ class TransactionBuilder(dict):
         account = Account(account, bitshares_instance=self.bitshares)
         required_treshold = account[permission]["weight_threshold"]
 
+        if self.bitshares.wallet.locked():
+            raise WalletLocked()
+
         def fetchkeys(account, perm, level=0):
             if level > 2:
                 return []
             r = []
             for authority in account[perm]["key_auths"]:
-                wif = self.bitshares.wallet.getPrivateKeyForPublicKey(
-                    authority[0])
-                if wif:
+                try:
+                    wif = self.bitshares.wallet.getPrivateKeyForPublicKey(
+                        authority[0])
                     r.append([wif, authority[1]])
+                except Exception:
+                    pass
 
             if sum([x[1] for x in r]) < required_treshold:
                 # go one level deeper

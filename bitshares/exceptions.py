@@ -5,6 +5,12 @@ class WalletExists(Exception):
     pass
 
 
+class WalletLocked(Exception):
+    """ Wallet is locked
+    """
+    pass
+
+
 class AccountExistsException(Exception):
     """ The requested account already exists
     """
@@ -98,5 +104,17 @@ class WorkerDoesNotExistsException(Exception):
 
 class ObjectNotInProposalBuffer(Exception):
     """ Object was not found in proposal
+    """
+    pass
+
+
+class InvalidMessageSignature(Exception):
+    """ The message signature does not fit the message
+    """
+    pass
+
+
+class KeyNotFound(Exception):
+    """ Key not found
     """
     pass

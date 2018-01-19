@@ -28,11 +28,11 @@ class Witness(BlockchainObject):
             witness = self.bitshares.rpc.get_witness_by_account(account["id"])
         if not witness:
             raise WitnessDoesNotExistsException
-        super(Witness, self).__init__(witness)
+        super(Witness, self).__init__(witness, bitshares_instance=self.bitshares)
 
     @property
     def account(self):
-        return Account(self["witness_account"])
+        return Account(self["witness_account"], bitshares_instance=self.bitshares)
 
 
 class Witnesses(list):
