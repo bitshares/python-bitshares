@@ -5,7 +5,7 @@ from .account import Account
 from .amount import Amount
 from .asset import Asset
 from .utils import formatTimeString
-from .utils import parse_time
+from .utils import parse_time, assets_from_string
 
 
 class Price(dict):
@@ -76,7 +76,7 @@ class Price(dict):
         if (len(args) == 1 and isinstance(args[0], str) and not base and not quote):
             import re
             price, assets = args[0].split(" ")
-            base_symbol, quote_symbol = re.split("[/-:]", assets)
+            base_symbol, quote_symbol = assets_from_string(assets)
             base = Asset(base_symbol, bitshares_instance=self.bitshares)
             quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
@@ -148,7 +148,7 @@ class Price(dict):
                 isinstance(args[1], str)):
             import re
             price = args[0]
-            base_symbol, quote_symbol = re.split("[/-:]", args[1])
+            base_symbol, quote_symbol = assets_from_string(args[1])
             base = Asset(base_symbol, bitshares_instance=self.bitshares)
             quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])

@@ -1,3 +1,4 @@
+import re
 import time
 from datetime import datetime
 from .exceptions import ObjectNotInProposalBuffer
@@ -40,6 +41,15 @@ def parse_time(block_time):
     return datetime.strptime(block_time, timeFormat)
 
 
+def assets_from_string(text):
+    """Correctly split a string containing an asset pair.
+
+    Splits the string into two assets with the separator being on of the
+    following: ``:``, ``/``, or ``-``.
+    """
+    return re.split(r'[\-:/]', text)
+
+  
 def test_proposal_in_buffer(buf, operation_name, id):
     from .transactionbuilder import ProposalBuilder
     from peerplaysbase.operationids import operations
