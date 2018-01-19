@@ -493,6 +493,8 @@ class FilledOrder(Price):
                 quote=kwargs.get("quote"),
             )
             self["time"] = formatTimeString(order["date"])
+            self["side1_account_id"] = order["side1_account_id"]
+            self["side2_account_id"] = order["side2_account_id"]
 
         elif isinstance(order, dict):
             # filled orders from account history
