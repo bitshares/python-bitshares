@@ -18,6 +18,7 @@ from .objects import (
     PriceFeed,
     Permission,
     AccountOptions,
+    BitAssetOptions,
     AssetOptions,
     ObjectId,
     Worker_initializer,
@@ -80,14 +81,36 @@ class Asset_publish_feed(GrapheneObject):
             ]))
 
 
-class Asset_update(GrapheneObject):
+class Asset_create(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
+            if "bitasset_opts" in kwargs:
+                bitasset_opts = Optional(BitAssetOptions(kwargs["bitasset_opts"]))
+            else:
+                bitasset_opts = Optional(None)
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('issuer', ObjectId(kwargs["issuer"], "account")),
+                ('symbol', String(kwargs["symbol"])),
+                ('precision', Uint8(kwargs["precision"])),
+                ('common_options', AssetOptions(kwargs["common_options"])),
+                ('bitasset_opts', bitasset_opts),
+                ('is_prediction_market', Bool(bool(kwargs['is_prediction_market']))),
+                ('extensions', Set([])),
+            ]))
 
+
+class Asset_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
             if "new_issuer" in kwargs:
                 new_issuer = Optional(ObjectId(kwargs["new_issuer"], "account"))
             else:
@@ -98,6 +121,45 @@ class Asset_update(GrapheneObject):
                 ('asset_to_update', ObjectId(kwargs["asset_to_update"], "asset")),
                 ('new_issuer', new_issuer),
                 ('new_options', AssetOptions(kwargs["new_options"])),
+                ('extensions', Set([])),
+            ]))
+
+
+class Asset_update_bitasset(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('issuer', ObjectId(kwargs["issuer"], "account")),
+                ('asset_to_update', ObjectId(kwargs["asset_to_update"], "asset")),
+                ('new_options', BitAssetOptions(kwargs["new_options"])),
+                ('extensions', Set([])),
+            ]))
+
+
+class Asset_issue(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            prefix = kwargs.get("prefix", default_prefix)
+
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            if "memo" in kwargs and kwargs["memo"]:
+                memo = Optional(Memo(prefix=prefix, **kwargs["memo"]))
+            else:
+                memo = Optional(None)
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('issuer', ObjectId(kwargs["issuer"], "account")),
+                ('asset_to_issue', Asset(kwargs["asset_to_issue"])),
+                ('issue_to_account', ObjectId(kwargs["issue_to_account"], "account")),
+                ('memo', memo),
                 ('extensions', Set([])),
             ]))
 
