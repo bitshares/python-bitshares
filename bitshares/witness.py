@@ -9,7 +9,7 @@ class Witness(BlockchainObject):
 
         :param str account_name: Name of the witness
         :param bitshares bitshares_instance: BitShares() instance to use when
-            accesing a RPC
+               accesing a RPC
 
     """
     type_ids = [6, 2]
@@ -39,7 +39,7 @@ class Witnesses(list):
     """ Obtain a list of **active** witnesses and the current schedule
 
         :param bitshares bitshares_instance: BitShares() instance to use when
-        accesing a RPC
+            accesing a RPC
     """
     def __init__(self, bitshares_instance=None):
         self.bitshares = bitshares_instance or shared_bitshares_instance()

@@ -105,9 +105,8 @@ class Blockchain(object):
             :param int start: Starting block
             :param int stop: Stop at this block
             :param str mode: We here have the choice between
-                 * "head": the last block
-                 * "irreversible": the block that is confirmed by 2/3 of all
-                    block producers and is thus irreversible!
+             "head" (the last block) and "irreversible" (the block that is
+             confirmed by 2/3 of all block producers and is thus irreversible)
         """
         # Let's find out how often blocks are generated!
         block_interval = self.chainParameters().get("block_interval")
@@ -143,9 +142,8 @@ class Blockchain(object):
             :param int start: Starting block
             :param int stop: Stop at this block
             :param str mode: We here have the choice between
-                 * "head": the last block
-                 * "irreversible": the block that is confirmed by 2/3 of all
-                    block producers and is thus irreversible!
+             "head" (the last block) and "irreversible" (the block that is
+             confirmed by 2/3 of all block producers and is thus irreversible)
             :param bool only_virtual_ops: Only yield virtual operations
 
             This call returns a list that only carries one operation and
@@ -170,9 +168,8 @@ class Blockchain(object):
             :param int start: Start at this block
             :param int stop: Stop at this block
             :param str mode: We here have the choice between
-                 * "head": the last block
-                 * "irreversible": the block that is confirmed by 2/3 of all
-                   block producers and is thus irreversible!
+             "head" (the last block) and "irreversible" (the block that is
+             confirmed by 2/3 of all block producers and is thus irreversible)
 
             The dict output is formated such that ``type`` caries the
             operation type, timestamp and block_num are taken from the
