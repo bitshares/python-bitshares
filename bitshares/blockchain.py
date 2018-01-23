@@ -118,7 +118,10 @@ class Blockchain(object):
         while True:
 
             # Get chain properies to identify the
-            head_block = self.get_current_block_num()
+            if stop:
+                head_block = stop
+            else:
+                head_block = self.get_current_block_num()
 
             # Blocks from start until head block
             for blocknum in range(start, head_block + 1):
@@ -130,7 +133,8 @@ class Blockchain(object):
             start = head_block + 1
 
             if stop and start > stop:
-                raise StopIteration
+                # raise StopIteration
+                return
 
             # Sleep for one block
             time.sleep(block_interval)
