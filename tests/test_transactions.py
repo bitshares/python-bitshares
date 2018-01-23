@@ -117,7 +117,7 @@ class Testcases(unittest.TestCase):
                    "4fb5093226275f48a42d9e8cf")
         self.doit()
 
-    def test_Transfer(self):
+    def test_transfer(self):
         pub = format(account.PrivateKey(wif).pubkey, prefix)
         from_account_id = "1.2.0"
         to_account_id = "1.2.1"
@@ -604,7 +604,8 @@ class Testcases(unittest.TestCase):
                 "message": encrypted_memo,
             },
             "issue_to_account": "1.2.0",
-            "extensions": []
+            "extensions": [],
+            "prefix": prefix
         })
         self.cm = ("f68585abf4dce7c80457010e000000000000000000000000000"
                    "00000000000000102c0ded2bc1f1305fb0faac5e6c03ee3a192"
