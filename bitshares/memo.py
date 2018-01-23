@@ -56,6 +56,12 @@ class Memo(object):
         if from_account:
             self.from_account = Account(from_account, bitshares_instance=self.bitshares)
 
+    def unlock_wallet(self, *args, **kwargs):
+        """ Unlock the library internal wallet
+        """
+        self.bitshares.wallet.unlock(*args, **kwargs)
+        return self
+
     def encrypt(self, memo):
         """ Encrypt a memo
 

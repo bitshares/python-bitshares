@@ -76,14 +76,21 @@ Decoding of a received memo
      from bitshares.block import Block
      from bitshares.memo import Memo
 
-     block = Block(23755086)
-     transaction = block["transactions"][3]
-     op = transaction["operations"][0]
-     op_id = op[0]
-     op_data = op[1]
+     # Obtain a transfer from the blockchain
+     block = Block(23755086)                   # block
+     transaction = block["transactions"][3]    # transactions
+     op = transaction["operations"][0]         # operation
+     op_id = op[0]                             # operation type
+     op_data = op[1]                           # operation payload
 
+     # Instantiate Memo for decoding
      memo = Memo()
-     memo.bitshares.wallet.unlock(getpass())
+
+     # Unlock wallet
+     memo.unlock_wallet(getpass())
+
+     # Decode memo
+     # Raises exception if required keys not available in the wallet
      print(memo.decrypt(op_data["memo"]))
 
 API

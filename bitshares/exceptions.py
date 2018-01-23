@@ -11,6 +11,12 @@ class WalletLocked(Exception):
     pass
 
 
+class RPCConnectionRequired(Exception):
+    """ An RPC connection is required
+    """
+    pass
+
+
 class AccountExistsException(Exception):
     """ The requested account already exists
     """

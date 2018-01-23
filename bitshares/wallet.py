@@ -9,7 +9,8 @@ from .exceptions import (
     WalletExists,
     WalletLocked,
     WrongMasterPasswordException,
-    NoWalletException
+    NoWalletException,
+    RPCConnectionRequired
 )
 
 log = logging.getLogger(__name__)
@@ -54,12 +55,13 @@ class Wallet():
     keys = {}  # struct with pubkey as key and wif as value
     keyMap = {}  # type:wif pairs to force certain keys
 
-    def __init__(self, rpc, *args, **kwargs):
+    def __init__(self, rpc=None, *args, **kwargs):
         from .storage import configStorage
         self.configStorage = configStorage
 
-        # RPC
-        Wallet.rpc = rpc
+        # RPC static variable
+        if rpc:
+            Wallet.rpc = rpc
 
         # Prefix?
         if Wallet.rpc:
