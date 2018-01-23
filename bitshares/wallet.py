@@ -7,6 +7,7 @@ from .exceptions import (
     KeyNotFound,
     InvalidWifError,
     WalletExists,
+    WalletLocked,
     WrongMasterPasswordException,
     NoWalletException
 )
@@ -127,6 +128,11 @@ class Wallet():
         """
         self.masterpassword = None
 
+    def unlocked(self):
+        """ Is the wallet database unlocked?
+        """
+        return not self.locked()
+
     def locked(self):
         """ Is the wallet database locked?
         """
@@ -225,6 +231,9 @@ class Wallet():
             # Test if wallet exists
             if not self.created():
                 raise NoWalletException
+
+            if not self.unlocked():
+                raise WalletLocked
 
             encwif = self.keyStorage.getPrivateKeyForPublicKey(pub)
             if not encwif:

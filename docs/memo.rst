@@ -50,8 +50,8 @@ of the message.
 Example
 #######
 
-High Level
-~~~~~~~~~~
+Encrypting a memo
+~~~~~~~~~~~~~~~~~
 
 The high level memo class makes use of the pybitshares wallet to obtain keys
 for the corresponding accounts.
@@ -65,34 +65,29 @@ for the corresponding accounts.
         from_account=Account(from_account),
         to_account=Account(to_account)
     )
-    cipher = memoObj.encrypt(memo)
-    plain = memoObj.decrypt(cipher)
+    encrypted_memo = memoObj.encrypt(memo)
 
-
-Low Level
-~~~~~~~~~
+Decoding of a received memo
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
-    from bitsharesbase.memo import memo
-    from bitsharesbase.account import PrivateKey, PublicKey
+     from getpass import getpass
+     from bitshares.block import Block
+     from bitshares.memo import Memo
 
-    wifkey = "5....<wif>"
-    memo         = {
-          "from": "GPH5mgup8evDqMnT86L7scVebRYDC2fwAWmygPEUL43LjstQegYCC",
-          "to": "GPH5Ar4j53kFWuEZQ9XhxbAja4YXMPJ2EnUg5QcrdeMFYUNMMNJbe",
-          "nonce": "13043867485137706821",
-          "message": "d55524c37320920844ca83bb20c8d008"
-        }
-    try :
-        privkey = PrivateKey(wifkey)
-        pubkey  = PublicKey(memo["from"], prefix=prefix)
-        memomsg = memo.decode_memo(privkey, pubkey, memo["nonce"], memo["message"])
-    except Exception as e:
-        memomsg = "--cannot decode-- %s" % str(e)
+     block = Block(23755086)
+     transaction = block["transactions"][3]
+     op = transaction["operations"][0]
+     op_id = op[0]
+     op_data = op[1]
 
-Definitions
-###########
+     memo = Memo()
+     memo.bitshares.wallet.unlock(getpass())
+     print(memo.decrypt(op_data["memo"]))
+
+API
+###
 
 .. automodule:: bitsharesbase.memo
     :members:
