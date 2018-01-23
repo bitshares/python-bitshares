@@ -126,6 +126,7 @@ Python-BitShares Libraries
    price
    vesting
    witness
+   worker
    proposal
 
 Low Level Classes
