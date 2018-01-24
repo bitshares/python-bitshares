@@ -11,6 +11,13 @@ from .storage import configStorage as config
 
 log = logging.getLogger(__name__)
 
+MESSAGE_SPLIT = (
+    "-----BEGIN BITSHARES SIGNED MESSAGE-----",
+    "-----BEGIN META-----",
+    "-----BEGIN SIGNATURE-----",
+    "-----END BITSHARES SIGNED MESSAGE-----"
+)
+
 SIGNED_MESSAGE_META = """{message}
 account={meta[account]}
 memokey={meta[memokey]}
@@ -18,23 +25,17 @@ block={meta[block]}
 timestamp={meta[timestamp]}"""
 
 SIGNED_MESSAGE_ENCAPSULATED = """
------BEGIN BITSHARES SIGNED MESSAGE-----
+{MESSAGE_SPLIT[0]}
 {message}
------BEGIN META-----
+{MESSAGE_SPLIT[1]}
 account={meta[account]}
 memokey={meta[memokey]}
 block={meta[block]}
 timestamp={meta[timestamp]}
------BEGIN SIGNATURE-----
+{MESSAGE_SPLIT[2]}
 {signature}
------END BITSHARES SIGNED MESSAGE-----"""
-
-MESSAGE_SPLIT = (
-    "-----BEGIN BITSHARES SIGNED MESSAGE-----\\n|"
-    "\\n-----BEGIN META-----|"
-    "-----BEGIN SIGNATURE-----|"
-    "-----END BITSHARES SIGNED MESSAGE-----"
-)
+{MESSAGE_SPLIT[3]}
+"""
 
 
 class Message():
@@ -72,14 +73,17 @@ class Message():
         )
 
         # signature
-        message = self.message
+        message = self.message.strip()
         signature = hexlify(sign_message(
             SIGNED_MESSAGE_META.format(**locals()),
             wif
         )).decode("ascii")
 
         message = self.message
-        return SIGNED_MESSAGE_ENCAPSULATED.format(**locals())
+        return SIGNED_MESSAGE_ENCAPSULATED.format(
+            MESSAGE_SPLIT=MESSAGE_SPLIT,
+            **locals()
+        )
 
     def verify(self, **kwargs):
         """ Verify a message with an account's memo key
@@ -91,13 +95,15 @@ class Message():
             :raises InvalidMessageSignature if the signature is not ok
         """
         # Split message into its parts
-        parts = re.split(MESSAGE_SPLIT, self.message)
-        assert len(parts) == 5
+        parts = re.split("|".join(MESSAGE_SPLIT), self.message)
+        parts = [x for x in parts if x.strip()]
 
-        message = parts[1]
-        signature = parts[3].rstrip().strip()
+        assert len(parts) > 2, "Incorrect number of message parts"
+
+        message = parts[0].strip()
+        signature = parts[2].strip()
         # Parse the meta data
-        meta = dict(re.findall(r'(\S+)=(.*)', parts[2]))
+        meta = dict(re.findall(r'(\S+)=(.*)', parts[1]))
 
         # Ensure we have all the data in meta
         assert "account" in meta
@@ -106,7 +112,9 @@ class Message():
         assert "timestamp" in meta
 
         # Load account from blockchain
-        account = Account(meta.get("account"), bitshares_instance=self.bitshares)
+        account = Account(
+            meta.get("account"),
+            bitshares_instance=self.bitshares)
 
         # Test if memo key is the same as on the blockchain
         if not account["options"]["memo_key"] == meta["memokey"]:
