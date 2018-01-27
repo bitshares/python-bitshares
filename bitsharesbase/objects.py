@@ -9,7 +9,6 @@ from graphenebase.types import (
     ObjectId as GPHObjectId
 )
 from graphenebase.objects import GrapheneObject, isArgsThisClass
-from .chains import known_chains
 from .objecttypes import object_type
 from .account import PublicKey
 from graphenebase.objects import Operation as GPHOperation
@@ -88,20 +87,8 @@ class Memo(GrapheneObject):
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
+            prefix = kwargs.pop("prefix", default_prefix)
             if "message" in kwargs and kwargs["message"]:
-                if "chain" not in kwargs:
-                    chain = default_prefix
-                else:
-                    chain = kwargs["chain"]
-                if isinstance(chain, str) and chain in known_chains:
-                    chain_params = known_chains[chain]
-                elif isinstance(chain, dict):
-                    chain_params = chain
-                else:
-                    raise Exception("Memo() only takes a string or a dict as chain!")
-                if "prefix" not in chain_params:
-                    raise Exception("Memo() needs a 'prefix' in chain params!")
-                prefix = chain_params["prefix"]
                 super().__init__(OrderedDict([
                     ('from', PublicKey(kwargs["from"], prefix=prefix)),
                     ('to', PublicKey(kwargs["to"], prefix=prefix)),
@@ -207,35 +194,40 @@ class AssetOptions(GrapheneObject):
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
-
-            # Sorting
-            for key in [
-                "whitelist_authorities",
-                "blacklist_authorities",
-                "whitelist_markets",
-                "blacklist_markets"
-            ]:
-                kwargs[key] = sorted(
-                    set(kwargs[key]),
-                    key=lambda x: int(x.split(".")[2]),
-                )
-
             super().__init__(OrderedDict([
-                ('max_supply', Uint64(kwargs["max_supply"])),
+                ('max_supply', Int64(kwargs["max_supply"])),
                 ('market_fee_percent', Uint16(kwargs["market_fee_percent"])),
-                ('max_market_fee', Uint64(kwargs["max_market_fee"])),
+                ('max_market_fee', Int64(kwargs["max_market_fee"])),
                 ('issuer_permissions', Uint16(kwargs["issuer_permissions"])),
                 ('flags', Uint16(kwargs["flags"])),
                 ('core_exchange_rate', Price(kwargs["core_exchange_rate"])),
                 ('whitelist_authorities',
-                    Array([ObjectId(o, "account") for o in kwargs["whitelist_authorities"]])),
+                    Array([ObjectId(x, "account") for x in kwargs["whitelist_authorities"]])),
                 ('blacklist_authorities',
-                    Array([ObjectId(o, "account") for o in kwargs["blacklist_authorities"]])),
+                    Array([ObjectId(x, "account") for x in kwargs["blacklist_authorities"]])),
                 ('whitelist_markets',
-                    Array([ObjectId(o, "asset") for o in kwargs["whitelist_markets"]])),
+                    Array([ObjectId(x, "asset") for x in kwargs["whitelist_markets"]])),
                 ('blacklist_markets',
-                    Array([ObjectId(o, "asset") for o in kwargs["blacklist_markets"]])),
+                    Array([ObjectId(x, "asset") for x in kwargs["blacklist_markets"]])),
                 ('description', String(kwargs["description"])),
+                ('extensions', Set([])),
+            ]))
+
+
+class BitAssetOptions(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(OrderedDict([
+                ('feed_lifetime_sec', Uint32(kwargs["feed_lifetime_sec"])),
+                ('minimum_feeds', Uint8(kwargs["minimum_feeds"])),
+                ('force_settlement_delay_sec', Uint32(kwargs["force_settlement_delay_sec"])),
+                ('force_settlement_offset_percent', Uint16(kwargs["force_settlement_offset_percent"])),
+                ('maximum_force_settlement_volume', Uint16(kwargs["maximum_force_settlement_volume"])),
+                ('short_backing_asset', ObjectId(kwargs["short_backing_asset"], "asset")),
                 ('extensions', Set([])),
             ]))
 

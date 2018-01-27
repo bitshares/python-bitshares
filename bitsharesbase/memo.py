@@ -4,7 +4,7 @@ from binascii import hexlify, unhexlify
 try:
     from Crypto.Cipher import AES
 except ImportError:
-    raise ImportError("Missing dependency: pycrypto")
+    raise ImportError("Missing dependency: pycryptodome")
 from .account import PrivateKey, PublicKey
 import struct
 
@@ -114,5 +114,5 @@ def decode_memo(priv, pub, nonce, message):
     message = cleartext[4:]
     try:
         return _unpad(message.decode('utf8'), 16)
-    except:
+    except Exception as e:
         raise ValueError(message)

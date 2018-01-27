@@ -3,7 +3,7 @@ import random
 from bitsharesbase import memo as BtsMemo
 from bitsharesbase.account import PrivateKey, PublicKey
 from .account import Account
-from .exceptions import MissingKeyError
+from .exceptions import MissingKeyError, KeyNotFound
 
 
 class Memo(object):
@@ -23,24 +23,44 @@ class Memo(object):
 
             from bitshares.memo import Memo
             m = Memo("bitshareseu", "wallet.xeroc")
+            m.bitshares.wallet.unlock("secret")
             enc = (m.encrypt("foobar"))
             print(enc)
             >> {'nonce': '17329630356955254641', 'message': '8563e2bb2976e0217806d642901a2855'}
             print(m.decrypt(enc))
             >> foobar
 
+        To decrypt a memo, simply use
+
+        .. code-block:: python
+
+            from bitshares.memo import Memo
+            m = Memo()
+            m.bitshares.wallet.unlock("secret")
+            print(memo.decrypt(op_data["memo"]))
+
+        if ``op_data`` being the payload of a transfer operation.
+
     """
     def __init__(
         self,
-        from_account,
-        to_account,
+        from_account=None,
+        to_account=None,
         bitshares_instance=None
     ):
 
         self.bitshares = bitshares_instance or shared_bitshares_instance()
 
-        self.to_account = Account(to_account, bitshares_instance=self.bitshares)
-        self.from_account = Account(from_account, bitshares_instance=self.bitshares)
+        if to_account:
+            self.to_account = Account(to_account, bitshares_instance=self.bitshares)
+        if from_account:
+            self.from_account = Account(from_account, bitshares_instance=self.bitshares)
+
+    def unlock_wallet(self, *args, **kwargs):
+        """ Unlock the library internal wallet
+        """
+        self.bitshares.wallet.unlock(*args, **kwargs)
+        return self
 
     def encrypt(self, memo):
         """ Encrypt a memo
@@ -63,7 +83,7 @@ class Memo(object):
             PrivateKey(memo_wif),
             PublicKey(
                 self.to_account["options"]["memo_key"],
-                prefix=self.bitshares.rpc.chain_params["prefix"]
+                prefix=self.bitshares.prefix
             ),
             nonce,
             memo
@@ -86,19 +106,29 @@ class Memo(object):
         if not memo:
             return None
 
-        memo_wif = self.bitshares.wallet.getPrivateKeyForPublicKey(
-            self.to_account["options"]["memo_key"]
-        )
-        if not memo_wif:
-            raise MissingKeyError("Memo key for %s missing!" % self.to_account["name"])
+        # We first try to decode assuming we received the memo
+        try:
+            memo_wif = self.bitshares.wallet.getPrivateKeyForPublicKey(
+                memo["to"]
+            )
+            pubkey = memo["from"]
+        except KeyNotFound:
+            try:
+                # if that failed, we assume that we have sent the memo
+                memo_wif = self.bitshares.wallet.getPrivateKeyForPublicKey(
+                    memo["from"]
+                )
+                pubkey = memo["to"]
+            except KeyNotFound:
+                # if all fails, raise exception
+                raise MissingKeyError(
+                    "Non of the required memo keys are installed!"
+                    "Need any of {}".format(
+                    [memo["to"], memo["from"]]))
 
-        # TODO: Use pubkeys of the message, not pubkeys of account!
         return BtsMemo.decode_memo(
             PrivateKey(memo_wif),
-            PublicKey(
-                self.from_account["options"]["memo_key"],
-                prefix=self.peerplays.rpc.chain_params["prefix"]
-            ),
+            PublicKey(pubkey, prefix=self.bitshares.prefix),
             memo.get("nonce"),
             memo.get("message")
         )

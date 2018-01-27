@@ -1,9 +1,5 @@
 .PHONY: clean-pyc clean-build docs
 
-TAG := $(shell git describe master --abbrev=0)
-TAGSTEEM := $(shell git describe master --abbrev=0 | tr "." "-")
-
-# 
 clean: clean-build clean-pyc
 
 clean-build:
@@ -43,7 +39,4 @@ dist:
 	python3 setup.py sdist upload -r pypi
 	python3 setup.py bdist_wheel upload
 
-release: clean check dist bitshares-changelog git
-
-bitshares-changelog:
-	git show -s --pretty=format: $(TAG) | tail -n +4 | piston post --file "-" --author chainsquad --permlink "python-bitshares-changelog-$(TAGSTEEM)" --category bitshares --title "[Changelog] python-bitshares $(TAG)" --tags python-bitshares changelog
+release: clean check dist git

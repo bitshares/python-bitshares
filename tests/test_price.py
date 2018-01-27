@@ -11,7 +11,8 @@ class Testcases(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(Testcases, self).__init__(*args, **kwargs)
         bitshares = BitShares(
-            "wss://node.bitshares.eu"
+            "wss://node.bitshares.eu",
+            nobroadcast=True,
         )
         set_shared_bitshares_instance(bitshares)
 
@@ -35,14 +36,14 @@ class Testcases(unittest.TestCase):
 
     def test_multiplication(self):
         p1 = Price(10.0, "USD/GOLD")
-        p2 = Price(5.0, "USD/EUR")
+        p2 = Price(5.0, "EUR/USD")
         p3 = p1 * p2
         p4 = p3.as_base("GOLD")
 
         self.assertEqual(p4["quote"]["symbol"], "EUR")
         self.assertEqual(p4["base"]["symbol"], "GOLD")
-        # 10 USD/GOLD * 0.2 EUR/USD = 2 EUR/GOLD = 0.5 GOLD/EUR
-        self.assertEqual(float(p4), 0.5)
+        # 10 USD/GOLD * 0.2 EUR/USD = 50 EUR/GOLD = 0.02 GOLD/EUR
+        self.assertEqual(float(p4), 0.02)
 
         # Inline multiplication
         p5 = p1
@@ -50,8 +51,8 @@ class Testcases(unittest.TestCase):
         p4 = p5.as_base("GOLD")
         self.assertEqual(p4["quote"]["symbol"], "EUR")
         self.assertEqual(p4["base"]["symbol"], "GOLD")
-        # 10 USD/GOLD * 0.2 EUR/USD = 2 EUR/GOLD = 0.5 GOLD/EUR
-        self.assertEqual(float(p4), 0.5)
+        # 10 USD/GOLD * 0.2 EUR/USD = 2 EUR/GOLD = 0.02 GOLD/EUR
+        self.assertEqual(float(p4), 0.02)
 
     def test_div(self):
         p1 = Price(10.0, "USD/GOLD")

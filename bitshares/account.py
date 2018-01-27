@@ -38,16 +38,16 @@ class Account(BlockchainObject):
     def __init__(
         self,
         account,
-        lazy=False,
         full=False,
+        lazy=False,
         bitshares_instance=None
     ):
         self.full = full
         super().__init__(
             account,
-            lazy=False,
-            full=False,
-            bitshares_instance=None
+            lazy=lazy,
+            full=full,
+            bitshares_instance=bitshares_instance
         )
 
     def refresh(self):
@@ -59,9 +59,9 @@ class Account(BlockchainObject):
         else:
             account = self.bitshares.rpc.lookup_account_names(
                 [self.identifier])[0]
-            self.identifier = account["id"]
         if not account:
             raise AccountDoesNotExistsException(self.identifier)
+        self.identifier = account["id"]
 
         if self.full:
             account = self.bitshares.rpc.get_full_accounts(
@@ -118,9 +118,7 @@ class Account(BlockchainObject):
     def callpositions(self):
         """ List call positions (collateralized positions :doc:`mpa`)
         """
-        if not self.full:
-            self.full = True
-            self.refresh()
+        self.ensure_full()
         from .dex import Dex
         dex = Dex(bitshares_instance=self.bitshares)
         return dex.list_debt_positions(self)
@@ -130,10 +128,22 @@ class Account(BlockchainObject):
         """ Returns open Orders
         """
         from .price import Order
-        if not self.full:
+        self.ensure_full()
+        return [
+            Order(o, bitshares_instance=self.bitshares)
+            for o in self["limit_orders"]
+        ]
+
+    @property
+    def is_fully_loaded(self):
+        """ Is this instance fully loaded / e.g. all data available?
+        """
+        return (self.full and "votes" in self)
+
+    def ensure_full(self):
+        if not self.is_fully_loaded:
             self.full = True
             self.refresh()
-        return [Order(o) for o in self["limit_orders"]]
 
     def history(
         self, first=None,
@@ -165,7 +175,7 @@ class Account(BlockchainObject):
             api="history"
         )
         if not mostrecent:
-            raise StopIteration
+            return
 
         if not first:
             # first = int(mostrecent[0].get("id").split(".")[2]) + 1
@@ -191,7 +201,7 @@ class Account(BlockchainObject):
                     cnt += 1
                     yield i
                     if limit >= 0 and cnt >= limit:
-                        raise StopIteration
+                        return
 
             if not txs:
                 break

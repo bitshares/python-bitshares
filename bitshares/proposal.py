@@ -19,7 +19,11 @@ class Proposal(BlockchainObject):
         proposal = self.bitshares.rpc.get_objects([self.identifier])
         if not any(proposal):
             raise ProposalDoesNotExistException
-        super(Proposal, self).__init__(proposal[0])
+        super(Proposal, self).__init__(proposal[0], bitshares_instance=self.bitshares)
+
+    @property
+    def proposed_operations(self):
+        yield from self["proposed_transaction"]["operations"]
 
 
 class Proposals(list):
@@ -31,7 +35,7 @@ class Proposals(list):
     def __init__(self, account, bitshares_instance=None):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
 
-        account = Account(account)
+        account = Account(account, bitshares_instance=self.bitshares)
         proposals = self.bitshares.rpc.get_proposed_transactions(account["id"])
 
         super(Proposals, self).__init__(

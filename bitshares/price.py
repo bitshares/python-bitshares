@@ -5,8 +5,7 @@ from .account import Account
 from .amount import Amount
 from .asset import Asset
 from .utils import formatTimeString
-from .witness import Witness
-from .utils import parse_time
+from .utils import parse_time, assets_from_string
 
 
 class Price(dict):
@@ -77,7 +76,7 @@ class Price(dict):
         if (len(args) == 1 and isinstance(args[0], str) and not base and not quote):
             import re
             price, assets = args[0].split(" ")
-            base_symbol, quote_symbol = re.split("[/-:]", assets)
+            base_symbol, quote_symbol = assets_from_string(assets)
             base = Asset(base_symbol, bitshares_instance=self.bitshares)
             quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
@@ -100,7 +99,7 @@ class Price(dict):
         elif len(args) == 1 and isinstance(args[0], dict) and "receives" in args[0]:
             # Filled order
             assert base_asset, "Need a 'base_asset' asset"
-            base_asset = Asset(base_asset)
+            base_asset = Asset(base_asset, bitshares_instance=self.bitshares)
             if args[0]["receives"]["asset_id"] == base_asset["id"]:
                 # If the seller received "base" in a quote_base market, than
                 # it has been a sell order of quote
@@ -121,8 +120,8 @@ class Price(dict):
 
         elif (len(args) == 1 and isinstance(base, str) and isinstance(quote, str)):
             price = args[0]
-            base = Asset(base)
-            quote = Asset(quote)
+            base = Asset(base, bitshares_instance=self.bitshares)
+            quote = Asset(quote, bitshares_instance=self.bitshares)
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
             self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
             self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
@@ -149,7 +148,7 @@ class Price(dict):
                 isinstance(args[1], str)):
             import re
             price = args[0]
-            base_symbol, quote_symbol = re.split("[/-:]", args[1])
+            base_symbol, quote_symbol = assets_from_string(args[1])
             base = Asset(base_symbol, bitshares_instance=self.bitshares)
             quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
@@ -238,14 +237,36 @@ class Price(dict):
         a = self.copy()
         if isinstance(other, Price):
             # Rotate/invert other
-            if self["quote"]["symbol"] in other.symbols():
-                other = other.as_quote(self["quote"]["symbol"])
-            elif self["base"]["symbol"] in other.symbols():
-                other = other.as_quote(self["base"]["symbol"])
-            else:
+            if (
+                self["quote"]["symbol"] not in other.symbols() and
+                self["base"]["symbol"] not in other.symbols()
+            ):
                 raise InvalidAssetException
-            a["base"] = Amount(float(self["base"] * other["base"]), other["base"]["symbol"])
-            a["quote"] = Amount(float(self["quote"] * other["quote"]), self["quote"]["symbol"])
+
+            # base/quote = a/b
+            # a/b * b/c = a/c
+            a = self.copy()
+            if self["quote"]["symbol"] == other["base"]["symbol"]:
+                a["base"] = Amount(
+                    float(self["base"]) * float(other["base"]), self["base"]["symbol"],
+                    bitshares_instance=self.bitshares
+                )
+                a["quote"] = Amount(
+                    float(self["quote"]) * float(other["quote"]), other["quote"]["symbol"],
+                    bitshares_instance=self.bitshares
+                )
+            # a/b * c/a =  c/b
+            elif self["base"]["symbol"] == other["quote"]["symbol"]:
+                a["base"] = Amount(
+                    float(self["base"]) * float(other["base"]), other["base"]["symbol"],
+                    bitshares_instance=self.bitshares
+                )
+                a["quote"] = Amount(
+                    float(self["quote"]) * float(other["quote"]), self["quote"]["symbol"],
+                    bitshares_instance=self.bitshares
+                )
+            else:
+                raise ValueError("Wrong rotation of prices")
         elif isinstance(other, Amount):
             assert other["asset"]["id"] == self["quote"]["asset"]["id"]
             a = other.copy() * self["price"]
@@ -276,8 +297,14 @@ class Price(dict):
                 other = other.as_base(self["base"]["symbol"])
             else:
                 raise InvalidAssetException
-            a["base"] = Amount(float(self["quote"] / other["quote"]), other["quote"]["symbol"])
-            a["quote"] = Amount(float(self["base"] / other["base"]), self["quote"]["symbol"])
+            a["base"] = Amount(
+                float(self["quote"] / other["quote"]), other["quote"]["symbol"],
+                bitshares_instance=self.bitshares
+            )
+            a["quote"] = Amount(
+                float(self["base"] / other["base"]), self["quote"]["symbol"],
+                bitshares_instance=self.bitshares
+            )
         elif isinstance(other, Amount):
             assert other["asset"]["id"] == self["quote"]["asset"]["id"]
             a = other.copy() / self["price"]
@@ -383,7 +410,6 @@ class Order(Price):
                 'deleted' key which is set to ``True`` and all other
                 data be ``None``.
     """
-
     def __init__(self, *args, bitshares_instance=None, **kwargs):
 
         self.bitshares = bitshares_instance or shared_bitshares_instance()
@@ -467,6 +493,8 @@ class FilledOrder(Price):
                 quote=kwargs.get("quote"),
             )
             self["time"] = formatTimeString(order["date"])
+            self["side1_account_id"] = order["side1_account_id"]
+            self["side2_account_id"] = order["side2_account_id"]
 
         elif isinstance(order, dict):
             # filled orders from account history
@@ -550,7 +578,11 @@ class PriceFeed(dict):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
         if len(feed) == 2:
             super(PriceFeed, self).__init__({
-                "producer": Account(feed[0], lazy=True),
+                "producer": Account(
+                    feed[0],
+                    lazy=True,
+                    bitshares_instance=self.bitshares
+                ),
                 "date": parse_time(feed[1][0]),
                 "maintenance_collateral_ratio": feed[1][1]["maintenance_collateral_ratio"],
                 "maximum_short_squeeze_ratio": feed[1][1]["maximum_short_squeeze_ratio"],

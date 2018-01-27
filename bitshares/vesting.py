@@ -1,4 +1,3 @@
-from .instance import shared_bitshares_instance
 from .account import Account
 from .exceptions import VestingBalanceDoesNotExistsException
 from .blockchainobject import BlockchainObject
@@ -17,11 +16,11 @@ class Vesting(BlockchainObject):
         obj = self.bitshares.rpc.get_objects([self.identifier])[0]
         if not obj:
             raise VestingBalanceDoesNotExistsException
-        super(Vesting, self).__init__(obj)
+        super(Vesting, self).__init__(obj, bitshares_instance=self.bitshares)
 
     @property
     def account(self):
-        return Account(self["owner"])
+        return Account(self["owner"], bitshares_instance=self.bitshares)
 
     @property
     def claimable(self):
@@ -33,7 +32,10 @@ class Vesting(BlockchainObject):
                     float(self["balance"]["amount"])) /
                 float(p["vesting_seconds"])
             ) if float(p["vesting_seconds"]) > 0.0 else 1
-            return Amount(self["balance"]) * ratio
+            return Amount(
+                self["balance"],
+                bitshares_instance=self.bitshares
+            ) * ratio
         else:
             raise NotImplementedError("This policy isn't implemented yet")
 

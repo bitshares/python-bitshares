@@ -38,9 +38,9 @@ class Asset(BlockchainObject):
         self.full = full
         super().__init__(
             asset,
-            lazy=False,
-            full=False,
-            bitshares_instance=None
+            lazy=lazy,
+            full=full,
+            bitshares_instance=bitshares_instance
         )
 
     def refresh(self):
@@ -48,8 +48,8 @@ class Asset(BlockchainObject):
         """
         asset = self.bitshares.rpc.get_asset(self.identifier)
         if not asset:
-            raise AssetDoesNotExistsException
-        super(Asset, self).__init__(asset)
+            raise AssetDoesNotExistsException(self.identifier)
+        super(Asset, self).__init__(asset, bitshares_instance=self.bitshares)
         if self.full:
             if "bitasset_data_id" in asset:
                 self["bitasset_data"] = self.bitshares.rpc.get_object(
@@ -65,6 +65,24 @@ class Asset(BlockchainObject):
             self["description"] = json.loads(asset["options"]["description"])
         except:
             self["description"] = asset["options"]["description"]
+
+    @property
+    def is_fully_loaded(self):
+        """ Is this instance fully loaded / e.g. all data available?
+        """
+        return (
+            self.full and
+            "bitasset_data_id" in self and
+            "bitasset_data" in self
+        )
+
+    @property
+    def symbol(self):
+        return self["symbol"]
+
+    @property
+    def precision(self):
+        return self["precision"]
 
     @property
     def is_bitasset(self):
@@ -85,7 +103,7 @@ class Asset(BlockchainObject):
         return self["flags"]
 
     def ensure_full(self):
-        if not self.full:
+        if not self.is_fully_loaded:
             self.full = True
             self.refresh()
 
@@ -97,7 +115,10 @@ class Asset(BlockchainObject):
             return
         r = []
         for feed in self["bitasset_data"]["feeds"]:
-            r.append(PriceFeed(feed))
+            r.append(PriceFeed(
+                feed,
+                bitshares_instance=self.bitshares
+            ))
         return r
 
     @property
@@ -105,11 +126,14 @@ class Asset(BlockchainObject):
         from .price import PriceFeed
         assert self.is_bitasset
         self.ensure_full()
-        return PriceFeed(self["bitasset_data"]["current_feed"])
+        return PriceFeed(
+            self["bitasset_data"]["current_feed"],
+            bitshares_instance=self.bitshares
+        )
 
     @property
     def calls(self):
-        return self.get_call_positions(10)
+        return self.get_call_orders(10)
 
     def get_call_orders(self, limit=100):
         from .price import Price
@@ -119,10 +143,16 @@ class Asset(BlockchainObject):
         self.ensure_full()
         r = list()
         bitasset = self["bitasset_data"]
-        settlement_price = Price(bitasset["current_feed"]["settlement_price"])
+        settlement_price = Price(
+            bitasset["current_feed"]["settlement_price"],
+            bitshares_instance=self.bitshares
+        )
         ret = self.bitshares.rpc.get_call_orders(self["id"], limit)
         for call in ret[:limit]:
-            call_price = Price(call["call_price"])
+            call_price = Price(
+                call["call_price"],
+                bitshares_instance=self.bitshares
+            )
             collateral_amount = Amount(
                 {
                     "amount": call["collateral"],
@@ -184,7 +214,10 @@ class Asset(BlockchainObject):
     def halt(self):
         """ Halt this asset from being moved or traded
         """
-        nullaccount = Account("null-account")  # We set the null-account
+        nullaccount = Account(
+            "null-account",  # We set the null-account
+            bitshares_instance=self.bitshares
+        )
         flags = {"white_list": True,
                  "transfer_restricted": True,
                  }
@@ -464,6 +497,7 @@ class Asset(BlockchainObject):
 
             :param float percentage_fee: Percentage of fee
             :param bitshares.amount.Amount max_market_fee: Max Fee
+
         """
         assert percentage_fee <= 100 and percentage_fee > 0
         flags = {"charge_market_fee": percentage_fee > 0}
@@ -487,8 +521,8 @@ class Asset(BlockchainObject):
     def update_feed_producers(self, producers):
         """ Update bitasset feed producers
 
-            :param list producers: List of accounts that are
-            allowed to produce a feed
+            :param list producers: List of accounts that are allowed to produce
+                 a feed
         """
         assert self.is_bitasset, \
             "Asset needs to be a bitasset/market pegged asset"

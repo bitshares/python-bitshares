@@ -1,7 +1,9 @@
 graphenelib
-pycrypto==2.6.1
+pycryptodome==3.4.6
 scrypt==0.7.1
 Events==0.2.2
 pyyaml
 pytest
+pytest-mock
 coverage
+mock
