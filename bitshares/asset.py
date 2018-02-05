@@ -133,7 +133,7 @@ class Asset(BlockchainObject):
 
     @property
     def calls(self):
-        return self.get_call_positions(10)
+        return self.get_call_orders(10)
 
     def get_call_orders(self, limit=100):
         from .price import Price
@@ -497,6 +497,7 @@ class Asset(BlockchainObject):
 
             :param float percentage_fee: Percentage of fee
             :param bitshares.amount.Amount max_market_fee: Max Fee
+
         """
         assert percentage_fee <= 100 and percentage_fee > 0
         flags = {"charge_market_fee": percentage_fee > 0}
@@ -520,8 +521,8 @@ class Asset(BlockchainObject):
     def update_feed_producers(self, producers):
         """ Update bitasset feed producers
 
-            :param list producers: List of accounts that are
-            allowed to produce a feed
+            :param list producers: List of accounts that are allowed to produce
+                 a feed
         """
         assert self.is_bitasset, \
             "Asset needs to be a bitasset/market pegged asset"

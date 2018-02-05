@@ -117,7 +117,7 @@ class Testcases(unittest.TestCase):
                    "4fb5093226275f48a42d9e8cf")
         self.doit()
 
-    def test_Transfer(self):
+    def test_transfer(self):
         pub = format(account.PrivateKey(wif).pubkey, prefix)
         from_account_id = "1.2.0"
         to_account_id = "1.2.1"
@@ -350,42 +350,6 @@ class Testcases(unittest.TestCase):
                    "a64769f5f62c0301ce21ab4f7c67a6801b4266")
         self.doit()
 
-    def test_asset_update(self):
-        self.op = operations.Asset_update(**{
-            "fee": {"amount": 0,
-                    "asset_id": "1.3.0"},
-            "issuer": "1.2.0",
-            "asset_to_update": "1.3.0",
-            "new_options": {
-                "max_supply": "1000000000000000",
-                "market_fee_percent": 0,
-                "max_market_fee": "1000000000000000",
-                "issuer_permissions": 79,
-                "flags": 0,
-                "core_exchange_rate": {
-                    "base": {"amount": 0,
-                             "asset_id": "1.3.0"},
-                    "quote": {"amount": 0,
-                              "asset_id": "1.3.0"}
-                },
-                "whitelist_authorities": ["1.2.12", "1.2.13"],
-                "blacklist_authorities": ["1.2.10", "1.2.11"],
-                "whitelist_markets": ["1.3.10", "1.3.11"],
-                "blacklist_markets": ["1.3.12", "1.3.13"],
-                "description": "Foobar",
-                "extensions": []
-            },
-            "extensions": []
-        })
-        self.cm = ("f68585abf4dce7c80457010b00000000000000000000000000"
-                   "80c6a47e8d030000000080c6a47e8d03004f00000000000000"
-                   "0000000000000000000000000000020c0d020a0b020a0b020c"
-                   "0d06466f6f626172000000011f5bd6a206d210d1d78eb423e0"
-                   "c2362013aa80830a8e61e5df2570eac05f1c57a4165c99099f"
-                   "c2e97ecbf2b46014c96a6f99cff8d20f55a6042929136055e5"
-                   "ad10")
-        self.doit()
-
     def test_whitelist(self):
         self.op = operations.Account_whitelist(**{
             "fee": {"amount": 0,
@@ -493,6 +457,167 @@ class Testcases(unittest.TestCase):
                    "2e94750ce2c5")
         self.doit()
 
+    def test_asset_create(self):
+        self.op = operations.Asset_create(**{
+            "fee": {
+                "amount": 0,
+                "asset_id": "1.3.0"
+            },
+            "issuer": "1.2.0",
+            "symbol": "THING",
+            "precision": 0,
+            "common_options": {
+                "max_supply": "1000000000000000",
+                "market_fee_percent": 0,
+                "max_market_fee": "1000000000000000",
+                "issuer_permissions": 79,
+                "flags": 0,
+                "core_exchange_rate": {
+                    "base": {
+                        "amount": 0,
+                        "asset_id": "1.3.0"
+                    },
+                    "quote": {
+                        "amount": 0,
+                        "asset_id": "1.3.0"
+                    }
+                },
+                "whitelist_authorities": ["1.2.0"],
+                "blacklist_authorities": ["1.2.1"],
+                "whitelist_markets": ["1.3.0"],
+                "blacklist_markets": ["1.3.1"],
+                "description": "Foobar think",
+                "extensions": []
+            },
+            "bitasset_opts": {
+                "feed_lifetime_sec": 86400,
+                "minimum_feeds": 7,
+                "force_settlement_delay_sec": 86400,
+                "force_settlement_offset_percent": 100,
+                "maximum_force_settlement_volume": 50,
+                "short_backing_asset": "1.3.0",
+                "extensions": []
+            },
+            "is_prediction_market": False,
+            "extensions": []
+        })
+        self.cm = ("f68585abf4dce7c80457010a000000000000000000000554484"
+                   "94e47000080c6a47e8d030000000080c6a47e8d03004f000000"
+                   "000000000000000000000000000000000000010001010100010"
+                   "10c466f6f626172207468696e6b000180510100078051010064"
+                   "0032000000000000011f1b8ac491bb327921d9346d543e530d8"
+                   "8acb68bade58296a7a27b0a74a28eaca762260dbb905a6415f6"
+                   "225a8028a810de6290badc29d16fea0ffd88bc8c0cbec4")
+        self.doit()
+
+    def test_asset_update(self):
+        self.op = operations.Asset_update(**{
+            "fee": {
+                "amount": 0,
+                "asset_id": "1.3.0"
+            },
+            "issuer": "1.2.0",
+            "asset_to_update": "1.3.0",
+            "new_options": {
+                "max_supply": "1000000000000000",
+                "market_fee_percent": 0,
+                "max_market_fee": "1000000000000000",
+                "issuer_permissions": 79,
+                "flags": 0,
+                "core_exchange_rate": {
+                    "base": {
+                        "amount": 0,
+                        "asset_id": "1.3.0"
+                    },
+                    "quote": {
+                        "amount": 0,
+                        "asset_id": "1.3.0"
+                    }
+                },
+                "whitelist_authorities": [],
+                "blacklist_authorities": [],
+                "whitelist_markets": [],
+                "blacklist_markets": [],
+                "description": "",
+                "extensions": []
+            },
+            "extensions": []
+        })
+        self.cm = ("f68585abf4dce7c80457010b000000000000000000000000008"
+                   "0c6a47e8d030000000080c6a47e8d03004f0000000000000000"
+                   "000000000000000000000000000000000000000000011f51477"
+                   "1af6ac47a12a387979b6452afcd3f50514277efd7938f5227a7"
+                   "fe7287db529d251e2b7c31d4a2d8ed59035b78b64f95e6011d9"
+                   "58ab9504008a56c83cbb6")
+        self.doit()
+
+    def test_asset_update_bitasset(self):
+        self.op = operations.Asset_update_bitasset(**{
+            "fee": {
+                "amount": 0,
+                "asset_id": "1.3.0"
+            },
+            "issuer": "1.2.0",
+            "asset_to_update": "1.3.0",
+            "new_options": {
+                "feed_lifetime_sec": 86400,
+                "minimum_feeds": 1,
+                "force_settlement_delay_sec": 86400,
+                "force_settlement_offset_percent": 0,
+                "maximum_force_settlement_volume": 2000,
+                "short_backing_asset": "1.3.0",
+                "extensions": []
+            },
+            "extensions": []
+        })
+        self.cm = ("f68585abf4dce7c80457010c000000000000000000000080510"
+                   "10001805101000000d0070000000001205e7fed2110783b4fe9"
+                   "ec1f1a71ad0325fce04fd11d03a534baac5cf18c52c91e6fdae"
+                   "b76cff9d480a96500cbfde214cadd436e8f66aa61ad3f14973e"
+                   "42406eca")
+        self.doit()
+
+    def test_asset_issue(self):
+        message = "abcdefgABCDEFG0123456789"
+        nonce = "5862723643998573708"
+        pub = format(account.PrivateKey(wif).pubkey, prefix)
+        encrypted_memo = memo.encode_memo(
+            account.PrivateKey(wif),
+            account.PublicKey(pub, prefix=prefix),
+            nonce,
+            message
+        )
+        self.op = operations.Asset_issue(**{
+            "fee": {
+                "amount": 0,
+                "asset_id": "1.3.0"
+            },
+            "issuer": "1.2.0",
+            "asset_to_issue": {
+                "amount": 0,
+                "asset_id": "1.3.0"
+            },
+            "memo": {
+                "from": pub,
+                "to": pub,
+                "nonce": nonce,
+                "message": encrypted_memo,
+            },
+            "issue_to_account": "1.2.0",
+            "extensions": [],
+            "prefix": prefix
+        })
+        self.cm = ("f68585abf4dce7c80457010e000000000000000000000000000"
+                   "00000000000000102c0ded2bc1f1305fb0faac5e6c03ee3a192"
+                   "4234985427b6167ca569d13df435cf02c0ded2bc1f1305fb0fa"
+                   "ac5e6c03ee3a1924234985427b6167ca569d13df435cf8c94d1"
+                   "9817945c5120fa5b6e83079a878e499e2e52a76a7739e9de409"
+                   "86a8e3bd8a68ce316cee50b210000012055139900ea2ae7db9d"
+                   "4ef0d5d4015d2d993d0590ad32662bda94daba74a5e13411aef"
+                   "4de6f847e9e4300e5c8c36aa8e5f9032d25fd8ca01abd58c7e9"
+                   "528677e4")
+        self.doit()
+
     def compareConstructedTX(self):
         self.maxDiff = None
         self.op = operations.Bid_collateral(**{
@@ -515,7 +640,7 @@ class Testcases(unittest.TestCase):
             operations=ops
         )
         tx = tx.sign([wif], chain=prefix)
-        tx.verify([PrivateKey(wif).pubkey], "BTS")
+        tx.verify([PrivateKey(wif).pubkey], prefix)
         txWire = hexlify(bytes(tx)).decode("ascii")
         print("=" * 80)
         pprint(tx.json())

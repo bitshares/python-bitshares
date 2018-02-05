@@ -132,15 +132,22 @@ class TransactionBuilder(dict):
         self,
         tx={},
         proposer=None,
+        expiration=None,
         bitshares_instance=None
     ):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
         self.clear()
-        if not isinstance(tx, dict):
-            raise ValueError("Invalid TransactionBuilder Format")
-        super(TransactionBuilder, self).__init__(tx)
-        # Do we need to reconstruct the tx from self.ops?
-        self._require_reconstruction = True
+        if tx and isinstance(tx, dict):
+            super(TransactionBuilder, self).__init__(tx)
+            # Load operations
+            self.ops = tx["operations"]
+            self._require_reconstruction = False
+        else:
+            self._require_reconstruction = True
+        self.set_expiration(expiration)
+
+    def set_expiration(self, p):
+        self.expiration = p
 
     def is_empty(self):
         return not (len(self.ops) > 0)
@@ -276,7 +283,9 @@ class TransactionBuilder(dict):
 
         # We no wrap everything into an actual transaction
         ops = transactions.addRequiredFees(self.bitshares.rpc, ops)
-        expiration = transactions.formatTimeFromNow(self.bitshares.expiration)
+        expiration = transactions.formatTimeFromNow(
+            self.expiration or self.bitshares.expiration
+        )
         ref_block_num, ref_block_prefix = transactions.getBlockParams(
             self.bitshares.rpc)
         self.tx = Signed_Transaction(
@@ -285,7 +294,7 @@ class TransactionBuilder(dict):
             expiration=expiration,
             operations=ops
         )
-        super(TransactionBuilder, self).__init__(self.tx.json())
+        super(TransactionBuilder, self).update(self.tx.json())
         self._unset_require_reconstruction()
 
     def sign(self):

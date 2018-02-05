@@ -7,8 +7,10 @@ from .exceptions import (
     KeyNotFound,
     InvalidWifError,
     WalletExists,
+    WalletLocked,
     WrongMasterPasswordException,
-    NoWalletException
+    NoWalletException,
+    RPCConnectionRequired
 )
 
 log = logging.getLogger(__name__)
@@ -53,12 +55,13 @@ class Wallet():
     keys = {}  # struct with pubkey as key and wif as value
     keyMap = {}  # type:wif pairs to force certain keys
 
-    def __init__(self, rpc, *args, **kwargs):
+    def __init__(self, rpc=None, *args, **kwargs):
         from .storage import configStorage
         self.configStorage = configStorage
 
-        # RPC
-        Wallet.rpc = rpc
+        # RPC static variable
+        if rpc:
+            Wallet.rpc = rpc
 
         # Prefix?
         if Wallet.rpc:
@@ -126,6 +129,11 @@ class Wallet():
         """ Lock the wallet database
         """
         self.masterpassword = None
+
+    def unlocked(self):
+        """ Is the wallet database unlocked?
+        """
+        return not self.locked()
 
     def locked(self):
         """ Is the wallet database locked?
@@ -225,6 +233,9 @@ class Wallet():
             # Test if wallet exists
             if not self.created():
                 raise NoWalletException
+
+            if not self.unlocked():
+                raise WalletLocked
 
             encwif = self.keyStorage.getPrivateKeyForPublicKey(pub)
             if not encwif:

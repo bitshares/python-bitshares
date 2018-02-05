@@ -177,16 +177,6 @@ class BitShares(object):
     def prefix(self):
         return self.rpc.chain_params["prefix"]
 
-    def newWallet(self, pwd):
-        """ Create a new wallet. This method is basically only calls
-            :func:`bitshares.wallet.create`.
-
-            :param str pwd: Password to use for the new wallet
-            :raises bitshares.exceptions.WalletExists: if there is already a
-                wallet created
-        """
-        self.wallet.create(pwd)
-
     def set_default_account(self, account):
         """ Set the default account to be used
         """
@@ -299,6 +289,24 @@ class BitShares(object):
         """ Returns the global properties
         """
         return self.rpc.get_dynamic_global_properties()
+
+    # -------------------------------------------------------------------------
+    # Wallet stuff
+    # -------------------------------------------------------------------------
+    def newWallet(self, pwd):
+        """ Create a new wallet. This method is basically only calls
+            :func:`bitshares.wallet.create`.
+
+            :param str pwd: Password to use for the new wallet
+            :raises bitshares.exceptions.WalletExists: if there is already a
+                wallet created
+        """
+        return self.wallet.create(pwd)
+
+    def unlock(self, *args, **kwargs):
+        """ Unlock the internal wallet
+        """
+        return self.wallet.unlock(*args, **kwargs)
 
     # -------------------------------------------------------------------------
     # Transaction Buffers

@@ -8,7 +8,6 @@ from bitsharesbase.operationids import getOperationNameForId
 from bitshares.amount import Amount
 from bitsharesbase.account import PrivateKey
 from bitshares.instance import set_shared_bitshares_instance
-from bitshares.message import Message
 
 wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
 core_unit = "TEST"
@@ -227,18 +226,3 @@ class Testcases(unittest.TestCase):
         self.assertIn(
             "0:11",
             op["new_options"]["votes"])
-
-    def test_sign_message(self):
-        def new_refresh(self):
-            dict.__init__(
-                self, {"name": "init0",
-                 "options": {
-                     "memo_key": "TEST6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"
-                 }})
-
-        with mock.patch(
-            "bitshares.account.Account.refresh",
-            new=new_refresh
-        ):
-            p = Message("message foobar").sign()
-            Message(p).verify()
