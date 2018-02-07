@@ -61,6 +61,7 @@ class Notify(Events):
         on_account=None,
         on_market=None,
         bitshares_instance=None,
+        keep_alive=25
     ):
         # Events
         super(Notify, self).__init__()
@@ -106,6 +107,7 @@ class Notify(Events):
             on_block=on_block,
             on_account=self.process_account,
             on_market=self.process_market,
+            keep_alive=keep_alive
         )
 
     def process_market(self, data):
