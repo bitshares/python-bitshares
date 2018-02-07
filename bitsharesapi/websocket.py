@@ -123,6 +123,7 @@ class BitSharesWebsocket(Events):
         self.user = user
         self.password = password
         self.keep_alive = keep_alive
+        self.running = True
         if isinstance(urls, cycle):
             self.urls = urls
         elif isinstance(urls, list):
@@ -198,7 +199,7 @@ class BitSharesWebsocket(Events):
 
         # We keep the connetion alive by requesting a short object
         def ping(self):
-            while 1:
+            while self.running:
                 log.debug('Sending ping')
                 self.get_objects(["2.8.0"])
                 time.sleep(self.keep_alive)
@@ -291,7 +292,7 @@ class BitSharesWebsocket(Events):
             connected with the provided APIs
         """
         cnt = 0
-        while True:
+        while self.running:
             cnt += 1
             self.url = next(self.urls)
             log.debug("Trying to connect to node %s" % self.url)
@@ -324,6 +325,14 @@ class BitSharesWebsocket(Events):
 
             except Exception as e:
                 log.critical("{}\n\n{}".format(str(e), traceback.format_exc()))
+
+    def close(self):
+        """ Closes the websocket connection and waits for the ping thread to close
+            Can only be called after run_forever() is called
+        """
+        self.running = False
+        self.ws.close()
+        self.keepalive.join()
 
     def get_request_id(self):
         self._request_id += 1
