@@ -123,6 +123,7 @@ class BitSharesWebsocket(Events):
         self.user = user
         self.password = password
         self.keep_alive = keep_alive
+        self.run_event = threading.Event()
         if isinstance(urls, cycle):
             self.urls = urls
         elif isinstance(urls, list):
@@ -196,18 +197,16 @@ class BitSharesWebsocket(Events):
                     self.__events__.index('on_market'),
                     market[0], market[1])
 
-        # We keep the connetion alive by requesting a short object
-        def ping(self):
-            while 1:
-                log.debug('Sending ping')
-                self.get_objects(["2.8.0"])
-                time.sleep(self.keep_alive)
-
         self.keepalive = threading.Thread(
-            target=ping,
-            args=(self,)
+            target=self._ping
         )
         self.keepalive.start()
+
+    def _ping(self):
+        # We keep the connection alive by requesting a short object
+        while not self.run_event.wait(self.keep_alive):
+            log.debug('Sending ping')
+            self.get_objects(["2.8.0"])
 
     def process_notice(self, notice):
         """ This method is called on notices that need processing. Here,
@@ -281,9 +280,6 @@ class BitSharesWebsocket(Events):
         """ Called when websocket connection is closed
         """
         log.debug('Closing WebSocket connection with {}'.format(self.url))
-        if self.keepalive and self.keepalive.is_alive():
-            self.keepalive.do_run = False
-            self.keepalive.join()
 
     def run_forever(self):
         """ This method is used to run the websocket app continuously.
@@ -291,7 +287,7 @@ class BitSharesWebsocket(Events):
             connected with the provided APIs
         """
         cnt = 0
-        while True:
+        while not self.run_event.is_set():
             cnt += 1
             self.url = next(self.urls)
             log.debug("Trying to connect to node %s" % self.url)
@@ -324,6 +320,15 @@ class BitSharesWebsocket(Events):
 
             except Exception as e:
                 log.critical("{}\n\n{}".format(str(e), traceback.format_exc()))
+
+    def close(self):
+        """ Closes the websocket connection and waits for the ping thread to close
+        """
+        self.run_event.set()
+        self.ws.close()
+
+        if self.keepalive and self.keepalive.is_alive():
+            self.keepalive.join()
 
     def get_request_id(self):
         self._request_id += 1
