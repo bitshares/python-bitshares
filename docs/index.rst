@@ -111,43 +111,24 @@ General
    contribute
    support
 
-Python-BitShares Libraries
---------------------------
+Packages
+--------
+
+bitshares
+~~~~~~~~~
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
 
    bitshares
-   instances
-   account
-   amount
-   asset
-   block
-   blockchain
-   exceptions
-   dex
-   market
-   notify
-   price
-   vesting
-   witness
-   worker
-   proposal
 
-Low Level Classes
------------------
+bitsharesbase
+~~~~~~~~~~~~~
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
 
-   storage
-   utils
-   transactionbuilder
-   wallet
-   websocket
-   websocketrpc
-   transactions
-   memo
+   bitsharesbase
 
 Glossary
 ========
