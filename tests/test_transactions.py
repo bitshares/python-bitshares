@@ -618,19 +618,45 @@ class Testcases(unittest.TestCase):
                    "528677e4")
         self.doit()
 
+    def test_withdraw_permission_create(self):
+        self.op = operations.Withdraw_permission_create(**{
+            "fee": {
+                "amount": 0,
+                "asset_id": "1.3.0"
+            },
+            "withdraw_from_account": "1.2.0",
+            "authorized_account": "1.2.0",
+            "withdrawal_limit": {
+                "amount": 35634,
+                "asset_id": "1.3.0"
+            },
+            "withdrawal_period_sec": 53454,
+            "periods_until_expiration": 65435354,
+            "period_start_time": "1970-01-01T00:00:00"
+        })
+        self.cm = ("f68585abf4dce7c8045701190000000000000000000000328b"
+                   "00000000000000ced00000da76e603000000000001204879cd"
+                   "102225b4445eb192470907361b656a26de2b455347802d4a04"
+                   "38a66a1618577b25bd96bee42f476b97ce3cb36e507d268b09"
+                   "b3324dddbac1b7617de3f0")
+        self.doit()
+
     def compareConstructedTX(self):
         self.maxDiff = None
-        self.op = operations.Bid_collateral(**{
-            'fee': {'amount': 100,
-                    'asset_id': '1.3.0'},
-            'additional_collateral': {
-                'amount': 10000,
-                'asset_id': '1.3.22'},
-            'debt_covered': {
-                'amount': 100000000,
-                'asset_id': '1.3.0'},
-            'bidder': '1.2.29',
-            'extensions': []
+        self.op = operations.Withdraw_permission_create(**{
+            "fee": {
+                "amount": 0,
+                "asset_id": "1.3.0"
+            },
+            "withdraw_from_account": "1.2.0",
+            "authorized_account": "1.2.0",
+            "withdrawal_limit": {
+                "amount": 35634,
+                "asset_id": "1.3.0"
+            },
+            "withdrawal_period_sec": 53454,
+            "periods_until_expiration": 65435354,
+            "period_start_time": "1970-01-01T00:00:00"
         })
         ops = [Operation(self.op)]
         tx = Signed_Transaction(
