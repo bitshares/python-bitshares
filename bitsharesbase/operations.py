@@ -548,3 +548,17 @@ class Withdraw_permission_create(GrapheneObject):
                 ('periods_until_expiration', Uint32(kwargs["periods_until_expiration"])),
                 ('period_start_time', PointInTime(kwargs["period_start_time"])),
             ]))
+
+
+class Committee_member_create(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('committee_member_account', ObjectId(kwargs["committee_member_account"], "account")),
+                ('url', String(kwargs["url"])),
+            ]))

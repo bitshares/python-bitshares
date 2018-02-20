@@ -641,22 +641,30 @@ class Testcases(unittest.TestCase):
                    "b3324dddbac1b7617de3f0")
         self.doit()
 
-    def compareConstructedTX(self):
-        self.maxDiff = None
-        self.op = operations.Withdraw_permission_create(**{
+    def test_committee_create(self):
+        self.op = operations.Committee_member_create(**{
             "fee": {
                 "amount": 0,
                 "asset_id": "1.3.0"
             },
-            "withdraw_from_account": "1.2.0",
-            "authorized_account": "1.2.0",
-            "withdrawal_limit": {
-                "amount": 35634,
+            "committee_member_account": "1.2.0",
+            "url": "foobar"
+        })
+        self.cm = ("f68585abf4dce7c80457011d0000000000000000000006666f"
+                   "6f62617200011f26ced69cf1c79c7cd5be14092b15c9bd07f2"
+                   "a1ea988ac3dff2e8e706d72461b21bef9a8eda4c51b5d484f7"
+                   "8d31567ef7066d105bcd75c215f8d919673ea57c32")
+        self.doit()
+
+    def compareConstructedTX(self):
+        self.maxDiff = None
+        self.op = operations.Committee_member_create(**{
+            "fee": {
+                "amount": 0,
                 "asset_id": "1.3.0"
             },
-            "withdrawal_period_sec": 53454,
-            "periods_until_expiration": 65435354,
-            "period_start_time": "1970-01-01T00:00:00"
+            "committee_member_account": "1.2.0",
+            "url": "foobar"
         })
         ops = [Operation(self.op)]
         tx = Signed_Transaction(
