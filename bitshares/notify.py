@@ -70,18 +70,6 @@ class Notify(Events):
         # BitShares instance
         self.bitshares = bitshares_instance or shared_bitshares_instance()
 
-        # Markets
-        market_ids = []
-        for market_name in markets:
-            market = Market(
-                market_name,
-                bitshares_instance=self.bitshares
-            )
-            market_ids.append([
-                market["base"]["id"],
-                market["quote"]["id"],
-            ])
-
         # Callbacks
         if on_tx:
             self.on_tx += on_tx
@@ -100,7 +88,7 @@ class Notify(Events):
             user=self.bitshares.rpc.user,
             password=self.bitshares.rpc.password,
             accounts=accounts,
-            markets=market_ids,
+            markets=self.get_market_ids(markets),
             objects=objects,
             on_tx=on_tx,
             on_object=on_object,
@@ -109,6 +97,30 @@ class Notify(Events):
             on_market=self.process_market,
             keep_alive=keep_alive
         )
+
+    def get_market_ids(self,markets):
+        # Markets
+        market_ids = []
+        for market_name in markets:
+            market = Market(
+                market_name,
+                bitshares_instance=self.bitshares
+            )
+            market_ids.append([
+                market["base"]["id"],
+                market["quote"]["id"],
+            ])
+        return market_ids
+
+    def reset_subscriptions(self,accounts=[],markets=[],objects=[]):
+        """Change the subscriptions of a running Notify instance
+        """
+        self.websocket.reset_subscriptions(accounts,self.get_market_ids(markets),objects)
+
+    def close(self):
+        """Cleanly close the Notify instance
+        """
+        self.websocket.close()
 
     def process_market(self, data):
         """ This method is used for post processing of market

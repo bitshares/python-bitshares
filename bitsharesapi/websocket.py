@@ -165,22 +165,28 @@ class BitSharesWebsocket(Events):
         """
         self.login(self.user, self.password, api_id=1)
         self.database(api_id=1)
+        self.__set_subscriptions()
+        self.keepalive = threading.Thread(
+            target=self._ping
+        )
+        self.keepalive.start()
+
+    def reset_subscriptions(self,accounts=[],markets=[],objects=[]):
+        self.subscription_accounts = accounts
+        self.subscription_markets = markets
+        self.subscription_objects = objects
+        self.__set_subscriptions()
+
+    def __set_subscriptions(self):
         self.cancel_all_subscriptions()
 
         # Subscribe to events on the Backend and give them a
         # callback number that allows us to identify the event
+
         if len(self.on_object) or len(self.subscription_accounts):
             self.set_subscribe_callback(
                 self.__events__.index('on_object'),
                 False)
-
-        if len(self.on_tx):
-            self.set_pending_transaction_callback(
-                self.__events__.index('on_tx'))
-
-        if len(self.on_block):
-            self.set_block_applied_callback(
-                self.__events__.index('on_block'))
 
         if self.subscription_accounts and self.on_account:
             # Unfortunately, account subscriptions don't have their own
@@ -196,11 +202,12 @@ class BitSharesWebsocket(Events):
                 self.subscribe_to_market(
                     self.__events__.index('on_market'),
                     market[0], market[1])
-
-        self.keepalive = threading.Thread(
-            target=self._ping
-        )
-        self.keepalive.start()
+        if len(self.on_tx):
+            self.set_pending_transaction_callback(
+                self.__events__.index('on_tx'))
+        if len(self.on_block):
+            self.set_block_applied_callback(
+                self.__events__.index('on_block'))
 
     def _ping(self):
         # We keep the connection alive by requesting a short object
