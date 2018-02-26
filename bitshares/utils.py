@@ -1,6 +1,6 @@
 import re
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from .exceptions import ObjectNotInProposalBuffer
 
 timeFormat = '%Y-%m-%dT%H:%M:%S'
@@ -38,7 +38,7 @@ def parse_time(block_time):
     """Take a string representation of time from the blockchain, and parse it
        into datetime object.
     """
-    return datetime.strptime(block_time, timeFormat)
+    return datetime.strptime(block_time, timeFormat).replace(tzinfo=timezone.utc)
 
 
 def assets_from_string(text):
