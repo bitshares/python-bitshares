@@ -226,7 +226,11 @@ class BitShares(object):
             assert isinstance(append_to, (TransactionBuilder, ProposalBuilder))
             append_to.appendOps(ops)
             # Add the signer to the buffer so we sign the tx properly
-            parent.appendSigner(append_to.proposer, permission)
+
+            if isinstance(append_to, ProposalBuilder):
+                parent.appendSigner(append_to.proposer, permission)
+            else:
+                parent.appendSigner(account, permission)
             # This returns as we used append_to, it does NOT broadcast, or sign
             return append_to.get_parent()
         elif self.proposer:
