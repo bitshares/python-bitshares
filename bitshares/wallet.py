@@ -44,6 +44,7 @@ class Wallet():
     """
     keys = []
     rpc = None
+    bitshares = None
     masterpassword = None
 
     # Keys from database
@@ -336,7 +337,7 @@ class Wallet():
         """
         for id in self.getAccountsFromPublicKey(pub):
             try:
-                account = Account(id)   # FIXME: self.bitshares is not available in wallet!
+                account = Account(id, bitshares_instance=self.bitshares)
             except:
                 continue
             yield {"name": account["name"],
@@ -353,7 +354,7 @@ class Wallet():
             return {"name": None, "type": None, "pubkey": pub}
         else:
             try:
-                account = Account(name)   # FIXME: self.bitshares is not available in wallet!
+                account = Account(name, bitshares_instance=self.bitshares)
             except:
                 return
             return {"name": account["name"],

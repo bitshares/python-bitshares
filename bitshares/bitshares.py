@@ -145,6 +145,7 @@ class BitShares(object):
                          **kwargs)
 
         self.wallet = Wallet(self.rpc, **kwargs)
+        self.wallet.bitshares = self
 
         # txbuffers/propbuffer are initialized and cleared
         self.clear()
