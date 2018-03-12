@@ -209,6 +209,23 @@ class Key(DataDir):
         cursor.execute(*query)
         connection.commit()
 
+    def wipe(self, sure=False):
+        """ Purge the entire wallet. No keys will survive this!
+        """
+        if not sure:
+            log.error(
+                "You need to confirm that you are sure "
+                "and understand the implications of "
+                "wiping your wallet!"
+            )
+            return
+        else:
+            query = "DELETE FROM %s " % self.__tablename__
+            connection = sqlite3.connect(self.sqlDataBaseFile)
+            cursor = connection.cursor()
+            cursor.execute(query)
+            connection.commit()
+
 
 class Configuration(DataDir):
     """ This is the configuration storage that stores key/value
@@ -443,10 +460,17 @@ class MasterPassword(object):
         self.password = newpassword
         self.saveEncrytpedMaster()
 
-    def purge(self):
-        """ Remove the masterpassword from the configuration store
-        """
-        configStorage[self.config_key] = ""
+    @staticmethod
+    def wipe(sure=False):
+        if not sure:
+            log.error(
+                "You need to confirm that you are sure "
+                "and understand the implications of "
+                "wiping your wallet!"
+            )
+            return
+        else:
+            configStorage.delete(MasterPassword.config_key)
 
 
 # Create keyStorage
