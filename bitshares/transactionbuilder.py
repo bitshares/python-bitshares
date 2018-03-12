@@ -282,7 +282,11 @@ class TransactionBuilder(dict):
                 ops.extend([Operation(op)])
 
         # We no wrap everything into an actual transaction
-        ops = transactions.addRequiredFees(self.bitshares.rpc, ops)
+        if len(ops) == 1 and isinstance(ops[0].op, operations.Transfer):
+            fee_assert_id = ops[0].op.data["fee"].data["asset_id"].Id
+            ops = transactions.addRequiredFees(self.bitshares.rpc, ops, asset_id=fee_assert_id)
+        else:
+            ops = transactions.addRequiredFees(self.bitshares.rpc, ops)
         expiration = transactions.formatTimeFromNow(
             self.expiration or self.bitshares.expiration
         )

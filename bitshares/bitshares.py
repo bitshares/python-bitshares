@@ -409,7 +409,7 @@ class BitShares(object):
     # -------------------------------------------------------------------------
     # Simple Transfer
     # -------------------------------------------------------------------------
-    def transfer(self, to, amount, asset, memo="", account=None, **kwargs):
+    def transfer(self, to, amount, asset, memo="", fee_asset="1.3.0", account=None, **kwargs):
         """ Transfer an asset to another account.
 
             :param str to: Recipient
@@ -417,6 +417,7 @@ class BitShares(object):
             :param str asset: Asset to transfer
             :param str memo: (optional) Memo, may begin with `#` for encrypted
                 messaging
+            :param str fee_asset: Asset to fee
             :param str account: (optional) the source account for the transfer
                 if not ``default_account``
         """
@@ -438,7 +439,7 @@ class BitShares(object):
         )
 
         op = operations.Transfer(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "fee": {"amount": 0, "asset_id": fee_asset},
             "from": account["id"],
             "to": to["id"],
             "amount": {
