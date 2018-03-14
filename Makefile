@@ -14,7 +14,7 @@ clean-pyc:
 	find . -name '*~' -exec rm -f {} +
 
 lint:
-	flake8 bitsharesapi/ bitsharesbase/ bitshares/
+	flake8 --ignore=E501,F401 bitsharesapi bitsharesbase examples
 
 test:
 	python3 setup.py test

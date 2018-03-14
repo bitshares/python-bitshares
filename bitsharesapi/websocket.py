@@ -171,7 +171,7 @@ class BitSharesWebsocket(Events):
         )
         self.keepalive.start()
 
-    def reset_subscriptions(self,accounts=[],markets=[],objects=[]):
+    def reset_subscriptions(self, accounts=[], markets=[], objects=[]):
         self.subscription_accounts = accounts
         self.subscription_markets = markets
         self.subscription_objects = objects
