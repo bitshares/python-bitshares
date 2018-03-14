@@ -1,11 +1,42 @@
-BitShares
-~~~~~~~~~
+bitshares package
+=================
 
-The BitShares library has been designed to allow developers to easily
-access its routines and make use of the network without dealing with all
-the related blockchain technology and cryptography. This library can be
-used to do anything that is allowed according to the BitShares
-blockchain protocol.
+Submodules
+----------
 
-.. autoclass:: bitshares.bitshares.BitShares
-   :members:
+.. toctree::
+
+   bitshares.account
+   bitshares.aes
+   bitshares.amount
+   bitshares.asset
+   bitshares.bitshares
+   bitshares.block
+   bitshares.blockchain
+   bitshares.blockchainobject
+   bitshares.committee
+   bitshares.dex
+   bitshares.exceptions
+   bitshares.fee
+   bitshares.instance
+   bitshares.market
+   bitshares.memo
+   bitshares.message
+   bitshares.notify
+   bitshares.price
+   bitshares.proposal
+   bitshares.storage
+   bitshares.transactionbuilder
+   bitshares.utils
+   bitshares.vesting
+   bitshares.wallet
+   bitshares.witness
+   bitshares.worker
+
+Module contents
+---------------
+
+.. automodule:: bitshares
+    :members:
+    :undoc-members:
+    :show-inheritance:

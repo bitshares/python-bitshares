@@ -390,3 +390,19 @@ class Wallet():
             return self.keyStorage.getPublicKeys()
         else:
             return list(Wallet.keys.keys())
+
+    def wipe(self, sure=False):
+        if not sure:
+            log.error(
+                "You need to confirm that you are sure "
+                "and understand the implications of "
+                "wiping your wallet!"
+            )
+            return
+        else:
+            from .storage import (
+                keyStorage,
+                MasterPassword
+            )
+            MasterPassword.wipe(sure)
+            keyStorage.wipe(sure)

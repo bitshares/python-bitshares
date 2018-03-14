@@ -9,6 +9,11 @@
    http://openalea.gforge.inria.fr/doc/openalea/doc/_build/html/source/sphinx/rest_syntax.html
    http://rest-sphinx-memo.readthedocs.org/en/latest/ReST.html
 
+.. image:: _static/python-bitshares-logo.svg
+   :width: 300 px
+   :alt: Python BitShares
+   :align: center
+
 Welcome to pybitshares's documentation!
 ===============================================
 
@@ -106,43 +111,24 @@ General
    contribute
    support
 
-Python-BitShares Libraries
---------------------------
+Packages
+--------
+
+bitshares
+~~~~~~~~~
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
 
    bitshares
-   instances
-   account
-   amount
-   asset
-   block
-   blockchain
-   exceptions
-   dex
-   market
-   notify
-   price
-   vesting
-   witness
-   worker
-   proposal
 
-Low Level Classes
------------------
+bitsharesbase
+~~~~~~~~~~~~~
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
 
-   storage
-   utils
-   transactionbuilder
-   wallet
-   websocket
-   websocketrpc
-   transactions
-   memo
+   bitsharesbase
 
 Glossary
 ========

@@ -226,7 +226,11 @@ class BitShares(object):
             assert isinstance(append_to, (TransactionBuilder, ProposalBuilder))
             append_to.appendOps(ops)
             # Add the signer to the buffer so we sign the tx properly
-            parent.appendSigner(account, permission)
+
+            if isinstance(append_to, ProposalBuilder):
+                parent.appendSigner(append_to.proposer, permission)
+            else:
+                parent.appendSigner(account, permission)
             # This returns as we used append_to, it does NOT broadcast, or sign
             return append_to.get_parent()
         elif self.proposer:
@@ -1325,7 +1329,7 @@ class BitShares(object):
         account=None,
         **kwargs
     ):
-        """ Reserve/Burn an amount of this shares
+        """ Create a worker
 
             This removes the shares from the supply
 
@@ -1401,5 +1405,31 @@ class BitShares(object):
             "asset_id": asset["id"],
             "amount": int(float(amount) * 10 ** asset["precision"]),
             "extensions": []
+        })
+        return self.finalizeOp(op, account, "active", **kwargs)
+
+    def create_committee_member(
+        self,
+        url="",
+        account=None,
+        **kwargs
+    ):
+        """ Create a committee member
+
+            :param str url: URL to read more about the worker
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self)
+
+        op = operations.Committee_member_create(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "committee_member_account": account["id"],
+            "url": url
         })
         return self.finalizeOp(op, account, "active", **kwargs)

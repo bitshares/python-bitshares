@@ -1,9 +1,18 @@
 language: python
+sudo: false
 python:
   - 3.5
+matrix:
+  include:
+    - env: TOXENV=py35
+      python: 3.5
+    - env: TOXENV=py36
+      python: 3.6
+    #- env: TOXENV=py37
+    #  python: 3.7
 install:
- - pip install tox codecov
+  - pip install tox-travis codecov
 script:
- - tox
+  - tox
 after_success:
   - codecov
