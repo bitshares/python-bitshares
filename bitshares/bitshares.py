@@ -214,6 +214,12 @@ class BitShares(object):
                 :class:`bitshares.transactionbuilder.TransactionBuilder`.
                 You may want to use your own txbuffer
         """
+        if "fee_asset" in kwargs:
+            fee_asset = kwargs["fee_asset"]
+            assert isinstance(fee_asset, Asset)
+        else:
+            fee_asset = None
+
         if "append_to" in kwargs and kwargs["append_to"]:
             if self.proposer:
                 log.warn(
@@ -228,6 +234,11 @@ class BitShares(object):
             # Add the signer to the buffer so we sign the tx properly
             parent.appendSigner(account, permission)
             # This returns as we used append_to, it does NOT broadcast, or sign
+
+            # Set asset to fee
+            if fee_asset and isinstance(append_to, TransactionBuilder):
+                append_to.set_fee_asset(fee_asset)
+
             return append_to.get_parent()
         elif self.proposer:
             # Legacy proposer mode!
@@ -237,9 +248,17 @@ class BitShares(object):
             proposal.set_review(self.proposal_review)
             proposal.appendOps(ops)
             # Go forward to see what the other options do ...
+
+            # Set asset to fee
+            if fee_asset and isinstance(proposal, TransactionBuilder):
+                proposal.set_fee_asset(fee_asset)
         else:
             # Append tot he default buffer
             self.txbuffer.appendOps(ops)
+
+            # Set asset to fee
+            if fee_asset and isinstance(self.txbuffer, TransactionBuilder):
+                self.txbuffer.set_fee_asset(fee_asset)
 
         # Add signing information, signer, sign and optionally broadcast
         if self.unsigned:
@@ -409,7 +428,7 @@ class BitShares(object):
     # -------------------------------------------------------------------------
     # Simple Transfer
     # -------------------------------------------------------------------------
-    def transfer(self, to, amount, asset, memo="", fee_asset="1.3.0", account=None, **kwargs):
+    def transfer(self, to, amount, asset, memo="", account=None, **kwargs):
         """ Transfer an asset to another account.
 
             :param str to: Recipient
@@ -417,7 +436,6 @@ class BitShares(object):
             :param str asset: Asset to transfer
             :param str memo: (optional) Memo, may begin with `#` for encrypted
                 messaging
-            :param str fee_asset: Asset to fee
             :param str account: (optional) the source account for the transfer
                 if not ``default_account``
         """
@@ -439,7 +457,7 @@ class BitShares(object):
         )
 
         op = operations.Transfer(**{
-            "fee": {"amount": 0, "asset_id": fee_asset},
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
             "from": account["id"],
             "to": to["id"],
             "amount": {
