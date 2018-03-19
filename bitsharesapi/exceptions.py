@@ -34,3 +34,7 @@ class UnhandledRPCError(RPCError):
 
 class NumRetriesReached(Exception):
     pass
+
+
+class InvalidEndpointUrl(Exception):
+    pass

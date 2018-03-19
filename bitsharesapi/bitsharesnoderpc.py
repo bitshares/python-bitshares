@@ -14,16 +14,18 @@ class BitSharesNodeRPC(GrapheneWebsocketRPC):
                  user="",
                  password="",
                  **kwargs):
-        self._urls = urls
-        self.rpc.__init__(self, urls, **kwargs)
+        if isinstance(urls, str):
+            self._urls = re.split(r",|;", urls)
+        elif isinstance(urls, (list, tuple, set)):
+            self._urls = urls
+        else:
+            raise exceptions.InvalidEndpointUrl
+        self.rpc.__init__(self, self._urls, **kwargs)
         self.chain_params = self.get_network()
 
     @property
     def rpc(self):
-        if isinstance(self._urls, (list, set)):
-            first_url = self._urls[0]
-        else:
-            first_url = self._urls
+        first_url = self._urls[0]
 
         if first_url[:2] == "ws":
             # Websocket connection
