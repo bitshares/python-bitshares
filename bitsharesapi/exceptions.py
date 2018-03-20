@@ -38,3 +38,7 @@ class NumRetriesReached(Exception):
 
 class InvalidEndpointUrl(Exception):
     pass
+
+
+class AccountCouldntBeFoundException(Exception):
+    pass

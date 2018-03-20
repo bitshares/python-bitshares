@@ -23,6 +23,11 @@ class BitSharesNodeRPC(GrapheneWebsocketRPC):
         self.rpc.__init__(self, self._urls, **kwargs)
         self.chain_params = self.get_network()
 
+    def next(self):
+        """ Iterate over to the next API node an reconnect
+        """
+        self.rpc.next()
+
     @property
     def rpc(self):
         first_url = self._urls[0]
@@ -51,6 +56,8 @@ class BitSharesNodeRPC(GrapheneWebsocketRPC):
             msg = exceptions.decodeRPCErrorMsg(e).strip()
             if msg == "missing required active authority":
                 raise exceptions.MissingRequiredActiveAuthority
+            elif re.match("current_account_itr == acnt_indx.indices().get<by_name>().end()", msg):
+                raise exceptions.AccountCouldntBeFoundException(msg)
             elif re.match("^no method with name.*", msg):
                 raise exceptions.NoMethodWithName(msg)
             elif msg:
