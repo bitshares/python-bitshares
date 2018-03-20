@@ -145,6 +145,7 @@ class TransactionBuilder(dict):
         else:
             self._require_reconstruction = True
         self.set_expiration(expiration)
+        self.fee_assert_id = "1.3.0"
 
     def set_expiration(self, p):
         self.expiration = p
@@ -265,6 +266,11 @@ class TransactionBuilder(dict):
             except:
                 raise InvalidWifError
 
+    def set_fee_asset(self, fee_asset):
+        """ Set asset to fee
+        """
+        self.fee_assert_id = fee_asset.identifier
+
     def constructTx(self):
         """ Construct the actual transaction and store it in the class's dict
             store
@@ -282,7 +288,8 @@ class TransactionBuilder(dict):
                 ops.extend([Operation(op)])
 
         # We no wrap everything into an actual transaction
-        ops = transactions.addRequiredFees(self.bitshares.rpc, ops)
+        ops = transactions.addRequiredFees(self.bitshares.rpc, ops,
+                                           asset_id=self.fee_assert_id)
         expiration = transactions.formatTimeFromNow(
             self.expiration or self.bitshares.expiration
         )
