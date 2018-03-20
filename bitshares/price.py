@@ -118,6 +118,11 @@ class Price(dict):
             self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
             self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
 
+        elif len(args) == 1 and (isinstance(base, Amount) and isinstance(quote, Amount)):
+            price = args[0]
+            self["quote"] = quote
+            self["base"] = base
+
         elif (len(args) == 1 and isinstance(base, str) and isinstance(quote, str)):
             price = args[0]
             base = Asset(base, bitshares_instance=self.bitshares)
@@ -418,6 +423,8 @@ class Order(Price):
             len(args) == 1 and
             isinstance(args[0], str)
         ):
+            """ Load from id
+            """
             order = self.bitshares.rpc.get_objects([args[0]])[0]
             if order:
                 super(Order, self).__init__(order["sell_price"])
@@ -435,6 +442,8 @@ class Order(Price):
             isinstance(args[0], dict) and
             "sell_price" in args[0]
         ):
+            """ Load from object 1.7.xxx
+            """
             super(Order, self).__init__(args[0]["sell_price"])
             self["id"] = args[0].get("id")
         elif (
@@ -442,15 +451,16 @@ class Order(Price):
             "min_to_receive" in args[0] and
             "amount_to_sell" in args[0]
         ):
+            """ Load from an operation
+            """
             super(Order, self).__init__(
                 Amount(args[0]["min_to_receive"], bitshares_instance=self.bitshares),
                 Amount(args[0]["amount_to_sell"], bitshares_instance=self.bitshares),
             )
             self["id"] = args[0].get("id")
-        elif isinstance(args[0], Amount) and isinstance(args[1], Amount):
-            super(Order, self).__init__(*args, **kwargs)
         else:
-            raise ValueError("Unkown format to load Order")
+            # Try load Order as Price
+            super(Order, self).__init__(*args, **kwargs)
 
     def __repr__(self):
         if "deleted" in self and self["deleted"]:
