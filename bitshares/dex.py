@@ -206,7 +206,7 @@ class Dex():
             ) * new_collateral_ratio / float(settlement_price)
             amount_of_collateral -= float(current_debts[symbol]["collateral"])
         else:
-            amount_of_collateral = new_collateral_ratio
+            amount_of_collateral = float(delta["amount"]) * new_collateral_ratio / float(settlement_price)
 
         # Verify that enough funds are available
         fundsNeeded = amount_of_collateral + float(self.returnFees()["call_order_update"]["fee"])
