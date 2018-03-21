@@ -7,7 +7,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class BitSharesNodeRPC(GrapheneWebsocketRPC):
+class BitSharesNodeRPC(GrapheneWebsocketRPC, GrapheneHTTPRPC):
 
     def __init__(self,
                  urls,
