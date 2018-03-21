@@ -72,7 +72,7 @@ class BlockDoesNotExistsException(Exception):
 
 
 class NoWalletException(Exception):
-    """ No Wallet could be found, please use :func:`peerplays.wallet.create` to
+    """ No Wallet could be found, please use :func:`bitshares.wallet.create` to
         create a new wallet
     """
     pass
@@ -116,6 +116,12 @@ class ObjectNotInProposalBuffer(Exception):
 
 class InvalidMessageSignature(Exception):
     """ The message signature does not fit the message
+    """
+    pass
+
+
+class OfflineHasNoRPCException(Exception):
+    """ When in offline mode, we don't have RPC
     """
     pass
 
