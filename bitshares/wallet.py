@@ -83,7 +83,7 @@ class Wallet():
         else:
             # If not connected, load prefix from config
             prefix = config["prefix"]
-        return prefix or "PPY"   # default prefix is PPY
+        return prefix or "BTS"   # default prefix is BTS
 
     @property
     def rpc(self):

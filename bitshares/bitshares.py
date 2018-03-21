@@ -144,10 +144,10 @@ class BitShares(object):
                          rpcpassword=rpcpassword,
                          **kwargs)
 
-        self.wallet = Wallet(self.rpc, **kwargs)
-
         # txbuffers/propbuffer are initialized and cleared
         self.clear()
+
+        self.wallet = Wallet(bitshares_instance=self, **kwargs)
 
     # -------------------------------------------------------------------------
     # Basic Calls
@@ -173,9 +173,22 @@ class BitShares(object):
 
         self.rpc = BitSharesNodeRPC(node, rpcuser, rpcpassword, **kwargs)
 
+    def is_connected(self):
+        return bool(self.rpc)
+
     @property
     def prefix(self):
         return self.rpc.chain_params["prefix"]
+
+    def newWallet(self, pwd):
+        """ Create a new wallet. This method is basically only calls
+            :func:`bitshares.wallet.create`.
+
+            :param str pwd: Password to use for the new wallet
+            :raises bitshares.exceptions.WalletExists: if there is already a
+                wallet created
+        """
+        self.wallet.create(pwd)
 
     def set_default_account(self, account):
         """ Set the default account to be used
