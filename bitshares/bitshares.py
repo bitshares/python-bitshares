@@ -144,10 +144,10 @@ class BitShares(object):
                          rpcpassword=rpcpassword,
                          **kwargs)
 
-        self.wallet = Wallet(self.rpc, **kwargs)
-
         # txbuffers/propbuffer are initialized and cleared
         self.clear()
+
+        self.wallet = Wallet(bitshares_instance=self, **kwargs)
 
     # -------------------------------------------------------------------------
     # Basic Calls
@@ -173,9 +173,22 @@ class BitShares(object):
 
         self.rpc = BitSharesNodeRPC(node, rpcuser, rpcpassword, **kwargs)
 
+    def is_connected(self):
+        return bool(self.rpc)
+
     @property
     def prefix(self):
         return self.rpc.chain_params["prefix"]
+
+    def newWallet(self, pwd):
+        """ Create a new wallet. This method is basically only calls
+            :func:`bitshares.wallet.create`.
+
+            :param str pwd: Password to use for the new wallet
+            :raises bitshares.exceptions.WalletExists: if there is already a
+                wallet created
+        """
+        self.wallet.create(pwd)
 
     def set_default_account(self, account):
         """ Set the default account to be used
@@ -214,6 +227,12 @@ class BitShares(object):
                 :class:`bitshares.transactionbuilder.TransactionBuilder`.
                 You may want to use your own txbuffer
         """
+        if "fee_asset" in kwargs:
+            fee_asset = kwargs["fee_asset"]
+            assert isinstance(fee_asset, Asset)
+        else:
+            fee_asset = None
+
         if "append_to" in kwargs and kwargs["append_to"]:
             if self.proposer:
                 log.warn(
@@ -232,6 +251,11 @@ class BitShares(object):
             else:
                 parent.appendSigner(account, permission)
             # This returns as we used append_to, it does NOT broadcast, or sign
+
+            # Set asset to fee
+            if fee_asset and isinstance(append_to, TransactionBuilder):
+                append_to.set_fee_asset(fee_asset)
+
             return append_to.get_parent()
         elif self.proposer:
             # Legacy proposer mode!
@@ -241,9 +265,17 @@ class BitShares(object):
             proposal.set_review(self.proposal_review)
             proposal.appendOps(ops)
             # Go forward to see what the other options do ...
+
+            # Set asset to fee
+            if fee_asset and isinstance(proposal, TransactionBuilder):
+                proposal.set_fee_asset(fee_asset)
         else:
             # Append tot he default buffer
             self.txbuffer.appendOps(ops)
+
+            # Set asset to fee
+            if fee_asset and isinstance(self.txbuffer, TransactionBuilder):
+                self.txbuffer.set_fee_asset(fee_asset)
 
         # Add signing information, signer, sign and optionally broadcast
         if self.unsigned:

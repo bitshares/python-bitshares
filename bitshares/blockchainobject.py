@@ -8,11 +8,6 @@ class ObjectCache(dict):
         super().__init__(initial_data)
         self.default_expiration = default_expiration
 
-    def clear(self):
-        """ Clears the whole cache
-        """
-        dict.__init__(self, dict())
-
     def __setitem__(self, key, value):
         if key in self:
             del self[key]
@@ -106,8 +101,7 @@ class BlockchainObject(dict):
 
     @staticmethod
     def clear_cache():
-        if BlockchainObject._cache:
-            BlockchainObject._cache.clear()
+        BlockchainObject._cache = ObjectCache()
 
     def test_valid_objectid(self, i):
         if "." not in i:

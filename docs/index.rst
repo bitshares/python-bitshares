@@ -55,12 +55,28 @@ Quickstart
          ``default_account`` according to the settings in ``config`` is
          used instead.
 
+Create a wallet
+_______________
+
+.. code-block:: python
+
+   from bitshares import BitShares
+   bitshares = BitShares()
+   bitshares.wallet.create("secret-passphrase")
+   bitshares.wallet.addPrivateKey("<wif-key>")
+
+Unlock the wallet for a transfer
+________________________________
+
 .. code-block:: python
 
    from bitshares import BitShares
    bitshares = BitShares()
    bitshares.wallet.unlock("wallet-passphrase")
    bitshares.transfer("<to>", "<amount>", "<asset>", "[<memo>]", account="<from>")
+
+Monitor the BitShares Blockchain operation-wise
+_______________________________________________
 
 .. code-block:: python
 
@@ -69,10 +85,16 @@ Quickstart
    for op in Blockchain.ops():
        print(op)
 
+Obtain the content of one block
+_______________________________
+
 .. code-block:: python
 
    from bitshares.block import Block
    print(Block(1))
+
+Obtain Account balance, open orders and history
+_______________________________________________
 
 .. code-block:: python
 
@@ -83,6 +105,9 @@ Quickstart
    for h in account.history():
        print(h)
 
+Print Market ticker and sell
+____________________________
+
 .. code-block:: python
 
    from bitshares.market import Market
@@ -91,13 +116,16 @@ Quickstart
    market.bitshares.wallet.unlock("wallet-passphrase")
    print(market.sell(300, 100)  # sell 100 USD for 300 BTS/USD
 
+Adjust collateral
+_________________
+
 .. code-block:: python
 
    from bitshares.dex import Dex
    dex = Dex()
    dex.bitshares.wallet.unlock("wallet-passphrase")
    dex.adjust_collateral_ratio("SILVER", 3.5)
-   
+
 
 General
 -------------------------

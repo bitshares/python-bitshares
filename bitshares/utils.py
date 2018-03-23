@@ -38,7 +38,8 @@ def parse_time(block_time):
     """Take a string representation of time from the blockchain, and parse it
        into datetime object.
     """
-    return datetime.strptime(block_time, timeFormat).replace(tzinfo=timezone.utc)
+    return datetime.strptime(block_time, timeFormat).replace(
+        tzinfo=timezone.utc)
 
 
 def assets_from_string(text):
@@ -49,10 +50,10 @@ def assets_from_string(text):
     """
     return re.split(r'[\-:/]', text)
 
-  
+
 def test_proposal_in_buffer(buf, operation_name, id):
     from .transactionbuilder import ProposalBuilder
-    from peerplaysbase.operationids import operations
+    from bitsharesbase.operationids import operations
     assert isinstance(buf, ProposalBuilder)
 
     operationid = operations.get(operation_name)

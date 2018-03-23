@@ -7,23 +7,30 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class BitSharesNodeRPC(GrapheneWebsocketRPC):
+class BitSharesNodeRPC(GrapheneWebsocketRPC, GrapheneHTTPRPC):
 
     def __init__(self,
                  urls,
                  user="",
                  password="",
                  **kwargs):
-        self._urls = urls
-        self.rpc.__init__(self, urls, **kwargs)
+        if isinstance(urls, str):
+            self._urls = re.split(r",|;", urls)
+        elif isinstance(urls, (list, tuple, set)):
+            self._urls = urls
+        else:
+            raise exceptions.InvalidEndpointUrl
+        self.rpc.__init__(self, self._urls, **kwargs)
         self.chain_params = self.get_network()
+
+    def next(self):
+        """ Iterate over to the next API node an reconnect
+        """
+        self.rpc.next()
 
     @property
     def rpc(self):
-        if isinstance(self._urls, (list, set)):
-            first_url = self._urls[0]
-        else:
-            first_url = self._urls
+        first_url = self._urls[0]
 
         if first_url[:2] == "ws":
             # Websocket connection
@@ -49,6 +56,8 @@ class BitSharesNodeRPC(GrapheneWebsocketRPC):
             msg = exceptions.decodeRPCErrorMsg(e).strip()
             if msg == "missing required active authority":
                 raise exceptions.MissingRequiredActiveAuthority
+            elif re.match("current_account_itr == acnt_indx.indices().get<by_name>().end()", msg):
+                raise exceptions.AccountCouldntBeFoundException(msg)
             elif re.match("^no method with name.*", msg):
                 raise exceptions.NoMethodWithName(msg)
             elif msg:

@@ -233,13 +233,15 @@ class Market(dict):
             limit
         )
         asks = list(map(lambda x: Order(
-            Amount(x["quote"], self["quote"], bitshares_instance=self.bitshares),
-            Amount(x["base"], self["base"], bitshares_instance=self.bitshares),
+            float(x["price"]),
+            quote=Amount(x["quote"], self["quote"], bitshares_instance=self.bitshares),
+            base=Amount(x["base"], self["base"], bitshares_instance=self.bitshares),
             bitshares_instance=self.bitshares
         ), orders["asks"]))
         bids = list(map(lambda x: Order(
-            Amount(x["quote"], self["quote"], bitshares_instance=self.bitshares),
-            Amount(x["base"], self["base"], bitshares_instance=self.bitshares),
+            float(x["price"]),
+            quote=Amount(x["quote"], self["quote"], bitshares_instance=self.bitshares),
+            base=Amount(x["base"], self["base"], bitshares_instance=self.bitshares),
             bitshares_instance=self.bitshares
         ), orders["bids"]))
         data = {"asks": asks, "bids": bids}

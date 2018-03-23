@@ -1,6 +1,9 @@
 from bitshares.instance import shared_bitshares_instance
 from .exceptions import AccountDoesNotExistsException
 from .blockchainobject import BlockchainObject
+import logging
+
+log = logging.getLogger()
 
 
 class Account(BlockchainObject):
@@ -146,8 +149,8 @@ class Account(BlockchainObject):
             self.refresh()
 
     def history(
-        self, first=None,
-        last=0, limit=100,
+        self, first=0,
+        last=0, limit=-1,
         only_ops=[], exclude_ops=[]
     ):
         """ Returns a generator for individual account transactions. The
@@ -167,19 +170,8 @@ class Account(BlockchainObject):
         _limit = 100
         cnt = 0
 
-        mostrecent = self.bitshares.rpc.get_account_history(
-            self["id"],
-            "1.11.{}".format(0),
-            1,
-            "1.11.{}".format(9999999999999),
-            api="history"
-        )
-        if not mostrecent:
-            return
-
-        if not first:
-            # first = int(mostrecent[0].get("id").split(".")[2]) + 1
-            first = 9999999999
+        if first < 0:
+            first = 0
 
         while True:
             # RPC call
@@ -204,8 +196,10 @@ class Account(BlockchainObject):
                         return
 
             if not txs:
+                log.info("No more history returned from API node")
                 break
             if len(txs) < _limit:
+                log.info("Less than {} have been returned.".format(_limit))
                 break
             first = int(txs[-1]["id"].split(".")[2])
 
