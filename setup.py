@@ -39,8 +39,11 @@ setup(
         'Intended Audience :: Financial and Insurance Industry',
         'Topic :: Office/Business :: Financial',
     ],
+    dependency_links=[
+        'git+https://github.com/u-transnet/python-graphenelib.git@0.5.4-utt#egg=graphenelib'
+    ],
     install_requires=[
-        "graphenelib>=0.5.8",
+        "graphenelib",
         "websockets",
         "appdirs",
         "Events",
