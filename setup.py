@@ -18,7 +18,7 @@ setup(
     version=VERSION,
     description='Python library for transnet',
     long_description=open('README.md').read(),
-    download_url='https://github.com/xeroc/python-transnet/tarball/' + VERSION,
+    download_url='https://github.com/u-transnet/python-utransnet/tarball/' + VERSION,
     author='Fabian Schuh',
     author_email='Fabian@chainsquad.com',
     maintainer='Ilya Shmelev',
