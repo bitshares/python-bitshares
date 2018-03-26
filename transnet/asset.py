@@ -1,7 +1,7 @@
 import json
-from bitshares.account import Account
-from bitsharesbase import operations
-from bitsharesbase.asset_permissions import (
+from transnet.account import Account
+from transnetbase import operations
+from transnetbase.asset_permissions import (
     asset_permissions,
     force_flag,
     test_permissions,
@@ -17,7 +17,7 @@ class Asset(BlockchainObject):
         :param str Asset: Symbol name or object id of an asset
         :param bool lazy: Lazy loading
         :param bool full: Also obtain bitasset-data and dynamic asset dat
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares
+        :param transnet.transnet.Transnet transnet_instance: Transnet
             instance
         :returns: All data of an asset
         :rtype: dict
@@ -33,28 +33,28 @@ class Asset(BlockchainObject):
         asset,
         lazy=False,
         full=False,
-        bitshares_instance=None
+        transnet_instance=None
     ):
         self.full = full
         super().__init__(
             asset,
             lazy=lazy,
             full=full,
-            bitshares_instance=bitshares_instance
+            transnet_instance=transnet_instance
         )
 
     def refresh(self):
         """ Refresh the data from the API server
         """
-        asset = self.bitshares.rpc.get_asset(self.identifier)
+        asset = self.transnet.rpc.get_asset(self.identifier)
         if not asset:
             raise AssetDoesNotExistsException(self.identifier)
-        super(Asset, self).__init__(asset, bitshares_instance=self.bitshares)
+        super(Asset, self).__init__(asset, transnet_instance=self.transnet)
         if self.full:
             if "bitasset_data_id" in asset:
-                self["bitasset_data"] = self.bitshares.rpc.get_object(
+                self["bitasset_data"] = self.transnet.rpc.get_object(
                     asset["bitasset_data_id"])
-            self["dynamic_asset_data"] = self.bitshares.rpc.get_object(
+            self["dynamic_asset_data"] = self.transnet.rpc.get_object(
                 asset["dynamic_asset_data_id"])
 
         # Permissions and flags
@@ -117,7 +117,7 @@ class Asset(BlockchainObject):
         for feed in self["bitasset_data"]["feeds"]:
             r.append(PriceFeed(
                 feed,
-                bitshares_instance=self.bitshares
+                transnet_instance=self.transnet
             ))
         return r
 
@@ -128,7 +128,7 @@ class Asset(BlockchainObject):
         self.ensure_full()
         return PriceFeed(
             self["bitasset_data"]["current_feed"],
-            bitshares_instance=self.bitshares
+            transnet_instance=self.transnet
         )
 
     @property
@@ -145,33 +145,33 @@ class Asset(BlockchainObject):
         bitasset = self["bitasset_data"]
         settlement_price = Price(
             bitasset["current_feed"]["settlement_price"],
-            bitshares_instance=self.bitshares
+            transnet_instance=self.transnet
         )
-        ret = self.bitshares.rpc.get_call_orders(self["id"], limit)
+        ret = self.transnet.rpc.get_call_orders(self["id"], limit)
         for call in ret[:limit]:
             call_price = Price(
                 call["call_price"],
-                bitshares_instance=self.bitshares
+                transnet_instance=self.transnet
             )
             collateral_amount = Amount(
                 {
                     "amount": call["collateral"],
                     "asset_id": call["call_price"]["base"]["asset_id"]
                 },
-                bitshares_instance=self.bitshares
+                transnet_instance=self.transnet
             )
             debt_amount = Amount(
                 {
                     "amount": call["debt"],
                     "asset_id": call["call_price"]["quote"]["asset_id"],
                 },
-                bitshares_instance=self.bitshares
+                transnet_instance=self.transnet
             )
             r.append({
                 "account": Account(
                     call["borrower"],
                     lazy=True,
-                    bitshares_instance=self.bitshares
+                    transnet_instance=self.transnet
                 ),
                 "collateral": collateral_amount,
                 "debt": debt_amount,
@@ -195,17 +195,17 @@ class Asset(BlockchainObject):
         assert limit <= 100
         assert self.is_bitasset
         r = list()
-        ret = self.bitshares.rpc.get_settle_orders(self["id"], limit)
+        ret = self.transnet.rpc.get_settle_orders(self["id"], limit)
         for settle in ret[:limit]:
             r.append({
                 "account": Account(
                     settle["owner"],
                     lazy=True,
-                    bitshares_instance=self.bitshares
+                    transnet_instance=self.transnet
                 ),
                 "amount": Amount(
                     settle["balance"],
-                    bitshares_instance=self.bitshares
+                    transnet_instance=self.transnet
                 ),
                 "date": formatTimeString(settle["settlement_date"])
             })
@@ -216,7 +216,7 @@ class Asset(BlockchainObject):
         """
         nullaccount = Account(
             "null-account",  # We set the null-account
-            bitshares_instance=self.bitshares
+            transnet_instance=self.transnet
         )
         flags = {"white_list": True,
                  "transfer_restricted": True,
@@ -239,7 +239,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.transnet.finalizeOp(op, self["issuer"], "active")
 
     def release(
         self,
@@ -289,7 +289,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.transnet.finalizeOp(op, self["issuer"], "active")
 
     def setoptions(self, flags):
         """ Enable a certain flag.
@@ -322,7 +322,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.transnet.finalizeOp(op, self["issuer"], "active")
 
     def enableflag(self, flag):
         """ Enable a certain flag.
@@ -344,9 +344,9 @@ class Asset(BlockchainObject):
             ... note:: This requires the ``override_authority`` to be
                        set for this asset!
 
-            :param bitshares.account.Account from_account: From this account
-            :param bitshares.account.Account to_account: To this account
-            :param bitshares.amount.Amount amount: Amount to seize
+            :param transnet.account.Account from_account: From this account
+            :param transnet.account.Account to_account: To this account
+            :param transnet.amount.Amount amount: Amount to seize
         """
 
         options = self["options"]
@@ -361,7 +361,7 @@ class Asset(BlockchainObject):
             "amount": amount.json(),
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.transnet.finalizeOp(op, self["issuer"], "active")
 
     def add_authorities(self, type, authorities=[]):
         """ Add authorities to an assets white/black list
@@ -388,7 +388,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.transnet.finalizeOp(op, self["issuer"], "active")
 
     def remove_authorities(self, type, authorities=[]):
         """ Remove authorities from an assets white/black list
@@ -417,7 +417,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.transnet.finalizeOp(op, self["issuer"], "active")
 
     def add_markets(self, type, authorities=[], force_enable=True):
         """ Add markets to an assets white/black list
@@ -461,7 +461,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.transnet.finalizeOp(op, self["issuer"], "active")
 
     def remove_markets(self, type, authorities=[]):
         """ Remove markets from an assets white/black list
@@ -490,13 +490,13 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.transnet.finalizeOp(op, self["issuer"], "active")
 
     def set_market_fee(self, percentage_fee, max_market_fee):
         """ Set trading percentage fee
 
             :param float percentage_fee: Percentage of fee
-            :param bitshares.amount.Amount max_market_fee: Max Fee
+            :param transnet.amount.Amount max_market_fee: Max Fee
 
         """
         assert percentage_fee <= 100 and percentage_fee > 0
@@ -516,7 +516,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.transnet.finalizeOp(op, self["issuer"], "active")
 
     def update_feed_producers(self, producers):
         """ Update bitasset feed producers
@@ -535,4 +535,4 @@ class Asset(BlockchainObject):
             ],
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.transnet.finalizeOp(op, self["issuer"], "active")

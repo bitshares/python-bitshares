@@ -48,7 +48,7 @@ class Operation(GPHOperation):
         super(Operation, self).__init__(*args, **kwargs)
 
     def _getklass(self, name):
-        module = __import__("bitsharesbase.operations", fromlist=["operations"])
+        module = __import__("transnetbase.operations", fromlist=["operations"])
         class_ = getattr(module, name)
         return class_
 

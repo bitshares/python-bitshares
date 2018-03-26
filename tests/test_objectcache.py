@@ -1,8 +1,8 @@
 import time
 import unittest
-from bitshares import BitShares, exceptions
-from bitshares.instance import set_shared_bitshares_instance
-from bitshares.blockchainobject import ObjectCache
+from transnet import Transnet, exceptions
+from transnet.instance import set_shared_transnet_instance
+from transnet.blockchainobject import ObjectCache
 
 
 class Testcases(unittest.TestCase):
@@ -10,10 +10,10 @@ class Testcases(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.bts = BitShares(
+        self.bts = Transnet(
             nobroadcast=True,
         )
-        set_shared_bitshares_instance(self.bts)
+        set_shared_transnet_instance(self.bts)
 
     def test_cache(self):
         cache = ObjectCache(default_expiration=1)

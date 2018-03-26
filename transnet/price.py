@@ -1,5 +1,5 @@
 from fractions import Fraction
-from bitshares.instance import shared_bitshares_instance
+from transnet.instance import shared_transnet_instance
 from .exceptions import InvalidAssetException
 from .account import Account
 from .amount import Amount
@@ -14,7 +14,7 @@ class Price(dict):
 
             (quote, base)
 
-        each being an instance of :class:`bitshares.amount.Amount`. The
+        each being an instance of :class:`transnet.amount.Amount`. The
         amount themselves define the price.
 
         .. note::
@@ -22,23 +22,23 @@ class Price(dict):
             The price (floating) is derived as ``base/quote``
 
         :param list args: Allows to deal with different representations of a price
-        :param bitshares.asset.Asset base: Base asset
-        :param bitshares.asset.Asset quote: Quote asset
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param transnet.asset.Asset base: Base asset
+        :param transnet.asset.Asset quote: Quote asset
+        :param transnet.transnet.Transnet transnet_instance: Transnet instance
         :returns: All data required to represent a price
         :rtype: dict
 
         Way to obtain a proper instance:
 
             * ``args`` is a str with a price and two assets
-            * ``args`` can be a floating number and ``base`` and ``quote`` being instances of :class:`bitshares.asset.Asset`
+            * ``args`` can be a floating number and ``base`` and ``quote`` being instances of :class:`transnet.asset.Asset`
             * ``args`` can be a floating number and ``base`` and ``quote`` being instances of ``str``
             * ``args`` can be dict with keys ``price``, ``base``, and ``quote`` (*graphene balances*)
             * ``args`` can be dict with keys ``base`` and ``quote``
             * ``args`` can be dict with key ``receives`` (filled orders)
-            * ``args`` being a list of ``[quote, base]`` both being instances of :class:`bitshares.amount.Amount`
+            * ``args`` being a list of ``[quote, base]`` both being instances of :class:`transnet.amount.Amount`
             * ``args`` being a list of ``[quote, base]`` both being instances of ``str`` (``amount symbol``)
-            * ``base`` and ``quote`` being instances of :class:`bitshares.asset.Amount`
+            * ``base`` and ``quote`` being instances of :class:`transnet.asset.Amount`
 
         This allows instanciations like:
 
@@ -57,7 +57,7 @@ class Price(dict):
 
         .. code-block:: python
 
-            >>> from bitshares.price import Price
+            >>> from transnet.price import Price
             >>> Price("0.3314 USD/BTS") * 2
             0.662600000 USD/BTS
 
@@ -68,72 +68,72 @@ class Price(dict):
         base=None,
         quote=None,
         base_asset=None,  # to identify sell/buy
-        bitshares_instance=None
+        transnet_instance=None
     ):
 
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        self.transnet = transnet_instance or shared_transnet_instance()
 
         if (len(args) == 1 and isinstance(args[0], str) and not base and not quote):
             import re
             price, assets = args[0].split(" ")
             base_symbol, quote_symbol = assets_from_string(assets)
-            base = Asset(base_symbol, bitshares_instance=self.bitshares)
-            quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
+            base = Asset(base_symbol, transnet_instance=self.transnet)
+            quote = Asset(quote_symbol, transnet_instance=self.transnet)
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
-            self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
-            self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
+            self["quote"] = Amount(amount=frac.denominator, asset=quote, transnet_instance=self.transnet)
+            self["base"] = Amount(amount=frac.numerator, asset=base, transnet_instance=self.transnet)
 
         elif (len(args) == 1 and isinstance(args[0], dict) and
                 "base" in args[0] and
                 "quote" in args[0]):
             assert "price" not in args[0], "You cannot provide a 'price' this way"
-            # Regular 'price' objects according to bitshares-core
+            # Regular 'price' objects according to transnet-core
             base_id = args[0]["base"]["asset_id"]
             if args[0]["base"]["asset_id"] == base_id:
-                self["base"] = Amount(args[0]["base"], bitshares_instance=self.bitshares)
-                self["quote"] = Amount(args[0]["quote"], bitshares_instance=self.bitshares)
+                self["base"] = Amount(args[0]["base"], transnet_instance=self.transnet)
+                self["quote"] = Amount(args[0]["quote"], transnet_instance=self.transnet)
             else:
-                self["quote"] = Amount(args[0]["base"], bitshares_instance=self.bitshares)
-                self["base"] = Amount(args[0]["quote"], bitshares_instance=self.bitshares)
+                self["quote"] = Amount(args[0]["base"], transnet_instance=self.transnet)
+                self["base"] = Amount(args[0]["quote"], transnet_instance=self.transnet)
 
         elif len(args) == 1 and isinstance(args[0], dict) and "receives" in args[0]:
             # Filled order
             assert base_asset, "Need a 'base_asset' asset"
-            base_asset = Asset(base_asset, bitshares_instance=self.bitshares)
+            base_asset = Asset(base_asset, transnet_instance=self.transnet)
             if args[0]["receives"]["asset_id"] == base_asset["id"]:
                 # If the seller received "base" in a quote_base market, than
                 # it has been a sell order of quote
-                self["base"] = Amount(args[0]["receives"], bitshares_instance=self.bitshares)
-                self["quote"] = Amount(args[0]["pays"], bitshares_instance=self.bitshares)
+                self["base"] = Amount(args[0]["receives"], transnet_instance=self.transnet)
+                self["quote"] = Amount(args[0]["pays"], transnet_instance=self.transnet)
                 self["type"] = "sell"
             else:
                 # buy order
-                self["base"] = Amount(args[0]["pays"], bitshares_instance=self.bitshares)
-                self["quote"] = Amount(args[0]["receives"], bitshares_instance=self.bitshares)
+                self["base"] = Amount(args[0]["pays"], transnet_instance=self.transnet)
+                self["quote"] = Amount(args[0]["receives"], transnet_instance=self.transnet)
                 self["type"] = "buy"
 
         elif len(args) == 1 and (isinstance(base, Asset) and isinstance(quote, Asset)):
             price = args[0]
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
-            self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
-            self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
+            self["quote"] = Amount(amount=frac.denominator, asset=quote, transnet_instance=self.transnet)
+            self["base"] = Amount(amount=frac.numerator, asset=base, transnet_instance=self.transnet)
 
         elif (len(args) == 1 and isinstance(base, str) and isinstance(quote, str)):
             price = args[0]
-            base = Asset(base, bitshares_instance=self.bitshares)
-            quote = Asset(quote, bitshares_instance=self.bitshares)
+            base = Asset(base, transnet_instance=self.transnet)
+            quote = Asset(quote, transnet_instance=self.transnet)
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
-            self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
-            self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
+            self["quote"] = Amount(amount=frac.denominator, asset=quote, transnet_instance=self.transnet)
+            self["base"] = Amount(amount=frac.numerator, asset=base, transnet_instance=self.transnet)
 
         elif (len(args) == 0 and isinstance(base, str) and isinstance(quote, str)):
-            self["quote"] = Amount(quote, bitshares_instance=self.bitshares)
-            self["base"] = Amount(base, bitshares_instance=self.bitshares)
+            self["quote"] = Amount(quote, transnet_instance=self.transnet)
+            self["base"] = Amount(base, transnet_instance=self.transnet)
 
         # len(args) > 1
         elif len(args) == 2 and isinstance(args[0], str) and isinstance(args[1], str):
-            self["base"] = Amount(args[1], bitshares_instance=self.bitshares)
-            self["quote"] = Amount(args[0], bitshares_instance=self.bitshares)
+            self["base"] = Amount(args[1], transnet_instance=self.transnet)
+            self["quote"] = Amount(args[0], transnet_instance=self.transnet)
 
         elif len(args) == 2 and isinstance(args[0], Amount) and isinstance(args[1], Amount):
             self["quote"], self["base"] = args[0], args[1]
@@ -149,11 +149,11 @@ class Price(dict):
             import re
             price = args[0]
             base_symbol, quote_symbol = assets_from_string(args[1])
-            base = Asset(base_symbol, bitshares_instance=self.bitshares)
-            quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
+            base = Asset(base_symbol, transnet_instance=self.transnet)
+            quote = Asset(quote_symbol, transnet_instance=self.transnet)
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
-            self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
-            self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
+            self["quote"] = Amount(amount=frac.denominator, asset=quote, transnet_instance=self.transnet)
+            self["base"] = Amount(amount=frac.numerator, asset=base, transnet_instance=self.transnet)
 
         else:
             raise ValueError("Couldn't parse 'Price'.")
@@ -249,21 +249,21 @@ class Price(dict):
             if self["quote"]["symbol"] == other["base"]["symbol"]:
                 a["base"] = Amount(
                     float(self["base"]) * float(other["base"]), self["base"]["symbol"],
-                    bitshares_instance=self.bitshares
+                    transnet_instance=self.transnet
                 )
                 a["quote"] = Amount(
                     float(self["quote"]) * float(other["quote"]), other["quote"]["symbol"],
-                    bitshares_instance=self.bitshares
+                    transnet_instance=self.transnet
                 )
             # a/b * c/a =  c/b
             elif self["base"]["symbol"] == other["quote"]["symbol"]:
                 a["base"] = Amount(
                     float(self["base"]) * float(other["base"]), other["base"]["symbol"],
-                    bitshares_instance=self.bitshares
+                    transnet_instance=self.transnet
                 )
                 a["quote"] = Amount(
                     float(self["quote"]) * float(other["quote"]), self["quote"]["symbol"],
-                    bitshares_instance=self.bitshares
+                    transnet_instance=self.transnet
                 )
             else:
                 raise ValueError("Wrong rotation of prices")
@@ -299,11 +299,11 @@ class Price(dict):
                 raise InvalidAssetException
             a["base"] = Amount(
                 float(self["quote"] / other["quote"]), other["quote"]["symbol"],
-                bitshares_instance=self.bitshares
+                transnet_instance=self.transnet
             )
             a["quote"] = Amount(
                 float(self["base"] / other["base"]), self["quote"]["symbol"],
-                bitshares_instance=self.bitshares
+                transnet_instance=self.transnet
             )
         elif isinstance(other, Amount):
             assert other["asset"]["id"] == self["quote"]["asset"]["id"]
@@ -385,24 +385,24 @@ class Price(dict):
     def market(self):
         """ Open the corresponding market
 
-            :returns: Instance of :class:`bitshares.market.Market` for the
+            :returns: Instance of :class:`transnet.market.Market` for the
                       corresponding pair of assets.
         """
         from .market import Market
         return Market(
             base=self["base"]["asset"],
             quote=self["quote"]["asset"],
-            bitshares_instance=self.bitshares
+            transnet_instance=self.transnet
         )
 
 
 class Order(Price):
-    """ This class inherits :class:`bitshares.price.Price` but has the ``base``
+    """ This class inherits :class:`transnet.price.Price` but has the ``base``
         and ``quote`` Amounts not only be used to represent the price (as a
         ratio of base and quote) but instead has those amounts represent the
         amounts of an actual order!
 
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param transnet.transnet.Transnet transnet_instance: Transnet instance
 
         .. note::
 
@@ -410,15 +410,15 @@ class Order(Price):
                 'deleted' key which is set to ``True`` and all other
                 data be ``None``.
     """
-    def __init__(self, *args, bitshares_instance=None, **kwargs):
+    def __init__(self, *args, transnet_instance=None, **kwargs):
 
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        self.transnet = transnet_instance or shared_transnet_instance()
 
         if (
             len(args) == 1 and
             isinstance(args[0], str)
         ):
-            order = self.bitshares.rpc.get_objects([args[0]])[0]
+            order = self.transnet.rpc.get_objects([args[0]])[0]
             if order:
                 super(Order, self).__init__(order["sell_price"])
                 self["seller"] = order["seller"]
@@ -443,8 +443,8 @@ class Order(Price):
             "amount_to_sell" in args[0]
         ):
             super(Order, self).__init__(
-                Amount(args[0]["min_to_receive"], bitshares_instance=self.bitshares),
-                Amount(args[0]["amount_to_sell"], bitshares_instance=self.bitshares),
+                Amount(args[0]["min_to_receive"], transnet_instance=self.transnet),
+                Amount(args[0]["amount_to_sell"], transnet_instance=self.transnet),
             )
             self["id"] = args[0].get("id")
         elif isinstance(args[0], Amount) and isinstance(args[1], Amount):
@@ -471,20 +471,20 @@ class Order(Price):
 
 
 class FilledOrder(Price):
-    """ This class inherits :class:`bitshares.price.Price` but has the ``base``
+    """ This class inherits :class:`transnet.price.Price` but has the ``base``
         and ``quote`` Amounts not only be used to represent the price (as a
         ratio of base and quote) but instead has those amounts represent the
         amounts of an actually filled order!
 
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param transnet.transnet.Transnet transnet_instance: Transnet instance
 
         .. note:: Instances of this class come with an additional ``time`` key
                   that shows when the order has been filled!
     """
 
-    def __init__(self, order, bitshares_instance=None, **kwargs):
+    def __init__(self, order, transnet_instance=None, **kwargs):
 
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        self.transnet = transnet_instance or shared_transnet_instance()
 
         if isinstance(order, dict) and "price" in order:
             super(FilledOrder, self).__init__(
@@ -529,15 +529,15 @@ class FilledOrder(Price):
 
 
 class UpdateCallOrder(Price):
-    """ This class inherits :class:`bitshares.price.Price` but has the ``base``
+    """ This class inherits :class:`transnet.price.Price` but has the ``base``
         and ``quote`` Amounts not only be used to represent the **call
         price** (as a ratio of base and quote).
 
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param transnet.transnet.Transnet transnet_instance: Transnet instance
     """
-    def __init__(self, call, bitshares_instance=None, **kwargs):
+    def __init__(self, call, transnet_instance=None, **kwargs):
 
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        self.transnet = transnet_instance or shared_transnet_instance()
 
         if isinstance(call, dict) and "call_price" in call:
             super(UpdateCallOrder, self).__init__(
@@ -571,17 +571,17 @@ class PriceFeed(dict):
         * a settlement price, and
         * a date
 
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param transnet.transnet.Transnet transnet_instance: Transnet instance
 
     """
-    def __init__(self, feed, bitshares_instance=None):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+    def __init__(self, feed, transnet_instance=None):
+        self.transnet = transnet_instance or shared_transnet_instance()
         if len(feed) == 2:
             super(PriceFeed, self).__init__({
                 "producer": Account(
                     feed[0],
                     lazy=True,
-                    bitshares_instance=self.bitshares
+                    transnet_instance=self.transnet
                 ),
                 "date": parse_time(feed[1][0]),
                 "maintenance_collateral_ratio": feed[1][1]["maintenance_collateral_ratio"],

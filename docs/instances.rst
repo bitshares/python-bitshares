@@ -6,11 +6,11 @@ the Objects!
 
 .. code-block:: python
 
-   from bitshares.instance import shared_bitshares_instance
+   from bitshares.instance import shared_transnet_instance
 
    account = Account("xeroc")
    # is equivalent with 
-   account = Account("xeroc", bitshares_instance=shared_bitshares_instance())
+   account = Account("xeroc", bitshares_instance=shared_transnet_instance())
 
-.. automethod:: bitshares.instance.shared_bitshares_instance
-.. automethod:: bitshares.instance.set_shared_bitshares_instance
+.. automethod:: bitshares.instance.shared_transnet_instance
+.. automethod:: bitshares.instance.set_shared_transnet_instance

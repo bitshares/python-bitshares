@@ -18,5 +18,6 @@ known_chains = {
     "Scnrfp": {
         "chain_id": "a8a61755aaa9d2c19a5989490bbc4195f37f147be3db3dddcf0e06d373b397ce",
         "core_symbol": "SCNRFP",
-        "prefix": "SCNRFP"}
+        "prefix": "SCNRFP"},
+
 }

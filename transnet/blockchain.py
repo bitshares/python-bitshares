@@ -1,14 +1,14 @@
 import time
 from .block import Block
-from bitshares.instance import shared_bitshares_instance
-from bitsharesbase.operationids import getOperationNameForId
+from transnet.instance import shared_transnet_instance
+from transnetbase.operationids import getOperationNameForId
 
 
 class Blockchain(object):
     """ This class allows to access the blockchain and read data
         from it
 
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares
+        :param transnet.transnet.Transnet transnet_instance: Transnet
                  instance
         :param str mode: (default) Irreversible block (``irreversible``) or
                  actual head block (``head``)
@@ -17,10 +17,10 @@ class Blockchain(object):
     """
     def __init__(
         self,
-        bitshares_instance=None,
+        transnet_instance=None,
         mode="irreversible"
     ):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        self.transnet = transnet_instance or shared_transnet_instance()
 
         if mode == "irreversible":
             self.mode = 'last_irreversible_block_num'
@@ -32,7 +32,7 @@ class Blockchain(object):
     def info(self):
         """ This call returns the *dynamic global properties*
         """
-        return self.bitshares.rpc.get_dynamic_global_properties()
+        return self.transnet.rpc.get_dynamic_global_properties()
 
     def chainParameters(self):
         """ The blockchain parameters, such as fees, and committee-controlled
@@ -46,17 +46,17 @@ class Blockchain(object):
             :returns: Network parameters
             :rtype: dict
         """
-        return self.bitshares.rpc.get_network()
+        return self.transnet.rpc.get_network()
 
     def get_chain_properties(self):
         """ Return chain properties
         """
-        return self.bitshares.rpc.get_chain_properties()
+        return self.transnet.rpc.get_chain_properties()
 
     def config(self):
         """ Returns object 2.0.0
         """
-        return self.bitshares.rpc.get_object("2.0.0")
+        return self.transnet.rpc.get_object("2.0.0")
 
     def get_current_block_num(self):
         """ This call returns the current block
@@ -74,7 +74,7 @@ class Blockchain(object):
         """
         return Block(
             self.get_current_block_num(),
-            bitshares_instance=self.bitshares
+            transnet_instance=self.transnet
         )
 
     def block_time(self, block_num):
@@ -85,7 +85,7 @@ class Blockchain(object):
         """
         return Block(
             block_num,
-            bitshares_instance=self.bitshares
+            transnet_instance=self.transnet
         ).time()
 
     def block_timestamp(self, block_num):
@@ -96,7 +96,7 @@ class Blockchain(object):
         """
         return int(Block(
             block_num,
-            bitshares_instance=self.bitshares
+            transnet_instance=self.transnet
         ).time().timestamp())
 
     def blocks(self, start=None, stop=None):
@@ -126,7 +126,7 @@ class Blockchain(object):
             # Blocks from start until head block
             for blocknum in range(start, head_block + 1):
                 # Get full block
-                block = self.bitshares.rpc.get_block(blocknum)
+                block = self.transnet.rpc.get_block(blocknum)
                 block.update({"block_num": blocknum})
                 yield block
             # Set new start
@@ -195,7 +195,7 @@ class Blockchain(object):
             included into a block
 
             .. note:: If you want instant confirmation, you need to instantiate
-                      class:`bitshares.blockchain.Blockchain` with
+                      class:`transnet.blockchain.Blockchain` with
                       ``mode="head"``, otherwise, the call will wait until
                       confirmed in an irreversible block.
 
@@ -227,7 +227,7 @@ class Blockchain(object):
         """
         lastname = start
         while True:
-            ret = self.bitshares.rpc.lookup_accounts(lastname, steps)
+            ret = self.transnet.rpc.lookup_accounts(lastname, steps)
             for account in ret:
                 yield account[0]
                 if account[0] == stop:

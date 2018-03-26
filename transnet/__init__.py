@@ -1,4 +1,4 @@
-from .bitshares import BitShares
+from .transnet import Transnet
 
 __all__ = [
     "bitshares"

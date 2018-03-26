@@ -1,6 +1,6 @@
 class WalletExists(Exception):
     """ A wallet has already been created and requires a password to be
-        unlocked by means of :func:`bitshares.wallet.unlock`.
+        unlocked by means of :func:`transnet.wallet.unlock`.
     """
     pass
 

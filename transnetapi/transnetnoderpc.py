@@ -7,7 +7,7 @@ import json
 import time
 from itertools import cycle
 from grapheneapi.graphenewsrpc import GrapheneWebsocketRPC
-from bitsharesbase.chains import known_chains
+from transnetbase.chains import known_chains
 from . import exceptions
 import logging
 log = logging.getLogger(__name__)
@@ -17,10 +17,10 @@ class NumRetriesReached(Exception):
     pass
 
 
-class BitSharesNodeRPC(GrapheneWebsocketRPC):
+class TransnetNodeRPC(GrapheneWebsocketRPC):
 
     def __init__(self, *args, **kwargs):
-        super(BitSharesNodeRPC, self).__init__(*args, **kwargs)
+        super(TransnetNodeRPC, self).__init__(*args, **kwargs)
         self.chain_params = self.get_network()
 
     def register_apis(self):
@@ -31,7 +31,7 @@ class BitSharesNodeRPC(GrapheneWebsocketRPC):
     def rpcexec(self, payload):
         """ Execute a call by sending the payload.
             It makes use of the GrapheneRPC library.
-            In here, we mostly deal with BitShares specific error handling
+            In here, we mostly deal with Transnet specific error handling
 
             :param json payload: Payload data
             :raises ValueError: if the server does not respond in proper JSON format
@@ -39,7 +39,7 @@ class BitSharesNodeRPC(GrapheneWebsocketRPC):
         """
         try:
             # Forward call to GrapheneWebsocketRPC and catch+evaluate errors
-            return super(BitSharesNodeRPC, self).rpcexec(payload)
+            return super(TransnetNodeRPC, self).rpcexec(payload)
         except exceptions.RPCError as e:
             msg = exceptions.decodeRPCErrorMsg(e).strip()
             if msg == "missing required active authority":

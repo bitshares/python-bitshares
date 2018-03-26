@@ -1,7 +1,7 @@
 import unittest
-from bitshares import BitShares
-from bitsharesbase import operations
-from bitshares.instance import set_shared_bitshares_instance
+from transnet import Transnet
+from transnetbase import operations
+from transnet.instance import set_shared_transnet_instance
 
 wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
 
@@ -11,12 +11,12 @@ class Testcases(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.bts = BitShares(
-            "wss://node.testnet.bitshares.eu",
+        self.bts = Transnet(
+            "wss://node.testnet.transnet.eu",
             nobroadcast=True,
             keys={"active": wif}
         )
-        set_shared_bitshares_instance(self.bts)
+        set_shared_transnet_instance(self.bts)
         self.bts.set_default_account("init0")
 
     def test_add_one_proposal_one_op(self):

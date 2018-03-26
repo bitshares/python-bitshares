@@ -1,10 +1,10 @@
 import logging
 from events import Events
-from bitsharesapi.websocket import BitSharesWebsocket
-from bitshares.instance import shared_bitshares_instance
-from bitshares.market import Market
-from bitshares.price import Order, FilledOrder, UpdateCallOrder
-from bitshares.account import AccountUpdate
+from transnetapi.websocket import TransnetWebsocket
+from transnet.instance import shared_transnet_instance
+from transnet.market import Market
+from transnet.price import Order, FilledOrder, UpdateCallOrder
+from transnet.account import AccountUpdate
 log = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -13,21 +13,21 @@ class Notify(Events):
     """ Notifications on Blockchain events.
 
         :param list accounts: Account names/ids to be notified about when changing
-        :param list markets: Instances of :class:`bitshares.market.Market` that identify markets to be monitored
+        :param list markets: Instances of :class:`transnet.market.Market` that identify markets to be monitored
         :param list objects: Object ids to be notified about when changed
         :param fnt on_tx: Callback that will be called for each transaction received
         :param fnt on_block: Callback that will be called for each block received
         :param fnt on_account: Callback that will be called for changes of the listed accounts
         :param fnt on_market: Callback that will be called for changes of the listed markets
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param transnet.transnet.Transnet transnet_instance: Transnet instance
 
         **Example**
 
         .. code-block:: python
 
             from pprint import pprint
-            from bitshares.notify import Notify
-            from bitshares.market import Market
+            from transnet.notify import Notify
+            from transnet.market import Market
 
             notify = Notify(
                 markets=["TEST:GOLD"],
@@ -60,21 +60,21 @@ class Notify(Events):
         on_block=None,
         on_account=None,
         on_market=None,
-        bitshares_instance=None,
+        transnet_instance=None,
     ):
         # Events
         super(Notify, self).__init__()
         self.events = Events()
 
-        # BitShares instance
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        # Transnet instance
+        self.transnet = transnet_instance or shared_transnet_instance()
 
         # Markets
         market_ids = []
         for market_name in markets:
             market = Market(
                 market_name,
-                bitshares_instance=self.bitshares
+                transnet_instance=self.transnet
             )
             market_ids.append([
                 market["base"]["id"],
@@ -94,10 +94,10 @@ class Notify(Events):
             self.on_market += on_market
 
         # Open the websocket
-        self.websocket = BitSharesWebsocket(
-            urls=self.bitshares.rpc.urls,
-            user=self.bitshares.rpc.user,
-            password=self.bitshares.rpc.password,
+        self.websocket = TransnetWebsocket(
+            urls=self.transnet.rpc.urls,
+            user=self.transnet.rpc.user,
+            password=self.transnet.rpc.password,
             accounts=accounts,
             markets=market_ids,
             objects=objects,
@@ -112,9 +112,9 @@ class Notify(Events):
         """ This method is used for post processing of market
             notifications. It will return instances of either
 
-            * :class:`bitshares.price.Order` or
-            * :class:`bitshares.price.FilledOrder` or
-            * :class:`bitshares.price.UpdateCallOrder`
+            * :class:`transnet.price.Order` or
+            * :class:`transnet.price.FilledOrder` or
+            * :class:`transnet.price.UpdateCallOrder`
 
             Also possible are limit order updates (margin calls)
 
@@ -127,7 +127,7 @@ class Notify(Events):
                 log.debug("Calling on_market with Order()")
                 self.on_market(Order(
                     d,
-                    bitshares_instance=self.bitshares
+                    transnet_instance=self.transnet
                 ))
                 continue
             elif isinstance(d, dict):
@@ -142,17 +142,17 @@ class Notify(Events):
                         if "pays" in i and "receives" in i:
                             self.on_market(FilledOrder(
                                 i,
-                                bitshares_instance=self.bitshares
+                                transnet_instance=self.transnet
                             ))
                         elif "for_sale" in i and "sell_price" in i:
                             self.on_market(Order(
                                 i,
-                                bitshares_instance=self.bitshares
+                                transnet_instance=self.transnet
                             ))
                         elif "collateral" in i and "call_price" in i:
                             self.on_market(UpdateCallOrder(
                                 i,
-                                bitshares_instance=self.bitshares
+                                transnet_instance=self.transnet
                             ))
                         else:
                             if i:
@@ -162,11 +162,11 @@ class Notify(Events):
 
     def process_account(self, message):
         """ This is used for processing of account Updates. It will
-            return instances of :class:bitshares.account.AccountUpdate`
+            return instances of :class:transnet.account.AccountUpdate`
         """
         self.on_account(AccountUpdate(
             message,
-            bitshares_instance=self.bitshares
+            transnet_instance=self.transnet
         ))
 
     def listen(self):

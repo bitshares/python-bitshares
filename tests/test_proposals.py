@@ -1,8 +1,8 @@
 import unittest
 from pprint import pprint
-from bitshares import BitShares
-from bitsharesbase.operationids import getOperationNameForId
-from bitshares.instance import set_shared_bitshares_instance
+from transnet import Transnet
+from transnetbase.operationids import getOperationNameForId
+from transnet.instance import set_shared_transnet_instance
 
 wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
 
@@ -12,14 +12,14 @@ class Testcases(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.bts = BitShares(
-            "wss://node.testnet.bitshares.eu",
+        self.bts = Transnet(
+            "wss://node.testnet.transnet.eu",
             nobroadcast=True,
             keys={"active": wif},
         )
         # from getpass import getpass
         # self.bts.wallet.unlock(getpass())
-        set_shared_bitshares_instance(self.bts)
+        set_shared_transnet_instance(self.bts)
         self.bts.set_default_account("init0")
 
     def test_finalizeOps_proposal(self):

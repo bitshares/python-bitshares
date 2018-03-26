@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
 
 
-class BitSharesWebsocket(Events):
+class TransnetWebsocket(Events):
     """ Create a websocket connection and request push notifications
 
         :param str urls: Either a single Websocket URL, or a list of URLs
@@ -34,12 +34,12 @@ class BitSharesWebsocket(Events):
         * ``on_market``
 
         which will be called accordingly with the notification
-        message received from the BitShares node:
+        message received from the Transnet node:
 
         .. code-block:: python
 
-            ws = BitSharesWebsocket(
-                "wss://node.testnet.bitshares.eu",
+            ws = TransnetWebsocket(
+                "wss://node.testnet.transnet.eu",
                 objects=["2.0.x", "2.1.x", "1.3.x"]
             )
             ws.on_object += print

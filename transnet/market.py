@@ -1,4 +1,4 @@
-from bitshares.instance import shared_bitshares_instance
+from transnet.instance import shared_transnet_instance
 from datetime import datetime, timedelta
 from .utils import (
     formatTimeFromNow, formatTime, formatTimeString, assets_from_string)
@@ -6,15 +6,15 @@ from .asset import Asset
 from .amount import Amount
 from .price import Price, Order, FilledOrder
 from .account import Account
-from bitsharesbase import operations
+from transnetbase import operations
 
 
 class Market(dict):
     """ This class allows to easily access Markets on the blockchain for trading, etc.
 
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
-        :param bitshares.asset.Asset base: Base asset
-        :param bitshares.asset.Asset quote: Quote asset
+        :param transnet.transnet.Transnet transnet_instance: Transnet instance
+        :param transnet.asset.Asset base: Base asset
+        :param transnet.asset.Asset quote: Quote asset
         :returns: Blockchain Market
         :rtype: dictionary with overloaded methods
 
@@ -25,7 +25,7 @@ class Market(dict):
         This class tries to identify **two** assets as provided in the
         parameters in one of the following forms:
 
-        * ``base`` and ``quote`` are valid assets (according to :class:`bitshares.asset.Asset`)
+        * ``base`` and ``quote`` are valid assets (according to :class:`transnet.asset.Asset`)
         * ``base:quote`` separated with ``:``
         * ``base/quote`` separated with ``/``
         * ``base-quote`` separated with ``-``
@@ -34,8 +34,8 @@ class Market(dict):
                   presented first (e.g. ``USD:BTS`` with ``USD`` being the
                   quote), while the ``base`` only refers to a secondary asset
                   for a trade. This means, if you call
-                  :func:`bitshares.market.Market.sell` or
-                  :func:`bitshares.market.Market.buy`, you will sell/buy **only
+                  :func:`transnet.market.Market.sell` or
+                  :func:`transnet.market.Market.buy`, you will sell/buy **only
                   quote** and obtain/pay **only base**.
 
     """
@@ -45,15 +45,15 @@ class Market(dict):
         *args,
         base=None,
         quote=None,
-        bitshares_instance=None,
+        transnet_instance=None,
         **kwargs
     ):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        self.transnet = transnet_instance or shared_transnet_instance()
 
         if len(args) == 1 and isinstance(args[0], str):
             quote_symbol, base_symbol = assets_from_string(args[0])
-            quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
-            base = Asset(base_symbol, bitshares_instance=self.bitshares)
+            quote = Asset(quote_symbol, transnet_instance=self.transnet)
+            base = Asset(base_symbol, transnet_instance=self.transnet)
             super(Market, self).__init__({"base": base, "quote": quote})
         elif len(args) == 0 and base and quote:
             super(Market, self).__init__({"base": base, "quote": quote})
@@ -122,56 +122,56 @@ class Market(dict):
         cer = self["quote"]["options"]["core_exchange_rate"]
         data["core_exchange_rate"] = Price(
             cer,
-            bitshares_instance=self.bitshares
+            transnet_instance=self.transnet
         )
         if cer["base"]["asset_id"] == self["quote"]["id"]:
             data["core_exchange_rate"] = data["core_exchange_rate"].invert()
 
         # smartcoin stuff
         if "bitasset_data_id" in self["quote"]:
-            bitasset = self.bitshares.rpc.get_object(self["quote"]["bitasset_data_id"])
+            bitasset = self.transnet.rpc.get_object(self["quote"]["bitasset_data_id"])
             backing_asset_id = bitasset["options"]["short_backing_asset"]
             if backing_asset_id == self["base"]["id"]:
                 sp = bitasset["current_feed"]["settlement_price"]
                 data["quoteSettlement_price"] = Price(
                     sp,
-                    bitshares_instance=self.bitshares
+                    transnet_instance=self.transnet
                 )
                 if sp["base"]["asset_id"] == self["quote"]["id"]:
                     data["quoteSettlement_price"] = data["quoteSettlement_price"].invert()
 
         elif "bitasset_data_id" in self["base"]:
-            bitasset = self.bitshares.rpc.get_object(self["base"]["bitasset_data_id"])
+            bitasset = self.transnet.rpc.get_object(self["base"]["bitasset_data_id"])
             backing_asset_id = bitasset["options"]["short_backing_asset"]
             if backing_asset_id == self["quote"]["id"]:
                 data["baseSettlement_price"] = Price(
                     bitasset["current_feed"]["settlement_price"],
-                    bitshares_instance=self.bitshares
+                    transnet_instance=self.transnet
                 )
 
-        ticker = self.bitshares.rpc.get_ticker(
+        ticker = self.transnet.rpc.get_ticker(
             self["base"]["id"],
             self["quote"]["id"],
         )
-        data["baseVolume"] = Amount(ticker["base_volume"], self["base"], bitshares_instance=self.bitshares)
-        data["quoteVolume"] = Amount(ticker["quote_volume"], self["quote"], bitshares_instance=self.bitshares)
+        data["baseVolume"] = Amount(ticker["base_volume"], self["base"], transnet_instance=self.transnet)
+        data["quoteVolume"] = Amount(ticker["quote_volume"], self["quote"], transnet_instance=self.transnet)
         data["lowestAsk"] = Price(
             ticker["lowest_ask"],
             base=self["base"],
             quote=self["quote"],
-            bitshares_instance=self.bitshares
+            transnet_instance=self.transnet
         )
         data["highestBid"] = Price(
             ticker["highest_bid"],
             base=self["base"],
             quote=self["quote"],
-            bitshares_instance=self.bitshares
+            transnet_instance=self.transnet
         )
         data["latest"] = Price(
             ticker["latest"],
             quote=self["quote"],
             base=self["base"],
-            bitshares_instance=self.bitshares
+            transnet_instance=self.transnet
         )
         data["percentChange"] = float(ticker["percent_change"])
 
@@ -190,13 +190,13 @@ class Market(dict):
                 }
 
         """
-        volume = self.bitshares.rpc.get_24_volume(
+        volume = self.transnet.rpc.get_24_volume(
             self["base"]["id"],
             self["quote"]["id"],
         )
         return {
-            self["base"]["symbol"]: Amount(volume["base_volume"], self["base"], bitshares_instance=self.bitshares),
-            self["quote"]["symbol"]: Amount(volume["quote_volume"], self["quote"], bitshares_instance=self.bitshares)
+            self["base"]["symbol"]: Amount(volume["base_volume"], self["base"], transnet_instance=self.transnet),
+            self["quote"]["symbol"]: Amount(volume["quote_volume"], self["quote"], transnet_instance=self.transnet)
         }
 
     def orderbook(self, limit=25):
@@ -222,25 +222,25 @@ class Market(dict):
 
 
             .. note:: Each bid is an instance of
-                class:`bitshares.price.Order` and thus carries the keys
+                class:`transnet.price.Order` and thus carries the keys
                 ``base``, ``quote`` and ``price``. From those you can
                 obtain the actual amounts for sale
 
         """
-        orders = self.bitshares.rpc.get_order_book(
+        orders = self.transnet.rpc.get_order_book(
             self["base"]["id"],
             self["quote"]["id"],
             limit
         )
         asks = list(map(lambda x: Order(
-            Amount(x["quote"], self["quote"], bitshares_instance=self.bitshares),
-            Amount(x["base"], self["base"], bitshares_instance=self.bitshares),
-            bitshares_instance=self.bitshares
+            Amount(x["quote"], self["quote"], transnet_instance=self.transnet),
+            Amount(x["base"], self["base"], transnet_instance=self.transnet),
+            transnet_instance=self.transnet
         ), orders["asks"]))
         bids = list(map(lambda x: Order(
-            Amount(x["quote"], self["quote"], bitshares_instance=self.bitshares),
-            Amount(x["base"], self["base"], bitshares_instance=self.bitshares),
-            bitshares_instance=self.bitshares
+            Amount(x["quote"], self["quote"], transnet_instance=self.transnet),
+            Amount(x["base"], self["base"], transnet_instance=self.transnet),
+            transnet_instance=self.transnet
         ), orders["bids"]))
         data = {"asks": asks, "bids": bids}
         return data
@@ -259,7 +259,7 @@ class Market(dict):
             stop = datetime.now()
         if not start:
             start = stop - timedelta(hours=24)
-        orders = self.bitshares.rpc.get_trade_history(
+        orders = self.transnet.rpc.get_trade_history(
             self["base"]["symbol"],
             self["quote"]["symbol"],
             formatTime(stop),
@@ -268,9 +268,9 @@ class Market(dict):
         return list(map(
             lambda x: FilledOrder(
                 x,
-                quote=Amount(x["amount"], self["quote"], bitshares_instance=self.bitshares),
-                base=Amount(float(x["amount"]) * float(x["price"]), self["base"], bitshares_instance=self.bitshares),
-                bitshares_instance=self.bitshares
+                quote=Amount(x["amount"], self["quote"], transnet_instance=self.transnet),
+                base=Amount(float(x["amount"]) * float(x["price"]), self["base"], transnet_instance=self.transnet),
+                transnet_instance=self.transnet
             ), orders
         ))
 
@@ -296,13 +296,13 @@ class Market(dict):
 
         """
         if not account:
-            if "default_account" in self.bitshares.config:
-                account = self.bitshares.config["default_account"]
+            if "default_account" in self.transnet.config:
+                account = self.transnet.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self.bitshares)
+        account = Account(account, transnet_instance=self.transnet)
 
-        filled = self.bitshares.rpc.get_fill_order_history(
+        filled = self.transnet.rpc.get_fill_order_history(
             self["base"]["id"],
             self["quote"]["id"],
             2 * limit,
@@ -316,21 +316,21 @@ class Market(dict):
                         f,
                         base=self["base"],
                         quote=self["quote"],
-                        bitshares_instance=self.bitshares
+                        transnet_instance=self.transnet
                     ))
         return trades
 
     def accountopenorders(self, account=None):
         """ Returns open Orders
 
-            :param bitshares.account.Account account: Account name or instance of Account to show orders for in this market
+            :param transnet.account.Account account: Account name or instance of Account to show orders for in this market
         """
         if not account:
-            if "default_account" in self.bitshares.config:
-                account = self.bitshares.config["default_account"]
+            if "default_account" in self.transnet.config:
+                account = self.transnet.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, full=True, bitshares_instance=self.bitshares)
+        account = Account(account, full=True, transnet_instance=self.transnet)
 
         r = []
         orders = account["limit_orders"]
@@ -344,7 +344,7 @@ class Market(dict):
             )):
                 r.append(Order(
                     o,
-                    bitshares_instance=self.bitshares
+                    transnet_instance=self.transnet
                 ))
         return r
 
@@ -392,24 +392,24 @@ class Market(dict):
                     * If an order on the market exists that sells USD for cheaper, you will end up with more than 10 USD
         """
         if not expiration:
-            expiration = self.bitshares.config["order-expiration"]
+            expiration = self.transnet.config["order-expiration"]
         if not account:
-            if "default_account" in self.bitshares.config:
-                account = self.bitshares.config["default_account"]
+            if "default_account" in self.transnet.config:
+                account = self.transnet.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self.bitshares)
+        account = Account(account, transnet_instance=self.transnet)
 
         if isinstance(price, Price):
             price = price.as_base(self["base"]["symbol"])
 
         if isinstance(amount, Amount):
-            amount = Amount(amount, bitshares_instance=self.bitshares)
+            amount = Amount(amount, transnet_instance=self.transnet)
             assert(amount["asset"]["symbol"] == self["quote"]["symbol"]), \
                 "Price: {} does not match amount: {}".format(
                     str(price), str(amount))
         else:
-            amount = Amount(amount, self["quote"]["symbol"], bitshares_instance=self.bitshares)
+            amount = Amount(amount, self["quote"]["symbol"], transnet_instance=self.transnet)
 
         order = operations.Limit_order_create(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -428,14 +428,14 @@ class Market(dict):
 
         if returnOrderId:
             # Make blocking broadcasts
-            prevblocking = self.bitshares.blocking
-            self.bitshares.blocking = returnOrderId
+            prevblocking = self.transnet.blocking
+            self.transnet.blocking = returnOrderId
 
-        tx = self.bitshares.finalizeOp(order, account["name"], "active")
+        tx = self.transnet.finalizeOp(order, account["name"], "active")
 
         if returnOrderId:
             tx["orderid"] = tx["operation_results"][0][1]
-            self.bitshares.blocking = prevblocking
+            self.transnet.blocking = prevblocking
 
         return tx
 
@@ -471,23 +471,23 @@ class Market(dict):
                 That way you can multiply prices with `1.05` to get a +5%.
         """
         if not expiration:
-            expiration = self.bitshares.config["order-expiration"]
+            expiration = self.transnet.config["order-expiration"]
         if not account:
-            if "default_account" in self.bitshares.config:
-                account = self.bitshares.config["default_account"]
+            if "default_account" in self.transnet.config:
+                account = self.transnet.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self.bitshares)
+        account = Account(account, transnet_instance=self.transnet)
         if isinstance(price, Price):
             price = price.as_base(self["base"]["symbol"])
 
         if isinstance(amount, Amount):
-            amount = Amount(amount, bitshares_instance=self.bitshares)
+            amount = Amount(amount, transnet_instance=self.transnet)
             assert(amount["asset"]["symbol"] == self["quote"]["symbol"]), \
                 "Price: {} does not match amount: {}".format(
                     str(price), str(amount))
         else:
-            amount = Amount(amount, self["quote"]["symbol"], bitshares_instance=self.bitshares)
+            amount = Amount(amount, self["quote"]["symbol"], transnet_instance=self.transnet)
 
         order = operations.Limit_order_create(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -505,14 +505,14 @@ class Market(dict):
         })
         if returnOrderId:
             # Make blocking broadcasts
-            prevblocking = self.bitshares.blocking
-            self.bitshares.blocking = returnOrderId
+            prevblocking = self.transnet.blocking
+            self.transnet.blocking = returnOrderId
 
-        tx = self.bitshares.finalizeOp(order, account["name"], "active")
+        tx = self.transnet.finalizeOp(order, account["name"], "active")
 
         if returnOrderId:
             tx["orderid"] = tx["operation_results"][0][1]
-            self.bitshares.blocking = prevblocking
+            self.transnet.blocking = prevblocking
 
         return tx
 
@@ -523,7 +523,7 @@ class Market(dict):
 
             :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
         """
-        return self.bitshares.cancel(orderNumber, account=account)
+        return self.transnet.cancel(orderNumber, account=account)
 
     def core_quote_market(self):
         """ This returns an instance of the market that has the core market of the quote asset.
@@ -536,7 +536,7 @@ class Market(dict):
         self["quote"].refresh()
         collateral = Asset(
             self["quote"]["bitasset_data"]["options"]["short_backing_asset"],
-            bitshares_instance=self.bitshares
+            transnet_instance=self.transnet
         )
         return Market(quote=self["quote"], base=collateral)
 
@@ -551,6 +551,6 @@ class Market(dict):
         self["base"].refresh()
         collateral = Asset(
             self["base"]["bitasset_data"]["options"]["short_backing_asset"],
-            bitshares_instance=self.bitshares
+            transnet_instance=self.transnet
         )
         return Market(quote=self["base"], base=collateral)

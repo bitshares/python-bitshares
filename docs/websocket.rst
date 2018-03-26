@@ -1,16 +1,16 @@
 ******************
-BitSharesWebsocket
+TransnetWebsocket
 ******************
 
-This class allows subscribe to push notifications from the BitShares
+This class allows subscribe to push notifications from the Transnet
 node.
 
 .. code-block:: python
 
     from pprint import pprint
-    from bitsharesapi.websocket import BitSharesWebsocket
+    from bitsharesapi.websocket import TransnetWebsocket
 
-    ws = BitSharesWebsocket(
+    ws = TransnetWebsocket(
         "wss://node.testnet.bitshares.eu",
         markets=[["1.3.0", "1.3.172"]],
         accounts=["xeroc"],
@@ -23,7 +23,7 @@ node.
 
 Defintion
 =========
-.. autoclass:: bitsharesapi.websocket.BitSharesWebsocket
+.. autoclass:: bitsharesapi.websocket.TransnetWebsocket
     :members:
     :undoc-members:
     :private-members:

@@ -37,9 +37,9 @@ class DataDir(object):
          Furthermore, it offers an interface to generated backups
          in the `backups/` directory every now and then.
     """
-    appname = "bitshares"
+    appname = "transnet"
     appauthor = "Fabian Schuh"
-    storageDatabase = "bitshares.sqlite"
+    storageDatabase = "transnet.sqlite"
 
     data_dir = user_data_dir(appname, appauthor)
     sqlDataBaseFile = os.path.join(data_dir, storageDatabase)
@@ -218,7 +218,7 @@ class Configuration(DataDir):
 
     #: Default configuration
     config_defaults = {
-        "node": "wss://node.bitshares.eu",
+        "node": "wss://node.transnet.eu",
         "rpcpassword": "",
         "rpcuser": "",
         "order-expiration": 7 * 24 * 60 * 60,

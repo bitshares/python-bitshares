@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# python-bitshares documentation build configuration file, created by
+# python-transnet documentation build configuration file, created by
 # sphinx-quickstart on Fri Jun  5 14:06:38 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -48,7 +48,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'python-bitshares'
+project = 'python-transnet'
 copyright = '2017, ChainSquad GmbH'
 author = 'Fabian Schuh'
 
@@ -224,7 +224,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'python-bitshares.tex', 'python-bitshares Documentation',
+  (master_doc, 'python-transnet.tex', 'python-transnet Documentation',
    author, 'manual'),
 ]
 
@@ -254,7 +254,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'python-bitshares', 'python-bitshares Documentation',
+    (master_doc, 'python-transnet', 'python-transnet Documentation',
      [author], 1)
 ]
 
@@ -268,8 +268,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'python-bitshares', 'python-bitshares Documentation',
-   author, 'python-bitshares', 'One line description of project.',
+  (master_doc, 'python-transnet', 'python-transnet Documentation',
+   author, 'python-transnet', 'One line description of project.',
    'Miscellaneous'),
 ]
 

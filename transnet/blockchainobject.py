@@ -1,4 +1,4 @@
-from bitshares.instance import shared_bitshares_instance
+from transnet.instance import shared_transnet_instance
 from datetime import datetime, timedelta
 
 
@@ -62,11 +62,11 @@ class BlockchainObject(dict):
         object_id=None,
         lazy=False,
         use_cache=True,
-        bitshares_instance=None,
+        transnet_instance=None,
         *args,
         **kwargs
     ):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        self.transnet = transnet_instance or shared_transnet_instance()
         self.cached = False
         self.identifier = None
 

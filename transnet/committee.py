@@ -7,7 +7,7 @@ class Committee(BlockchainObject):
     """ Read data about a Committee Member in the chain
 
         :param str member: Name of the Committee Member
-        :param bitshares bitshares_instance: BitShares() instance to use when
+        :param transnet transnet_instance: Transnet() instance to use when
             accesing a RPC
         :param bool lazy: Use lazy loading
 
@@ -19,24 +19,24 @@ class Committee(BlockchainObject):
             _, i, _ = self.identifier.split(".")
             if int(i) == 2:
                 account = Account(
-                    self.identifier, bitshares_instance=self.bitshares)
-                member = self.bitshares.rpc.get_committee_member_by_account(
+                    self.identifier, transnet_instance=self.transnet)
+                member = self.transnet.rpc.get_committee_member_by_account(
                     account["id"])
             elif int(i) == 5:
-                member = self.bitshares.rpc.get_object(self.identifier)
+                member = self.transnet.rpc.get_object(self.identifier)
             else:
                 raise CommitteeMemberDoesNotExistsException
         else:
             # maybe identifier is an account name
             account = Account(
-                self.identifier, bitshares_instance=self.bitshares)
-            member = self.bitshares.rpc.get_committee_member_by_account(
+                self.identifier, transnet_instance=self.transnet)
+            member = self.transnet.rpc.get_committee_member_by_account(
                 account["id"])
 
         if not member:
             raise CommitteeMemberDoesNotExistsException
         super(Committee, self).__init__(
-            member, bitshares_instance=self.bitshares)
+            member, transnet_instance=self.transnet)
         self.account_id = account["id"]
 
     @property

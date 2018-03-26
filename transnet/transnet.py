@@ -2,9 +2,9 @@ import json
 import logging
 
 from datetime import datetime, timedelta
-from bitsharesapi.bitsharesnoderpc import BitSharesNodeRPC
-from bitsharesbase.account import PrivateKey, PublicKey
-from bitsharesbase import transactions, operations
+from transnetapi.transnetnoderpc import TransnetNodeRPC
+from transnetbase.account import PrivateKey, PublicKey
+from transnetbase import transactions, operations
 from .asset import Asset
 from .account import Account
 from .amount import Amount
@@ -24,8 +24,8 @@ from .utils import formatTime, test_proposal_in_buffer
 log = logging.getLogger(__name__)
 
 
-class BitShares(object):
-    """ Connect to the BitShares network.
+class Transnet(object):
+    """ Connect to the Transnet network.
 
         :param str node: Node to connect to *(optional)*
         :param str rpcuser: RPC user *(optional)*
@@ -55,12 +55,12 @@ class BitShares(object):
 
         * **Wallet Database**: Here, the bitshareslibs load the keys from the
           locally stored wallet SQLite database (see ``storage.py``).
-          To use this mode, simply call ``BitShares()`` without the
+          To use this mode, simply call ``Transnet()`` without the
           ``keys`` parameter
         * **Providing Keys**: Here, you can provide the keys for
           your accounts manually. All you need to do is add the wif
           keys for the accounts you want to use as a simple array
-          using the ``keys`` parameter to ``BitShares()``.
+          using the ``keys`` parameter to ``Transnet()``.
         * **Force keys**: This more is for advanced users and
           requires that you know what you are doing. Here, the
           ``keys`` parameter is a dictionary that overwrite the
@@ -79,15 +79,15 @@ class BitShares(object):
         where ``<host>`` starts with ``ws://`` or ``wss://``.
 
         The purpose of this class it to simplify interaction with
-        BitShares.
+        Transnet.
 
         The idea is to have a class that allows to do this:
 
         .. code-block:: python
 
-            from bitshares import BitShares
-            bitshares = BitShares()
-            print(bitshares.info())
+            from transnet import Transnet
+            transnet = Transnet()
+            print(transnet.info())
 
         All that is requires is for the user to have added a key with
         ``uptick``
@@ -157,13 +157,13 @@ class BitShares(object):
                 rpcuser="",
                 rpcpassword="",
                 **kwargs):
-        """ Connect to BitShares network (internal use only)
+        """ Connect to Transnet network (internal use only)
         """
         if not node:
             if "node" in config:
                 node = config["node"]
             else:
-                raise ValueError("A BitShares node needs to be provided!")
+                raise ValueError("A Transnet node needs to be provided!")
 
         if not rpcuser and "rpcuser" in config:
             rpcuser = config["rpcuser"]
@@ -171,7 +171,7 @@ class BitShares(object):
         if not rpcpassword and "rpcpassword" in config:
             rpcpassword = config["rpcpassword"]
 
-        self.rpc = BitSharesNodeRPC(node, rpcuser, rpcpassword, **kwargs)
+        self.rpc = TransnetNodeRPC(node, rpcuser, rpcpassword, **kwargs)
 
     @property
     def prefix(self):
@@ -195,12 +195,12 @@ class BitShares(object):
             :param string permission: The required permission for
                 signing (active, owner, posting)
             :param object append_to: This allows to provide an instance of
-                ProposalsBuilder (see :func:`bitshares.new_proposal`) or
-                TransactionBuilder (see :func:`bitshares.new_tx()`) to specify
+                ProposalsBuilder (see :func:`transnet.new_proposal`) or
+                TransactionBuilder (see :func:`transnet.new_tx()`) to specify
                 where to put a specific operation.
 
             ... note:: ``append_to`` is exposed to every method used in the
-                BitShares class
+                Transnet class
 
             ... note::
 
@@ -210,15 +210,15 @@ class BitShares(object):
                 posting permission. Neither can you use different
                 accounts for different operations!
 
-            ... note:: This uses ``bitshares.txbuffer`` as instance of
-                :class:`bitshares.transactionbuilder.TransactionBuilder`.
+            ... note:: This uses ``transnet.txbuffer`` as instance of
+                :class:`transnet.transactionbuilder.TransactionBuilder`.
                 You may want to use your own txbuffer
         """
         if "append_to" in kwargs and kwargs["append_to"]:
             if self.proposer:
                 log.warn(
-                    "You may not use append_to and bitshares.proposer at "
-                    "the same time. Append bitshares.new_proposal(..) instead"
+                    "You may not use append_to and transnet.proposer at "
+                    "the same time. Append transnet.new_proposal(..) instead"
                 )
             # Append to the append_to and return
             append_to = kwargs["append_to"]
@@ -266,7 +266,7 @@ class BitShares(object):
                 of the transactions.
         """
         if tx:
-            txbuffer = TransactionBuilder(tx, bitshares_instance=self)
+            txbuffer = TransactionBuilder(tx, transnet_instance=self)
         else:
             txbuffer = self.txbuffer
         txbuffer.appendWif(wifs)
@@ -275,7 +275,7 @@ class BitShares(object):
         return txbuffer.json()
 
     def broadcast(self, tx=None):
-        """ Broadcast a transaction to the BitShares network
+        """ Broadcast a transaction to the Transnet network
 
             :param tx tx: Signed transaction to broadcast
         """
@@ -295,10 +295,10 @@ class BitShares(object):
     # -------------------------------------------------------------------------
     def newWallet(self, pwd):
         """ Create a new wallet. This method is basically only calls
-            :func:`bitshares.wallet.create`.
+            :func:`transnet.wallet.create`.
 
             :param str pwd: Password to use for the new wallet
-            :raises bitshares.exceptions.WalletExists: if there is already a
+            :raises transnet.exceptions.WalletExists: if there is already a
                 wallet created
         """
         return self.wallet.create(pwd)
@@ -378,7 +378,7 @@ class BitShares(object):
             proposer,
             proposal_expiration,
             proposal_review,
-            bitshares_instance=self,
+            transnet_instance=self,
             parent=parent
         )
         if parent:
@@ -393,7 +393,7 @@ class BitShares(object):
         """
         builder = TransactionBuilder(
             *args,
-            bitshares_instance=self,
+            transnet_instance=self,
             **kwargs
         )
         self._txbuffers.append(builder)
@@ -427,14 +427,14 @@ class BitShares(object):
         if not account:
             raise ValueError("You need to provide an account")
 
-        account = Account(account, bitshares_instance=self)
-        amount = Amount(amount, asset, bitshares_instance=self)
-        to = Account(to, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
+        amount = Amount(amount, asset, transnet_instance=self)
+        to = Account(to, transnet_instance=self)
 
         memoObj = Memo(
             from_account=account,
             to_account=to,
-            bitshares_instance=self
+            transnet_instance=self
         )
 
         op = operations.Transfer(**{
@@ -471,10 +471,10 @@ class BitShares(object):
         storekeys=True,
         **kwargs
     ):
-        """ Create new account on BitShares
+        """ Create new account on Transnet
 
             The brainkey/password can be used to recover all generated keys
-            (see `bitsharesbase.account` for more details.
+            (see `transnetbase.account` for more details.
 
             By default, this call will use ``default_account`` to
             register a new name ``account_name`` with all keys being
@@ -527,16 +527,16 @@ class BitShares(object):
             )
 
         try:
-            Account(account_name, bitshares_instance=self)
+            Account(account_name, transnet_instance=self)
             raise AccountExistsException
         except:
             pass
 
-        referrer = Account(referrer, bitshares_instance=self)
-        registrar = Account(registrar, bitshares_instance=self)
+        referrer = Account(referrer, transnet_instance=self)
+        registrar = Account(registrar, transnet_instance=self)
 
         " Generate new keys from password"
-        from bitsharesbase.account import PasswordKey, PublicKey
+        from transnetbase.account import PasswordKey, PublicKey
         if password:
             active_key = PasswordKey(account_name, password, role="active")
             owner_key = PasswordKey(account_name, password, role="owner")
@@ -579,15 +579,15 @@ class BitShares(object):
             active_key_authority.append([k, 1])
 
         for k in additional_owner_accounts:
-            addaccount = Account(k, bitshares_instance=self)
+            addaccount = Account(k, transnet_instance=self)
             owner_accounts_authority.append([addaccount["id"], 1])
         for k in additional_active_accounts:
-            addaccount = Account(k, bitshares_instance=self)
+            addaccount = Account(k, transnet_instance=self)
             active_accounts_authority.append([addaccount["id"], 1])
 
         # voting account
         voting_account = Account(
-            proxy_account or "proxy-to-self", bitshares_instance=self)
+            proxy_account or "proxy-to-self", transnet_instance=self)
 
         op = {
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -627,7 +627,7 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
         op = operations.Account_upgrade(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "account_to_upgrade": account["id"],
@@ -683,7 +683,7 @@ class BitShares(object):
             raise ValueError(
                 "Permission needs to be either 'owner', or 'active"
             )
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
 
         if not weight:
             weight = account[permission]["weight_threshold"]
@@ -697,7 +697,7 @@ class BitShares(object):
             ])
         except:
             try:
-                foreign_account = Account(foreign, bitshares_instance=self)
+                foreign_account = Account(foreign, transnet_instance=self)
                 authority["account_auths"].append([
                     foreign_account["id"],
                     weight
@@ -747,7 +747,7 @@ class BitShares(object):
             raise ValueError(
                 "Permission needs to be either 'owner', or 'active"
             )
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
         authority = account[permission]
 
         try:
@@ -761,7 +761,7 @@ class BitShares(object):
             ))
         except:
             try:
-                foreign_account = Account(foreign, bitshares_instance=self)
+                foreign_account = Account(foreign, transnet_instance=self)
                 affected_items = list(
                     filter(lambda x: x[0] == foreign_account["id"],
                            authority["account_auths"]))
@@ -823,7 +823,7 @@ class BitShares(object):
 
         PublicKey(key, prefix=self.prefix)
 
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
         account["options"]["memo_key"] = key
         op = operations.Account_update(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -848,14 +848,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
         options = account["options"]
 
         if not isinstance(witnesses, (list, set, tuple)):
             witnesses = {witnesses}
 
         for witness in witnesses:
-            witness = Witness(witness, bitshares_instance=self)
+            witness = Witness(witness, transnet_instance=self)
             options["votes"].append(witness["vote_id"])
 
         options["votes"] = list(set(options["votes"]))
@@ -885,14 +885,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
         options = account["options"]
 
         if not isinstance(witnesses, (list, set, tuple)):
             witnesses = {witnesses}
 
         for witness in witnesses:
-            witness = Witness(witness, bitshares_instance=self)
+            witness = Witness(witness, transnet_instance=self)
             if witness["vote_id"] in options["votes"]:
                 options["votes"].remove(witness["vote_id"])
 
@@ -923,14 +923,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
         options = account["options"]
 
         if not isinstance(committees, (list, set, tuple)):
             committees = {committees}
 
         for committee in committees:
-            committee = Committee(committee, bitshares_instance=self)
+            committee = Committee(committee, transnet_instance=self)
             options["votes"].append(committee["vote_id"])
 
         options["votes"] = list(set(options["votes"]))
@@ -960,14 +960,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
         options = account["options"]
 
         if not isinstance(committees, (list, set, tuple)):
             committees = {committees}
 
         for committee in committees:
-            committee = Committee(committee, bitshares_instance=self)
+            committee = Committee(committee, transnet_instance=self)
             if committee["vote_id"] in options["votes"]:
                 options["votes"].remove(committee["vote_id"])
 
@@ -1001,12 +1001,12 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
         is_key = approver and approver[:3] == self.prefix
         if not approver and not is_key:
             approver = account
         elif approver and not is_key:
-            approver = Account(approver, bitshares_instance=self)
+            approver = Account(approver, transnet_instance=self)
         else:
             approver = PublicKey(approver)
 
@@ -1015,7 +1015,7 @@ class BitShares(object):
 
         op = []
         for proposal_id in proposal_ids:
-            proposal = Proposal(proposal_id, bitshares_instance=self)
+            proposal = Proposal(proposal_id, transnet_instance=self)
             update_dict = {
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 'fee_paying_account': account["id"],
@@ -1051,18 +1051,18 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
         if not approver:
             approver = account
         else:
-            approver = Account(approver, bitshares_instance=self)
+            approver = Account(approver, transnet_instance=self)
 
         if not isinstance(proposal_ids, (list, set, tuple)):
             proposal_ids = {proposal_ids}
 
         op = []
         for proposal_id in proposal_ids:
-            proposal = Proposal(proposal_id, bitshares_instance=self)
+            proposal = Proposal(proposal_id, transnet_instance=self)
             op.append(operations.Proposal_update(**{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 'fee_paying_account': account["id"],
@@ -1084,14 +1084,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
         options = account["options"]
 
         if not isinstance(workers, (list, set, tuple)):
             workers = {workers}
 
         for worker in workers:
-            worker = Worker(worker, bitshares_instance=self)
+            worker = Worker(worker, transnet_instance=self)
             options["votes"].append(worker["vote_for"])
         options["votes"] = list(set(options["votes"]))
 
@@ -1116,14 +1116,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
         options = account["options"]
 
         if not isinstance(workers, (list, set, tuple)):
             workers = {workers}
 
         for worker in workers:
-            worker = Worker(worker, bitshares_instance=self)
+            worker = Worker(worker, transnet_instance=self)
             if worker["vote_for"] in options["votes"]:
                 options["votes"].remove(worker["vote_for"])
         options["votes"] = list(set(options["votes"]))
@@ -1149,7 +1149,7 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, full=False, bitshares_instance=self)
+        account = Account(account, full=False, transnet_instance=self)
 
         if not isinstance(orderNumbers, (list, set, tuple)):
             orderNumbers = {orderNumbers}
@@ -1169,7 +1169,7 @@ class BitShares(object):
         """ Withdraw vesting balance
 
             :param str vesting_id: Id of the vesting object
-            :param bitshares.amount.Amount Amount: to withdraw ("all" if not provided")
+            :param transnet.amount.Amount Amount: to withdraw ("all" if not provided")
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
 
@@ -1179,10 +1179,10 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
 
         if not amount:
-            obj = Vesting(vesting_id, bitshares_instance=self)
+            obj = Vesting(vesting_id, transnet_instance=self)
             amount = obj.claimable
 
         op = operations.Vesting_balance_withdraw(**{
@@ -1209,8 +1209,8 @@ class BitShares(object):
         """ Publish a price feed for a market-pegged asset
 
             :param str symbol: Symbol of the asset to publish feed for
-            :param bitshares.price.Price settlement_price: Price for settlement
-            :param bitshares.price.Price cer: Core exchange Rate (default ``settlement_price + 5%``)
+            :param transnet.price.Price settlement_price: Price for settlement
+            :param transnet.price.Price cer: Core exchange Rate (default ``settlement_price + 5%``)
             :param float mssr: Percentage for max short squeeze ratio (default: 110%)
             :param float mcr: Percentage for maintenance collateral ratio (default: 200%)
             :param str account: (optional) the account to allow access
@@ -1222,15 +1222,15 @@ class BitShares(object):
         """
         assert mcr > 100
         assert mssr > 100
-        assert isinstance(settlement_price, Price), "settlement_price needs to be instance of `bitshares.price.Price`!"
-        assert cer is None or isinstance(cer, Price), "cer needs to be instance of `bitshares.price.Price`!"
+        assert isinstance(settlement_price, Price), "settlement_price needs to be instance of `transnet.price.Price`!"
+        assert cer is None or isinstance(cer, Price), "cer needs to be instance of `transnet.price.Price`!"
         if not account:
             if "default_account" in config:
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
-        asset = Asset(symbol, bitshares_instance=self, full=True)
+        account = Account(account, transnet_instance=self)
+        asset = Asset(symbol, transnet_instance=self, full=True)
         backing_asset = asset["bitasset_data"]["options"]["short_backing_asset"]
         assert asset["id"] == settlement_price["base"]["asset"]["id"] or \
             asset["id"] == settlement_price["quote"]["asset"]["id"], \
@@ -1292,7 +1292,7 @@ class BitShares(object):
 
             This removes the shares from the supply
 
-            :param bitshares.amount.Amount amount: The amount to be burned.
+            :param transnet.amount.Amount amount: The amount to be burned.
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
         """
@@ -1302,7 +1302,7 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
         op = operations.Asset_reserve(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "payer": account["id"],
@@ -1332,7 +1332,7 @@ class BitShares(object):
             **Required**
 
             :param str name: Name of the worke
-            :param bitshares.amount.Amount daily_pay: The amount to be paid daily
+            :param transnet.amount.Amount daily_pay: The amount to be paid daily
             :param datetime end: Date/time of end of the worker
 
             **Optional**
@@ -1344,7 +1344,7 @@ class BitShares(object):
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
         """
-        from bitsharesbase.transactions import timeformat
+        from transnetbase.transactions import timeformat
         assert isinstance(daily_pay, Amount)
         assert daily_pay["symbol"] == "BTS"
         if not begin:
@@ -1354,7 +1354,7 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
 
         if payment_type == "refund":
             initializer = [0, {}]
@@ -1393,8 +1393,8 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
-        asset = Asset(symbol, bitshares_instance=self)
+        account = Account(account, transnet_instance=self)
+        asset = Asset(symbol, transnet_instance=self)
         op = operations.Asset_fund_fee_pool(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "from_account": account["id"],

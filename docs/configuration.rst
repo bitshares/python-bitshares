@@ -15,13 +15,13 @@ You can access those variables like a regular dictionary by using
 
 .. code-block:: python
 
-    from bitshares import BitShares
-    bitshares = BitShares()
+    from bitshares import Transnet
+    bitshares = Transnet()
     print(bitshares.config.items())
 
 Keys can be added and changed like they are for regular dictionaries.
 
-If you don't want to load the :class:`bitshares.BitShares` class, you
+If you don't want to load the :class:`bitshares.Transnet` class, you
 can load the configuration directly by using:
 
 .. code-block:: python

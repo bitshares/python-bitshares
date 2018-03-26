@@ -2,9 +2,9 @@ import re
 import logging
 from binascii import hexlify, unhexlify
 from graphenebase.ecdsa import verify_message, sign_message
-from bitsharesbase.account import PublicKey
-from bitshares.instance import shared_bitshares_instance
-from bitshares.account import Account
+from transnetbase.account import PublicKey
+from transnet.instance import shared_transnet_instance
+from transnet.account import Account
 from .exceptions import InvalidMessageSignature
 from .storage import configStorage as config
 
@@ -40,8 +40,8 @@ timestamp={meta[timestamp]}
 
 class Message():
 
-    def __init__(self, message, bitshares_instance=None):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+    def __init__(self, message, transnet_instance=None):
+        self.transnet = transnet_instance or shared_transnet_instance()
         self.message = message
 
     def sign(self, account=None, **kwargs):
@@ -59,8 +59,8 @@ class Message():
             raise ValueError("You need to provide an account")
 
         # Data for message
-        account = Account(account, bitshares_instance=self.bitshares)
-        info = self.bitshares.info()
+        account = Account(account, transnet_instance=self.transnet)
+        info = self.transnet.info()
         meta = dict(
             timestamp=info["time"],
             block=info["head_block_number"],
@@ -68,7 +68,7 @@ class Message():
             account=account["name"])
 
         # wif key
-        wif = self.bitshares.wallet.getPrivateKeyForPublicKey(
+        wif = self.transnet.wallet.getPrivateKeyForPublicKey(
             account["options"]["memo_key"]
         )
 
@@ -114,7 +114,7 @@ class Message():
         # Load account from blockchain
         account = Account(
             meta.get("account"),
-            bitshares_instance=self.bitshares)
+            transnet_instance=self.transnet)
 
         # Test if memo key is the same as on the blockchain
         if not account["options"]["memo_key"] == meta["memokey"]:
@@ -134,7 +134,7 @@ class Message():
 
         # Verify pubky
         pk = PublicKey(hexlify(pubkey).decode("ascii"))
-        if format(pk, self.bitshares.prefix) != meta["memokey"]:
+        if format(pk, self.transnet.prefix) != meta["memokey"]:
             raise InvalidMessageSignature
 
         return True

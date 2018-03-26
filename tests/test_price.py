@@ -1,8 +1,8 @@
-from bitshares import BitShares
-from bitshares.instance import set_shared_bitshares_instance
-from bitshares.amount import Amount
-from bitshares.price import Price
-from bitshares.asset import Asset
+from transnet import Transnet
+from transnet.instance import set_shared_transnet_instance
+from transnet.amount import Amount
+from transnet.price import Price
+from transnet.asset import Asset
 import unittest
 
 
@@ -10,11 +10,11 @@ class Testcases(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super(Testcases, self).__init__(*args, **kwargs)
-        bitshares = BitShares(
-            "wss://node.bitshares.eu",
+        transnet = Transnet(
+            "wss://node.transnet.eu",
             nobroadcast=True,
         )
-        set_shared_bitshares_instance(bitshares)
+        set_shared_transnet_instance(transnet)
 
     def test_init(self):
         # self.assertEqual(1, 1)
