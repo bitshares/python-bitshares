@@ -48,16 +48,16 @@ class Address(GPHAddress):
 
         :param str address: Base58 encoded address (defaults to ``None``)
         :param str pubkey: Base58 encoded pubkey (defaults to ``None``)
-        :param str prefix: Network prefix (defaults to ``BTS``)
+        :param str prefix: Network prefix (defaults to ``UTT``)
 
         Example::
 
-           Address("BTSFN9r6VYzBK8EKtMewfNbfiGCr56pHDBFi")
+           Address("UTTFN9r6VYzBK8EKtMewfNbfiGCr56pHDBFi")
 
     """
     def __init__(self, *args, **kwargs):
         if "prefix" not in kwargs:
-            kwargs["prefix"] = "BTS"  # make prefix BTS
+            kwargs["prefix"] = "UTT"  # make prefix UTT
         super(Address, self).__init__(*args, **kwargs)
 
 
@@ -65,11 +65,11 @@ class PublicKey(GPHPublicKey):
     """ This class deals with Public Keys and inherits ``Address``.
 
         :param str pk: Base58 encoded public key
-        :param str prefix: Network prefix (defaults to ``BTS``)
+        :param str prefix: Network prefix (defaults to ``UTT``)
 
         Example:::
 
-           PublicKey("BTS6UtYWWs3rkZGV8JA86qrgkG6tyFksgECefKE1MiH4HkLD8PFGL")
+           PublicKey("UTT6UtYWWs3rkZGV8JA86qrgkG6tyFksgECefKE1MiH4HkLD8PFGL")
 
         .. note:: By default, graphene-based networks deal with **compressed**
                   public keys. If an **uncompressed** key is required, the
@@ -80,7 +80,7 @@ class PublicKey(GPHPublicKey):
     """
     def __init__(self, *args, **kwargs):
         if "prefix" not in kwargs:
-            kwargs["prefix"] = "BTS"  # make prefix BTS
+            kwargs["prefix"] = "UTT"  # make prefix UTT
         super(PublicKey, self).__init__(*args, **kwargs)
 
 
@@ -89,7 +89,7 @@ class PrivateKey(GPHPrivateKey):
         constructs two instances of ``PublicKey``:
 
         :param str wif: Base58check-encoded wif key
-        :param str prefix: Network prefix (defaults to ``BTS``)
+        :param str prefix: Network prefix (defaults to ``UTT``)
 
         Example:::
 
@@ -109,5 +109,5 @@ class PrivateKey(GPHPrivateKey):
     """
     def __init__(self, *args, **kwargs):
         if "prefix" not in kwargs:
-            kwargs["prefix"] = "BTS"  # make prefix BTS
+            kwargs["prefix"] = "UTT"  # make prefix UTT
         super(PrivateKey, self).__init__(*args, **kwargs)

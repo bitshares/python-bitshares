@@ -18,13 +18,13 @@ class Testcases(unittest.TestCase):
             keys={"active": wif},
         )
         # from getpass import getpass
-        # self.bts.wallet.unlock(getpass())
+        # self.trns.wallet.unlock(getpass())
         set_shared_transnet_instance(self.bts)
         self.bts.set_default_account("init0")
 
     def test_finalizeOps_proposal(self):
         bts = self.bts
-        # proposal = bts.new_proposal(bts.tx())
+        # proposal = trns.new_proposal(trns.tx())
         proposal = bts.proposal()
         self.bts.transfer("init1", 1, "TEST", append_to=proposal)
         tx = bts.tx().json()  # default tx buffer
@@ -42,7 +42,7 @@ class Testcases(unittest.TestCase):
     def test_finalizeOps_proposal2(self):
         bts = self.bts
         proposal = bts.new_proposal()
-        # proposal = bts.proposal()
+        # proposal = trns.proposal()
         self.bts.transfer("init1", 1, "TEST", append_to=proposal)
         tx = bts.tx().json()  # default tx buffer
         ops = tx["operations"]

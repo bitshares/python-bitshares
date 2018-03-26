@@ -1,6 +1,6 @@
 from transnet.instance import shared_transnet_instance
 import random
-from transnetbase import memo as BtsMemo
+from transnetbase import memo as TrnsMemo
 from transnetbase.account import PrivateKey, PublicKey
 from .account import Account
 from .exceptions import MissingKeyError, KeyNotFound
@@ -79,7 +79,7 @@ class Memo(object):
         if not memo_wif:
             raise MissingKeyError("Memo key for %s missing!" % self.from_account["name"])
 
-        enc = BtsMemo.encode_memo(
+        enc = TrnsMemo.encode_memo(
             PrivateKey(memo_wif),
             PublicKey(
                 self.to_account["options"]["memo_key"],
@@ -126,7 +126,7 @@ class Memo(object):
                     "Need any of {}".format(
                     [memo["to"], memo["from"]]))
 
-        return BtsMemo.decode_memo(
+        return TrnsMemo.decode_memo(
             PrivateKey(memo_wif),
             PublicKey(pubkey, prefix=self.transnet.prefix),
             memo.get("nonce"),

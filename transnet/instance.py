@@ -1,4 +1,4 @@
-import transnet as bts
+import transnet as trns
 
 
 class SharedInstance():
@@ -12,7 +12,7 @@ def shared_transnet_instance():
     """
     if not SharedInstance.instance:
         clear_cache()
-        SharedInstance.instance = bts.Transnet()
+        SharedInstance.instance = trns.Transnet()
     return SharedInstance.instance
 
 

@@ -1346,7 +1346,7 @@ class Transnet(object):
         """
         from transnetbase.transactions import timeformat
         assert isinstance(daily_pay, Amount)
-        assert daily_pay["symbol"] == "BTS"
+        assert daily_pay["symbol"] == "UTT"
         if not begin:
             begin = datetime.utcnow() + timedelta(seconds=30)
         if not account:

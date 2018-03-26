@@ -13,7 +13,7 @@ from .objecttypes import object_type
 from .account import PublicKey
 from graphenebase.objects import Operation as GPHOperation
 from .operationids import operations
-default_prefix = "BTS"
+default_prefix = "UTT"
 
 
 def AssetId(asset):

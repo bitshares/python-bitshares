@@ -26,7 +26,7 @@ from .objects import (
     AccountCreateExtensions
 )
 
-default_prefix = "BTS"
+default_prefix = "UTT"
 
 
 def getOperationNameForId(i):
