@@ -1,5 +1,5 @@
 __all__ = [
-    "bitsharesnoderpc",
+    "transnetnoderpc",
     "exceptions",
     "websocket",
 ]

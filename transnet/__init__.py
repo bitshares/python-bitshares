@@ -1,7 +1,7 @@
 from .transnet import Transnet
 
 __all__ = [
-    "bitshares"
+    "transnet"
     "aes",
     "account",
     "amount",
