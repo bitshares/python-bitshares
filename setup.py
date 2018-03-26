@@ -14,7 +14,7 @@ except LookupError:
 VERSION = '0.1.10'
 
 setup(
-    name='transnet',
+    name='python-utransnet',
     version=VERSION,
     description='Python library for transnet',
     long_description=open('README.md').read(),
