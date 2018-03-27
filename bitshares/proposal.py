@@ -2,6 +2,7 @@ from .instance import shared_bitshares_instance
 from .account import Account
 from .exceptions import ProposalDoesNotExistException
 from .blockchainobject import BlockchainObject
+from .utils import parse_time
 import logging
 log = logging.getLogger(__name__)
 
@@ -24,6 +25,20 @@ class Proposal(BlockchainObject):
     @property
     def proposed_operations(self):
         yield from self["proposed_transaction"]["operations"]
+
+    @property
+    def expiration(self):
+        return parse_time(self.get("expiration_time"))
+
+    @property
+    def review_period(self):
+        return parse_time(self.get("review_period_time"))
+
+    @property
+    def is_in_review(self):
+        from datetime import datetime, timezone
+        now = datetime.utcnow().replace(tzinfo=timezone.utc)
+        return now > self.review_period
 
 
 class Proposals(list):
