@@ -357,7 +357,8 @@ class Market(dict):
         expiration=None,
         killfill=False,
         account=None,
-        returnOrderId=False
+        returnOrderId=False,
+        **kwargs
     ):
         """ Places a buy order in a given market
 
@@ -433,7 +434,7 @@ class Market(dict):
             prevblocking = self.bitshares.blocking
             self.bitshares.blocking = returnOrderId
 
-        tx = self.bitshares.finalizeOp(order, account["name"], "active")
+        tx = self.bitshares.finalizeOp(order, account["name"], "active", **kwargs)
 
         if returnOrderId:
             tx["orderid"] = tx["operation_results"][0][1]
@@ -448,7 +449,8 @@ class Market(dict):
         expiration=None,
         killfill=False,
         account=None,
-        returnOrderId=False
+        returnOrderId=False,
+        **kwargs
     ):
         """ Places a sell order in a given market
 
@@ -510,7 +512,7 @@ class Market(dict):
             prevblocking = self.bitshares.blocking
             self.bitshares.blocking = returnOrderId
 
-        tx = self.bitshares.finalizeOp(order, account["name"], "active")
+        tx = self.bitshares.finalizeOp(order, account["name"], "active", **kwargs)
 
         if returnOrderId:
             tx["orderid"] = tx["operation_results"][0][1]
@@ -518,14 +520,14 @@ class Market(dict):
 
         return tx
 
-    def cancel(self, orderNumber, account=None):
+    def cancel(self, orderNumber, account=None, **kwargs):
         """ Cancels an order you have placed in a given market. Requires
             only the "orderNumber". An order number takes the form
             ``1.7.xxx``.
 
             :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
         """
-        return self.bitshares.cancel(orderNumber, account=account)
+        return self.bitshares.cancel(orderNumber, account=account, **kwargs)
 
     def core_quote_market(self):
         """ This returns an instance of the market that has the core market of the quote asset.
