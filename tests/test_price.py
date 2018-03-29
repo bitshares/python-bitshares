@@ -11,7 +11,7 @@ class Testcases(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(Testcases, self).__init__(*args, **kwargs)
         transnet = Transnet(
-            "wss://node.transnet.eu",
+            "wss://transnet.space:10443/ws",
             nobroadcast=True,
         )
         set_shared_transnet_instance(transnet)
