@@ -460,7 +460,7 @@ class Order(Price):
             self["id"] = args[0].get("id")
         else:
             # Try load Order as Price
-            super(Order, self).__init__(*args, **kwargs)
+            super(Order, self).__init__(*args, bitshares_instance=self.bitshares, **kwargs)
 
     def __repr__(self):
         if "deleted" in self and self["deleted"]:
