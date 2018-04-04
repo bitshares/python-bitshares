@@ -16,7 +16,7 @@ class Asset(BlockchainObject):
 
         :param str Asset: Symbol name or object id of an asset
         :param bool lazy: Lazy loading
-        :param bool full: Also obtain bitasset-data and dynamic asset dat
+        :param bool full: Also obtain bitasset-data and dynamic asset data
         :param bitshares.bitshares.BitShares bitshares_instance: BitShares
             instance
         :returns: All data of an asset
