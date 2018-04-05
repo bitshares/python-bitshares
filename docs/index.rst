@@ -12,20 +12,20 @@
 Welcome to pybitshares's documentation!
 ===============================================
 
-BitShares is a **blockchain-based autonomous company** (i.e. a DAC) that
+Transnet is a **blockchain-based autonomous company** (i.e. a DAC) that
 offers decentralized exchanging as well as sophisticated financial
 instruments as *products*.
 
 It is based on *Graphene* (tm), a blockchain technology stack (i.e.
 software) that allows for fast transactions and ascalable blockchain
-solution. In case of BitShares, it comes with decentralized trading of
+solution. In case of Transnet, it comes with decentralized trading of
 assets as well as customized on-chain smart contracts.
 
 About this Library
 ------------------
 
 The purpose of *pybitshares* is to simplify development of products and
-services that use the BitShares blockchain. It comes with
+services that use the Transnet blockchain. It comes with
 
 * it's own (bip32-encrypted) wallet
 * RPC interface for the Blockchain backend
@@ -52,8 +52,8 @@ Quickstart
 
 .. code-block:: python
 
-   from bitshares import BitShares
-   bitshares = BitShares()
+   from bitshares import Transnet
+   bitshares = Transnet()
    bitshares.wallet.unlock("wallet-passphrase")
    bitshares.transfer("<to>", "<amount>", "<asset>", "[<memo>]", account="<from>")
 
@@ -106,7 +106,7 @@ General
    contribute
    support
 
-Python-BitShares Libraries
+Python-Transnet Libraries
 --------------------------
 
 .. toctree::

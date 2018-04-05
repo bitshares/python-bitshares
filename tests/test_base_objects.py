@@ -1,8 +1,8 @@
 import unittest
-from bitshares import BitShares, exceptions
-from bitshares.instance import set_shared_bitshares_instance
-from bitshares.account import Account
-from bitshares.committee import Committee
+from transnet import Transnet, exceptions
+from transnet.instance import set_shared_transnet_instance
+from transnet.account import Account
+from transnet.committee import Committee
 
 
 class Testcases(unittest.TestCase):
@@ -10,10 +10,10 @@ class Testcases(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.bts = BitShares(
+        self.bts = Transnet(
             nobroadcast=True,
         )
-        set_shared_bitshares_instance(self.bts)
+        set_shared_transnet_instance(self.bts)
 
     def test_Committee(self):
         with self.assertRaises(

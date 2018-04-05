@@ -1,13 +1,13 @@
-from bitsharesbase import (
+from transnetbase import (
     transactions,
     memo,
     account,
     operations,
     objects
 )
-from bitsharesbase.objects import Operation
-from bitsharesbase.signedtransactions import Signed_Transaction
-from bitsharesbase.account import PrivateKey
+from transnetbase.objects import Operation
+from transnetbase.signedtransactions import Signed_Transaction
+from transnetbase.account import PrivateKey
 import random
 import unittest
 from pprint import pprint

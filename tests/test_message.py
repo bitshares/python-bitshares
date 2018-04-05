@@ -1,8 +1,8 @@
 import unittest
 import mock
-from bitshares import BitShares
-from bitshares.message import Message
-from bitshares.instance import set_shared_bitshares_instance
+from transnet import Transnet
+from transnet.message import Message
+from transnet.instance import set_shared_transnet_instance
 
 wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
 core_unit = "PPY"
@@ -13,11 +13,11 @@ class Testcases(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.bts = BitShares(
+        self.bts = Transnet(
             nobroadcast=True,
             wif=[wif]
         )
-        set_shared_bitshares_instance(self.bts)
+        set_shared_transnet_instance(self.bts)
 
     def test_sign_message(self):
         def new_refresh(self):
@@ -29,7 +29,7 @@ class Testcases(unittest.TestCase):
                     }})
 
         with mock.patch(
-            "bitshares.account.Account.refresh",
+            "transnet.account.Account.refresh",
             new=new_refresh
         ):
             p = Message("message foobar").sign()
@@ -45,7 +45,7 @@ class Testcases(unittest.TestCase):
                     }})
 
         with mock.patch(
-            "bitshares.account.Account.refresh",
+            "transnet.account.Account.refresh",
             new=new_refresh
         ):
             Message(

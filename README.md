@@ -1,4 +1,4 @@
-# Python Library for BitShares
+# Python Library for Transnet
 
 ---
 

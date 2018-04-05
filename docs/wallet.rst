@@ -8,8 +8,8 @@ A new wallet can be created by using:
 
 .. code-block:: python
 
-   from bitshares import BitShares
-   bitshares = BitShares()
+   from bitshares import Transnet
+   bitshares = Transnet()
    bitshares.wallet.create("supersecret-passphrase")
 
 This will raise an exception if you already have a wallet installed.
@@ -21,8 +21,8 @@ The wallet can be unlocked for signing using
 
 .. code-block:: python
 
-   from bitshares import BitShares
-   bitshares = BitShares()
+   from bitshares import Transnet
+   bitshares = Transnet()
    bitshares.wallet.unlock("supersecret-passphrase")
 
 Adding a Private Key
@@ -34,8 +34,8 @@ A private key can be added by using the
 
 .. code-block:: python
 
-   from bitshares import BitShares
-   bitshares = BitShares()
+   from bitshares import Transnet
+   bitshares = Transnet()
    bitshares.wallet.unlock("supersecret-passphrase")
    bitshares.wallet.addPrivateKey("5xxxxxxxxxxxxxxxxxxxx")
 

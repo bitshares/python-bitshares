@@ -5,7 +5,7 @@ Memo
 Memo Keys
 #########
 
-In BitShares, memos are AES-256 encrypted with a shared secret between sender and
+In Transnet, memos are AES-256 encrypted with a shared secret between sender and
 receiver. It is derived from the memo private key of the sender and the memo
 publick key of the receiver. 
 
