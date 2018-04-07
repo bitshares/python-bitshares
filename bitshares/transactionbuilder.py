@@ -145,7 +145,7 @@ class TransactionBuilder(dict):
         else:
             self._require_reconstruction = True
         self.set_expiration(expiration)
-        self.fee_assert_id = "1.3.0"
+        self.fee_asset_id = "1.3.0"
 
     def set_expiration(self, p):
         self.expiration = p
@@ -269,7 +269,7 @@ class TransactionBuilder(dict):
     def set_fee_asset(self, fee_asset):
         """ Set asset to fee
         """
-        self.fee_assert_id = fee_asset.identifier
+        self.fee_asset_id = fee_asset.identifier
 
     def constructTx(self):
         """ Construct the actual transaction and store it in the class's dict
@@ -287,9 +287,9 @@ class TransactionBuilder(dict):
                 # otherwise, we simply wrap ops into Operations
                 ops.extend([Operation(op)])
 
-        # We no wrap everything into an actual transaction
+        # We now wrap everything into an actual transaction
         ops = transactions.addRequiredFees(self.bitshares.rpc, ops,
-                                           asset_id=self.fee_assert_id)
+                                           asset_id=self.fee_asset_id)
         expiration = transactions.formatTimeFromNow(
             self.expiration or self.bitshares.expiration
         )
@@ -305,7 +305,7 @@ class TransactionBuilder(dict):
         self._unset_require_reconstruction()
 
     def sign(self):
-        """ Sign a provided transaction witht he provided key(s)
+        """ Sign a provided transaction with the provided key(s)
 
             :param dict tx: The transaction to be signed and returned
             :param string wifs: One or many wif keys to use for signing
