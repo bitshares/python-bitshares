@@ -444,7 +444,7 @@ class Order(Price):
         ):
             """ Load from object 1.7.xxx
             """
-            super(Order, self).__init__(args[0]["sell_price"])
+            super(Order, self).__init__(args[0]["sell_price"], bitshares_instance=self.bitshares)
             self["id"] = args[0].get("id")
         elif (
             isinstance(args[0], dict) and
