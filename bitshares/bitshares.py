@@ -13,7 +13,7 @@ from .witness import Witness
 from .committee import Committee
 from .vesting import Vesting
 from .worker import Worker
-from .storage import configStorage as config
+from .storage import BitsharesStorage
 from .exceptions import (
     AccountExistsException,
 )
@@ -135,8 +135,19 @@ class BitShares(object):
             kwargs.get("proposal_expiration", 60 * 60 * 24))
         self.proposal_review = int(kwargs.get("proposal_review", 0))
 
-        # Store config for access through other Classes
-        self.config = config
+        # Store config and storage for access through other Classes
+        self.wallet_path = kwargs.get("wallet_path", None)
+        reuse_storage = kwargs.pop("storage", None)
+        if reuse_storage:
+            self.store = reuse_storage
+            self.config = self.store.configStorage
+        elif not(self.wallet_path):
+            self.config = { }
+            self.store = None
+        else:
+            self.store  = BitsharesStorage(path=self.wallet_path);
+            self.config = self.store.configStorage
+
 
         if not self.offline:
             self.connect(node=node,
@@ -160,16 +171,16 @@ class BitShares(object):
         """ Connect to BitShares network (internal use only)
         """
         if not node:
-            if "node" in config:
-                node = config["node"]
+            if "node" in self.config:
+                node = self.config["node"]
             else:
                 raise ValueError("A BitShares node needs to be provided!")
 
-        if not rpcuser and "rpcuser" in config:
-            rpcuser = config["rpcuser"]
+        if not rpcuser and "rpcuser" in self.config:
+            rpcuser = self.config["rpcuser"]
 
-        if not rpcpassword and "rpcpassword" in config:
-            rpcpassword = config["rpcpassword"]
+        if not rpcpassword and "rpcpassword" in self.config:
+            rpcpassword = self.config["rpcpassword"]
 
         self.rpc = BitSharesNodeRPC(node, rpcuser, rpcpassword, **kwargs)
 

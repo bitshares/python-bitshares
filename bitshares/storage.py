@@ -39,12 +39,32 @@ class DataDir(object):
     """
     appname = "bitshares"
     appauthor = "Fabian Schuh"
-    storageDatabase = "bitshares.sqlite"
+    storageDatabaseDefault = "bitshares.sqlite"
 
-    data_dir = user_data_dir(appname, appauthor)
-    sqlDataBaseFile = os.path.join(data_dir, storageDatabase)
+    @classmethod
+    def preflight(self, filename=True):
+        """ Return potential user_dir (or full wallet path),
+            without actually doing anything.
+        """
+        path = user_data_dir(self.appname, self.appauthor)
+        if not filename:
+            return path
+        return os.path.join(path, self.storageDatabaseDefault)
 
-    def __init__(self):
+    def __init__(self, path=None, mustexist=False):
+        if not path:
+            self.data_dir = user_data_dir(self.appname, self.appauthor)
+            self.sqlDataBaseFile = os.path.join(self.data_dir, self.storageDatabaseDefault)
+        else:
+            self.data_dir = os.path.dirname(path)
+            self.sqlDataBaseFile = path
+
+        if mustexist and not(os.path.isdir(self.data_dir)):
+            raise Exception("Not found")
+
+        if mustexist and not(os.path.isfile(self.sqlDataBaseFile)):
+            raise Exception("Not found")
+
         #: Storage
         self.mkdir_p()
 
@@ -80,7 +100,7 @@ class DataDir(object):
         log.info("Creating {}...".format(backup_file))
         # Unlock database
         connection.rollback()
-        configStorage["lastBackup"] = datetime.now().strftime(timeformat)
+        self.configStorage["lastBackup"] = datetime.now().strftime(timeformat)
 
     def clean_data(self):
         """ Delete files older than 70 days
@@ -108,8 +128,8 @@ class Key(DataDir):
     """
     __tablename__ = 'keys'
 
-    def __init__(self):
-        super(Key, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(Key, self).__init__(*args, **kwargs)
 
     def exists_table(self):
         """ Check if the database table exists
@@ -241,8 +261,8 @@ class Configuration(DataDir):
         "order-expiration": 7 * 24 * 60 * 60,
     }
 
-    def __init__(self):
-        super(Configuration, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(Configuration, self).__init__(*args, **kwargs)
 
     def exists_table(self):
         """ Check if the database table exists
@@ -271,14 +291,14 @@ class Configuration(DataDir):
     def checkBackup(self):
         """ Backup the SQL database every 7 days
         """
-        if ("lastBackup" not in configStorage or
-                configStorage["lastBackup"] == ""):
+        if ("lastBackup" not in self.configStorage or
+                self.configStorage["lastBackup"] == ""):
             print("No backup has been created yet!")
             self.refreshBackup()
         try:
             if (
                 datetime.now() -
-                datetime.strptime(configStorage["lastBackup"],
+                datetime.strptime(self.configStorage["lastBackup"],
                                   timeformat)
             ).days > 7:
                 print("Backups older than 7 days!")
@@ -390,7 +410,7 @@ class MasterPassword(object):
     #: This key identifies the encrypted master password stored in the confiration
     config_key = "encrypted_master_password"
 
-    def __init__(self, password):
+    def __init__(self, configStorage, password):
         """ The encrypted private keys in `keys` are encrypted with a
             random encrypted masterpassword that is stored in the
             configuration.
@@ -404,8 +424,9 @@ class MasterPassword(object):
 
             :param str password: Password to use for en-/de-cryption
         """
+        self.configStorage = configStorage
         self.password = password
-        if self.config_key not in configStorage:
+        if self.config_key not in self.configStorage:
             self.newMaster()
             self.saveEncrytpedMaster()
         else:
@@ -415,7 +436,7 @@ class MasterPassword(object):
         """ Decrypt the encrypted masterpassword
         """
         aes = AESCipher(self.password)
-        checksum, encrypted_master = configStorage[self.config_key].split("$")
+        checksum, encrypted_master = self.configStorage[self.config_key].split("$")
         try:
             decrypted_master = aes.decrypt(encrypted_master)
         except:
@@ -428,14 +449,14 @@ class MasterPassword(object):
         """ Store the encrypted master password in the configuration
             store
         """
-        configStorage[self.config_key] = self.getEncryptedMaster()
+        self.configStorage[self.config_key] = self.getEncryptedMaster()
 
     def newMaster(self):
         """ Generate a new random masterpassword
         """
         # make sure to not overwrite an existing key
-        if (self.config_key in configStorage and
-                configStorage[self.config_key]):
+        if (self.config_key in self.configStorage and
+                self.configStorage[self.config_key]):
             return
         self.decrypted_master = hexlify(os.urandom(32)).decode("ascii")
 
@@ -470,18 +491,21 @@ class MasterPassword(object):
             )
             return
         else:
-            configStorage.delete(MasterPassword.config_key)
+            self.configStorage.delete(MasterPassword.config_key)
 
 
-# Create keyStorage
-keyStorage = Key()
-configStorage = Configuration()
 
-# Create Tables if database is brand new
-if not configStorage.exists_table():
-    configStorage.create_table()
+class BitsharesStorage():
 
-newKeyStorage = False
-if not keyStorage.exists_table():
-    newKeyStorage = True
-    keyStorage.create_table()
+    def __init__(self, path, create=True):
+
+        # Create keyStorage
+        self.keyStorage = Key(path, mustexist = not(create))
+        self.configStorage = Configuration(path, mustexist = not(create))
+
+        # Create Tables if database is brand new
+        if not self.configStorage.exists_table() and create:
+            self.configStorage.create_table()
+
+        if not self.keyStorage.exists_table() and create:
+            self.keyStorage.create_table()

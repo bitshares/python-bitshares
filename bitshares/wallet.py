@@ -13,7 +13,6 @@ from .exceptions import (
     NoWalletException,
     OfflineHasNoRPCException
 )
-from .storage import configStorage as config
 
 
 log = logging.getLogger(__name__)
@@ -61,6 +60,13 @@ class Wallet():
     def __init__(self, *args, bitshares_instance=None, **kwargs):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
 
+        self.store = kwargs.pop("storage", None)
+        if not self.store:
+            from .storage import BitsharesStorage
+            self.store = BitsharesStorage()
+
+        self.configStorage = self.store.configStorage
+
         # Compatibility after name change from wif->keys
         if "wif" in kwargs and "keys" not in kwargs:
             kwargs["keys"] = kwargs["wif"]
@@ -71,10 +77,9 @@ class Wallet():
             """ If no keys are provided manually we load the SQLite
                 keyStorage
             """
-            from .storage import (keyStorage,
-                                  MasterPassword)
+            from .storage import MasterPassword
             self.MasterPassword = MasterPassword
-            self.keyStorage = keyStorage
+            self.keyStorage = store.keyStorage
 
     @property
     def prefix(self):
@@ -117,8 +122,8 @@ class Wallet():
             self.tryUnlockFromEnv()
         else:
             if (self.masterpassword is None and
-                    config[self.MasterPassword.config_key]):
-                self.masterpwd = self.MasterPassword(pwd)
+                    self.configStorage[self.MasterPassword.config_key]):
+                self.masterpwd = self.MasterPassword(self.configStorage, pwd)
                 self.masterpassword = self.masterpwd.decrypted_master
 
     def tryUnlockFromEnv(self):
@@ -161,7 +166,7 @@ class Wallet():
         if len(self.getPublicKeys()):
             # Already keys installed
             return True
-        elif self.MasterPassword.config_key in config:
+        elif self.MasterPassword.config_key in self.configStorage:
             # no keys but a master password
             return True
         else:
@@ -177,7 +182,7 @@ class Wallet():
         """
         if self.created():
             raise WalletExists("You already have created a wallet!")
-        self.masterpwd = self.MasterPassword(pwd)
+        self.masterpwd = self.MasterPassword(self.configStorage, pwd)
         self.masterpassword = self.masterpwd.decrypted_master
         self.masterpwd.saveEncrytpedMaster()
 
