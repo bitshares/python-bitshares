@@ -79,7 +79,7 @@ class Wallet():
             """
             from .storage import MasterPassword
             self.MasterPassword = MasterPassword
-            self.keyStorage = store.keyStorage
+            self.keyStorage = self.store.keyStorage
 
     @property
     def prefix(self):
@@ -413,9 +413,5 @@ class Wallet():
             )
             return
         else:
-            from .storage import (
-                keyStorage,
-                MasterPassword
-            )
-            MasterPassword.wipe(sure)
-            keyStorage.wipe(sure)
+            self.MasterPassword.wipe(sure)
+            self.keyStorage.wipe(sure)
