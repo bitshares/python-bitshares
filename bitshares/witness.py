@@ -37,6 +37,21 @@ class Witness(BlockchainObject):
             self["witness_account"], bitshares_instance=self.bitshares)
 
     @property
+    def weight(self):
+        if not self.is_active:
+            return 0
+        else:
+            account = Account(
+                "witness-account",
+                bitshares_instance=self.bitshares)
+            threshold = account["active"]["weight_threshold"]
+            weight = next(
+                filter(
+                    lambda x: x[0] == self.account["id"],
+                    account["active"]["account_auths"]))
+            return float(weight[1]) / float(threshold)
+
+    @property
     def is_active(self):
         account = Account(
             "witness-account",
