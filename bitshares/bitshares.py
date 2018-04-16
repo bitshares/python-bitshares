@@ -1474,13 +1474,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
+        amount = Amount(amount, symbol, bitshares_instance=self)
         account = Account(account, bitshares_instance=self)
         asset = Asset(symbol, bitshares_instance=self)
         op = operations.Asset_fund_fee_pool(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "from_account": account["id"],
             "asset_id": asset["id"],
-            "amount": int(float(amount) * 10 ** asset["precision"]),
+            "amount": int(amount),
             "extensions": []
         })
         return self.finalizeOp(op, account, "active", **kwargs)
