@@ -171,8 +171,14 @@ class Account(BlockchainObject):
                 return (*optional*)
             :param array only_ops: Limit generator by these
                 operations (*optional*)
-            :param array exclude_ops: Exclude thse operations from
-                generator (*optional*)
+            :param array exclude_ops: Exclude these operations from
+                generator (*optional*). 
+
+            ... note::
+                only_ops and exclude_ops takes an array of strings:
+                The full list of operation ID's can be found in
+                bitsharesbase.operationids.
+                Example: ['transfer', 'fill_order']
         """
         from bitsharesbase.operations import getOperationNameForId
         _limit = 100
