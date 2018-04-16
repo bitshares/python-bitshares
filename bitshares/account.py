@@ -69,12 +69,18 @@ class Account(BlockchainObject):
         if self.full:
             account = self.bitshares.rpc.get_full_accounts(
                 [account["id"]], False)[0][1]
-            super(Account, self).__init__(account["account"])
+            super(Account, self).__init__(
+                account["account"],
+                bitshares_instance=self.bitshares
+            )
             for k, v in account.items():
                 if k != "account":
                     self[k] = v
         else:
-            super(Account, self).__init__(account)
+            super(Account, self).__init__(
+                account,
+                bitshares_instance=self.bitshares
+            )
 
     @property
     def name(self):
@@ -249,7 +255,7 @@ class AccountUpdate(dict):
             :class:`bitshares.account.Account` from this class, you can
             use the ``account`` attribute.
         """
-        account = Account(self["owner"])
+        account = Account(self["owner"], bitshares_instance=self.bitshares)
         account.refresh()
         return account
 

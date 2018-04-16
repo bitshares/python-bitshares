@@ -424,7 +424,7 @@ class TransactionBuilder(dict):
                 accountObj["name"]: authority
             }})
             for account_auth in authority["account_auths"]:
-                account_auth_account = Account(account_auth[0])
+                account_auth_account = Account(account_auth[0], bitshares_instance=self.bitshares)
                 self["required_authorities"].update({
                     account_auth[0]: account_auth_account.get(permission)
                 })
@@ -435,7 +435,7 @@ class TransactionBuilder(dict):
             ]
             # Add one recursion of keys from account_auths:
             for account_auth in authority["account_auths"]:
-                account_auth_account = Account(account_auth[0])
+                account_auth_account = Account(account_auth[0], bitshares_instance=self.bitshares)
                 self["missing_signatures"].extend(
                     [x[0] for x in account_auth_account[permission]["key_auths"]]
                 )

@@ -448,7 +448,7 @@ class Order(Price):
             """
             # Take all the arguments with us
             self.update(args[0])
-            super(Order, self).__init__(args[0]["sell_price"])
+            super(Order, self).__init__(args[0]["sell_price"], bitshares_instance=self.bitshares)
 
         elif (
             isinstance(args[0], dict) and
