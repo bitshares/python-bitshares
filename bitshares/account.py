@@ -159,6 +159,8 @@ class Account(BlockchainObject):
 
             :param int first: sequence number of the first
                 transaction to return (*optional*)
+            :param int last: sequence number of the last
+                transaction to return (*optional*)
             :param int limit: limit number of transactions to
                 return (*optional*)
             :param array only_ops: Limit generator by these
