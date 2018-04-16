@@ -465,7 +465,7 @@ class Order(Price):
             )
         else:
             # Try load Order as Price
-            super(Order, self).__init__(*args, **kwargs)
+            super(Order, self).__init__(*args, bitshares_instance=self.bitshares, **kwargs)
 
         self["for_sale"] = Amount(
             {"amount": self["for_sale"],
