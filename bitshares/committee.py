@@ -37,7 +37,7 @@ class Committee(BlockchainObject):
             raise CommitteeMemberDoesNotExistsException
         super(Committee, self).__init__(
             member, bitshares_instance=self.bitshares)
-        self.account_id = account["id"]
+        self.account_id = member["committee_member_account"]
 
     @property
     def account(self):

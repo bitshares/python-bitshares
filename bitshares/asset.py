@@ -536,3 +536,13 @@ class Asset(BlockchainObject):
             "extensions": []
         })
         return self.bitshares.finalizeOp(op, self["issuer"], "active")
+
+    def update_cer(self, cer, account=None, **kwargs):
+        """ Update the Core Exchange Rate (CER) of an asset
+        """
+        return self.bitshares.update_cer(
+            self["symbol"],
+            cert,
+            account=account,
+            **kwargs
+        )

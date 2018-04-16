@@ -9,7 +9,7 @@ Install with `pip`:
 
 ::
 
-    $ sudo apt-get install libffi-dev libssl-dev python-dev
+    $ sudo apt-get install libffi-dev libssl-dev python3-dev
     $ pip3 install bitshares
 
 Manual installation:
@@ -25,4 +25,4 @@ Upgrade
 
 ::
 
-   $ pip install --user --upgrade
+   $ pip3 install bitshares --user --upgrade

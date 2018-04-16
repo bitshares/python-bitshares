@@ -27,28 +27,65 @@ class Witness(BlockchainObject):
                 self.identifier, bitshares_instance=self.bitshares)
             witness = self.bitshares.rpc.get_witness_by_account(account["id"])
         if not witness:
-            raise WitnessDoesNotExistsException
-        super(Witness, self).__init__(witness, bitshares_instance=self.bitshares)
+            raise WitnessDoesNotExistsException(self.identifier)
+        super(Witness, self).__init__(
+            witness, bitshares_instance=self.bitshares)
 
     @property
     def account(self):
-        return Account(self["witness_account"], bitshares_instance=self.bitshares)
+        return Account(
+            self["witness_account"], bitshares_instance=self.bitshares)
+
+    @property
+    def weight(self):
+        if not self.is_active:
+            return 0
+        else:
+            account = Account(
+                "witness-account",
+                bitshares_instance=self.bitshares)
+            threshold = account["active"]["weight_threshold"]
+            weight = next(
+                filter(
+                    lambda x: x[0] == self.account["id"],
+                    account["active"]["account_auths"]))
+            return float(weight[1]) / float(threshold)
+
+    @property
+    def is_active(self):
+        account = Account(
+            "witness-account",
+            bitshares_instance=self.bitshares)
+        return self.account["id"] in [
+            x[0] for x in account["active"]["account_auths"]
+        ]
 
 
 class Witnesses(list):
     """ Obtain a list of **active** witnesses and the current schedule
 
+        :param bool only_active: (False) Only return witnesses that are
+            actively producing blocks
         :param bitshares bitshares_instance: BitShares() instance to use when
             accesing a RPC
     """
-    def __init__(self, bitshares_instance=None):
+    def __init__(self, only_active=False, bitshares_instance=None):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
-        self.schedule = self.bitshares.rpc.get_object(
-            "2.12.0").get("current_shuffled_witnesses", [])
+        total_witnesses = self.bitshares.rpc.get_witness_count()
+        ws = ["1.6.{:d}".format(i + 1) for i in range(total_witnesses - 1)]
+        witnesses = [
+            Witness(x, lazy=True, bitshares_instance=self.bitshares)
+            for x in ws
+        ]
 
-        super(Witnesses, self).__init__(
-            [
-                Witness(x, lazy=True, bitshares_instance=self.bitshares)
-                for x in self.schedule
-            ]
-        )
+        if only_active:
+            account = Account(
+                "witness-account",
+                bitshares_instance=self.bitshares)
+            filter_by = [x[0] for x in account["active"]["account_auths"]]
+            witnesses = list(
+                filter(
+                    lambda x: x["witness_account"] in filter_by,
+                    witnesses))
+
+        super(Witnesses, self).__init__(witnesses)
