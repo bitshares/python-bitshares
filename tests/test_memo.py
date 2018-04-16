@@ -1,6 +1,7 @@
 import unittest
 import os
 from pprint import pprint
+from itertools import cycle
 from bitsharesbase.account import BrainKey, Address, PublicKey, PrivateKey
 from bitsharesbase.memo import (
     get_shared_secret,
@@ -87,3 +88,18 @@ class Testcases(unittest.TestCase):
             pub = PublicKey(s[1], prefix="GPH")
             shared_secret = get_shared_secret(priv, pub)
             self.assertEqual(s[2], shared_secret)
+
+    def test_shared_secrets_equal(self):
+
+        wifs = cycle([x[0] for x in test_shared_secrets])
+
+        for i in range(len(test_shared_secrets)):
+            sender_private_key = PrivateKey(next(wifs))
+            sender_public_key = sender_private_key.pubkey
+            receiver_private_key = PrivateKey(next(wifs))
+            receiver_public_key = receiver_private_key.pubkey
+
+            self.assertEqual(
+                get_shared_secret(sender_private_key, receiver_public_key),
+                get_shared_secret(receiver_private_key, sender_public_key)
+            )
