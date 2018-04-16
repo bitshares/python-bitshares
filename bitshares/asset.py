@@ -17,7 +17,7 @@ class Asset(BlockchainObject):
         :param str Asset: Symbol name or object id of an asset
         :param bool lazy: Lazy loading
         :param bool full: Also obtain bitasset-data and dynamic asset data
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares
+        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
             instance
         :returns: All data of an asset
         :rtype: dict
@@ -28,33 +28,22 @@ class Asset(BlockchainObject):
     """
     type_id = 3
 
-    def __init__(
-        self,
-        asset,
-        lazy=False,
-        full=False,
-        bitshares_instance=None
-    ):
-        self.full = full
-        super().__init__(
-            asset,
-            lazy=lazy,
-            full=full,
-            bitshares_instance=bitshares_instance
-        )
+    def __init__(self, *args, **kwargs):
+        self.full = kwargs.pop("full", False)
+        super().__init__(*args, **kwargs)
 
     def refresh(self):
         """ Refresh the data from the API server
         """
-        asset = self.bitshares.rpc.get_asset(self.identifier)
+        asset = self.blockchain.rpc.get_asset(self.identifier)
         if not asset:
             raise AssetDoesNotExistsException(self.identifier)
-        super(Asset, self).__init__(asset, bitshares_instance=self.bitshares)
+        super(Asset, self).__init__(asset, blockchain_instance=self.blockchain)
         if self.full:
             if "bitasset_data_id" in asset:
-                self["bitasset_data"] = self.bitshares.rpc.get_object(
+                self["bitasset_data"] = self.blockchain.rpc.get_object(
                     asset["bitasset_data_id"])
-            self["dynamic_asset_data"] = self.bitshares.rpc.get_object(
+            self["dynamic_asset_data"] = self.blockchain.rpc.get_object(
                 asset["dynamic_asset_data_id"])
 
         # Permissions and flags
@@ -117,7 +106,7 @@ class Asset(BlockchainObject):
         for feed in self["bitasset_data"]["feeds"]:
             r.append(PriceFeed(
                 feed,
-                bitshares_instance=self.bitshares
+                blockchain_instance=self.blockchain
             ))
         return r
 
@@ -128,7 +117,7 @@ class Asset(BlockchainObject):
         self.ensure_full()
         return PriceFeed(
             self["bitasset_data"]["current_feed"],
-            bitshares_instance=self.bitshares
+            blockchain_instance=self.blockchain
         )
 
     @property
@@ -145,33 +134,33 @@ class Asset(BlockchainObject):
         bitasset = self["bitasset_data"]
         settlement_price = Price(
             bitasset["current_feed"]["settlement_price"],
-            bitshares_instance=self.bitshares
+            blockchain_instance=self.blockchain
         )
-        ret = self.bitshares.rpc.get_call_orders(self["id"], limit)
+        ret = self.blockchain.rpc.get_call_orders(self["id"], limit)
         for call in ret[:limit]:
             call_price = Price(
                 call["call_price"],
-                bitshares_instance=self.bitshares
+                blockchain_instance=self.blockchain
             )
             collateral_amount = Amount(
                 {
                     "amount": call["collateral"],
                     "asset_id": call["call_price"]["base"]["asset_id"]
                 },
-                bitshares_instance=self.bitshares
+                blockchain_instance=self.blockchain
             )
             debt_amount = Amount(
                 {
                     "amount": call["debt"],
                     "asset_id": call["call_price"]["quote"]["asset_id"],
                 },
-                bitshares_instance=self.bitshares
+                blockchain_instance=self.blockchain
             )
             r.append({
                 "account": Account(
                     call["borrower"],
                     lazy=True,
-                    bitshares_instance=self.bitshares
+                    blockchain_instance=self.blockchain
                 ),
                 "collateral": collateral_amount,
                 "debt": debt_amount,
@@ -195,17 +184,17 @@ class Asset(BlockchainObject):
         assert limit <= 100
         assert self.is_bitasset
         r = list()
-        ret = self.bitshares.rpc.get_settle_orders(self["id"], limit)
+        ret = self.blockchain.rpc.get_settle_orders(self["id"], limit)
         for settle in ret[:limit]:
             r.append({
                 "account": Account(
                     settle["owner"],
                     lazy=True,
-                    bitshares_instance=self.bitshares
+                    blockchain_instance=self.blockchain
                 ),
                 "amount": Amount(
                     settle["balance"],
-                    bitshares_instance=self.bitshares
+                    blockchain_instance=self.blockchain
                 ),
                 "date": formatTimeString(settle["settlement_date"])
             })
@@ -216,7 +205,7 @@ class Asset(BlockchainObject):
         """
         nullaccount = Account(
             "null-account",  # We set the null-account
-            bitshares_instance=self.bitshares
+            blockchain_instance=self.blockchain
         )
         flags = {"white_list": True,
                  "transfer_restricted": True,
@@ -239,7 +228,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def release(
         self,
@@ -289,7 +278,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def setoptions(self, flags):
         """ Enable a certain flag.
@@ -322,7 +311,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def enableflag(self, flag):
         """ Enable a certain flag.
@@ -361,7 +350,7 @@ class Asset(BlockchainObject):
             "amount": amount.json(),
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def add_authorities(self, type, authorities=[]):
         """ Add authorities to an assets white/black list
@@ -388,7 +377,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def remove_authorities(self, type, authorities=[]):
         """ Remove authorities from an assets white/black list
@@ -417,7 +406,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def add_markets(self, type, authorities=[], force_enable=True):
         """ Add markets to an assets white/black list
@@ -461,7 +450,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def remove_markets(self, type, authorities=[]):
         """ Remove markets from an assets white/black list
@@ -490,7 +479,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def set_market_fee(self, percentage_fee, max_market_fee):
         """ Set trading percentage fee
@@ -516,7 +505,7 @@ class Asset(BlockchainObject):
             "new_options": options,
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def update_feed_producers(self, producers):
         """ Update bitasset feed producers
@@ -535,14 +524,14 @@ class Asset(BlockchainObject):
             ],
             "extensions": []
         })
-        return self.bitshares.finalizeOp(op, self["issuer"], "active")
+        return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def update_cer(self, cer, account=None, **kwargs):
         """ Update the Core Exchange Rate (CER) of an asset
         """
-        return self.bitshares.update_cer(
+        return self.blockchain.update_cer(
             self["symbol"],
-            cert,
+            cer,
             account=account,
             **kwargs
         )

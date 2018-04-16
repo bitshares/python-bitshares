@@ -1,6 +1,6 @@
 import time
 from .block import Block
-from bitshares.instance import shared_bitshares_instance
+from .instance import BlockchainInstance
 from bitsharesbase.operationids import getOperationNameForId
 
 
@@ -8,22 +8,24 @@ class Blockchain(object):
     """ This class allows to access the blockchain and read data
         from it
 
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares
+        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
                  instance
         :param str mode: (default) Irreversible block (``irreversible``) or
                  actual head block (``head``)
-        :param int max_block_wait_repetition: (default) 3 maximum wait time for next block
-                is max_block_wait_repetition * block_interval
+        :param int max_block_wait_repetition: (default) 3 maximum wait time for
+            next block ismax_block_wait_repetition * block_interval
 
         This class let's you deal with blockchain related data and methods.
     """
     def __init__(
         self,
-        bitshares_instance=None,
+        blockchain_instance=None,
         mode="irreversible",
-        max_block_wait_repetition=None
+        max_block_wait_repetition=None,
+        *args,
+        **kwargs
     ):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        BlockchainInstance.__init__(self, *args, **kwargs)
 
         if mode == "irreversible":
             self.mode = 'last_irreversible_block_num'
@@ -43,7 +45,7 @@ class Blockchain(object):
     def info(self):
         """ This call returns the *dynamic global properties*
         """
-        return self.bitshares.rpc.get_dynamic_global_properties()
+        return self.blockchain.rpc.get_dynamic_global_properties()
 
     def chainParameters(self):
         """ The blockchain parameters, such as fees, and committee-controlled
@@ -57,17 +59,17 @@ class Blockchain(object):
             :returns: Network parameters
             :rtype: dict
         """
-        return self.bitshares.rpc.get_network()
+        return self.blockchain.rpc.get_network()
 
     def get_chain_properties(self):
         """ Return chain properties
         """
-        return self.bitshares.rpc.get_chain_properties()
+        return self.blockchain.rpc.get_chain_properties()
 
     def config(self):
         """ Returns object 2.0.0
         """
-        return self.bitshares.rpc.get_object("2.0.0")
+        return self.blockchain.rpc.get_object("2.0.0")
 
     def get_current_block_num(self):
         """ This call returns the current block
@@ -85,7 +87,7 @@ class Blockchain(object):
         """
         return Block(
             self.get_current_block_num(),
-            bitshares_instance=self.bitshares
+            blockchain_instance=self.blockchain
         )
 
     def block_time(self, block_num):
@@ -96,7 +98,7 @@ class Blockchain(object):
         """
         return Block(
             block_num,
-            bitshares_instance=self.bitshares
+            blockchain_instance=self.blockchain
         ).time()
 
     def block_timestamp(self, block_num):
@@ -107,7 +109,7 @@ class Blockchain(object):
         """
         return int(Block(
             block_num,
-            bitshares_instance=self.bitshares
+            blockchain_instance=self.blockchain
         ).time().timestamp())
 
     def blocks(self, start=None, stop=None):
@@ -151,32 +153,40 @@ class Blockchain(object):
             time.sleep(self.block_interval)
 
     def wait_for_and_get_block(self, block_number, blocks_waiting_for=None):
-        """ Get the desired block from the chain, if the current head block is smaller (for both head and irreversible)
-            then we wait, but a maxmimum of blocks_waiting_for * max_block_wait_repetition time before failure.
+        """ Get the desired block from the chain, if the current head block is
+            smaller (for both head and irreversible) then we wait, but a
+            maxmimum of blocks_waiting_for * max_block_wait_repetition time
+            before failure.
 
             :param int block_number: desired block number
-            :param int blocks_waiting_for: (default) difference between block_number and current head
-                                           how many blocks we are willing to wait, positive int
+            :param int blocks_waiting_for: (default) difference between
+                block_number and current head how many blocks we are willing to
+                wait, positive int
         """
         if not blocks_waiting_for:
-            blocks_waiting_for = max(1, block_number - self.get_current_block_num())
+            blocks_waiting_for = max(
+                1, block_number - self.get_current_block_num())
 
         repetition = 0
-        # can't return the block before the chain has reached it (support future block_num)
+        # can't return the block before the chain has reached it (support
+        # future block_num)
         while self.get_current_block_num() < block_number:
             repetition += 1
             time.sleep(self.block_interval)
-            if repetition > blocks_waiting_for * self.max_block_wait_repetition:
+            if (
+                repetition >
+                blocks_waiting_for * self.max_block_wait_repetition
+            ):
                 raise Exception("Wait time for new block exceeded, aborting")
         # block has to be returned properly
-        block = self.bitshares.rpc.get_block(block_number)
+        block = self.blockchain.rpc.get_block(block_number)
         repetition = 0
         while not block:
             repetition += 1
             time.sleep(self.block_interval)
             if repetition > self.max_block_wait_repetition:
                 raise Exception("Wait time for new block exceeded, aborting")
-            block = self.bitshares.rpc.get_block(block_number)
+            block = self.blockchain.rpc.get_block(block_number)
         return block
 
     def ops(self, start=None, stop=None, **kwargs):
@@ -212,8 +222,9 @@ class Blockchain(object):
             :param int start: Start at this block
             :param int stop: Stop at this block
             :param str mode: We here have the choice between
-             "head" (the last block) and "irreversible" (the block that is
-             confirmed by 2/3 of all block producers and is thus irreversible)
+                 * "head": the last block
+                 * "irreversible": the block that is confirmed by 2/3 of all
+                    block producers and is thus irreversible!
 
             The dict output is formated such that ``type`` caries the
             operation type, timestamp and block_num are taken from the
@@ -250,9 +261,10 @@ class Blockchain(object):
         for block in self.blocks():
             counter += 1
             for tx in block["transactions"]:
-                if sorted(
-                    tx["signatures"]
-                ) == sorted(transaction["signatures"]):
+                if (
+                    sorted(tx["signatures"]) ==
+                    sorted(transaction["signatures"])
+                ):
                     return tx
             if counter > limit:
                 raise Exception(
@@ -267,7 +279,7 @@ class Blockchain(object):
         """
         lastname = start
         while True:
-            ret = self.bitshares.rpc.lookup_accounts(lastname, steps)
+            ret = self.blockchain.rpc.lookup_accounts(lastname, steps)
             for account in ret:
                 yield account[0]
                 if account[0] == stop:

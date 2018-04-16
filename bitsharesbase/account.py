@@ -10,6 +10,7 @@ import sys
 import hashlib
 from binascii import hexlify, unhexlify
 
+
 class PasswordKey(GPHPasswordKey):
     """ This class derives a private key given the account name, the
         role and a password. It leverages the technology of Brainkeys
@@ -75,7 +76,8 @@ class BrainKey(GPHBrainKey):
             a = bytes(self.brainkey, 'ascii')
         else:
             a = bytes(self.brainkey).encode('ascii')
-        return PrivateKey( hashlib.sha256(a).hexdigest() )
+        return PrivateKey(hashlib.sha256(a).hexdigest())
+
 
 class Address(GPHAddress):
     """ Address class

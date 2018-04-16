@@ -1,5 +1,5 @@
 # from .storage import config
-from bitshares.instance import shared_bitshares_instance
+from .instance import BlockchainInstance
 from .account import Account
 from .asset import Asset
 from .amount import Amount
@@ -10,15 +10,15 @@ from bitsharesbase import operations
 class Dex():
     """ This class simplifies interactions with the decentralized exchange.
 
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
 
         .. note:: The methods of this class only deal with a single asset (at
                   most). If you are looking to deal with orders for trading,
                   please use :class:`bitshares.market.Market`.
 
     """
-    def __init__(self, bitshares_instance=None):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+    def __init__(self, *args, **kwargs):
+        BlockchainInstance.__init__(self, *args, **kwargs)
 
     def returnFees(self):
         """ Returns a dictionary of all fees that apply through the
@@ -42,7 +42,7 @@ class Dex():
         """
         from bitsharesbase.operations import operations
         r = {}
-        obj, base = self.bitshares.rpc.get_objects(["2.0.0", "1.3.0"])
+        obj, base = self.blockchain.rpc.get_objects(["2.0.0", "1.3.0"])
         fees = obj["parameters"]["current_fees"]["parameters"]
         scale = float(obj["parameters"]["current_fees"]["scale"])
         for f in fees:
@@ -72,23 +72,23 @@ class Dex():
 
         """
         if not account:
-            if "default_account" in self.bitshares.config:
-                account = self.bitshares.config["default_account"]
+            if "default_account" in self.blockchain.config:
+                account = self.blockchain.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, full=True, bitshares_instance=self.bitshares)
+        account = Account(account, full=True, blockchain_instance=self.blockchain)
 
         r = {}
         for debt in account.get("call_orders"):
             base = Asset(
                 debt["call_price"]["base"]["asset_id"],
                 full=True,
-                bitshares_instance=self.bitshares
+                blockchain_instance=self.blockchain
             )
             quote = Asset(
                 debt["call_price"]["quote"]["asset_id"],
                 full=True,
-                bitshares_instance=self.bitshares
+                blockchain_instance=self.blockchain
             )
             if not quote.is_bitasset:
                 continue
@@ -96,13 +96,13 @@ class Dex():
             bitasset = quote["bitasset_data"]
             settlement_price = Price(
                 bitasset["current_feed"]["settlement_price"],
-                bitshares_instance=self.bitshares
+                blockchain_instance=self.blockchain
             )
             if not settlement_price:
                 continue
             call_price = Price(
                 debt["call_price"],
-                bitshares_instance=self.bitshares
+                blockchain_instance=self.blockchain
             )
             collateral_amount = Amount({
                 "amount": debt["collateral"],
@@ -128,11 +128,11 @@ class Dex():
             :raises ValueError: if symbol has no open call position
         """
         if not account:
-            if "default_account" in self.bitshares.config:
-                account = self.bitshares.config["default_account"]
+            if "default_account" in self.blockchain.config:
+                account = self.blockchain.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, full=True, bitshares_instance=self.bitshares)
+        account = Account(account, full=True, blockchain_instance=self.blockchain)
         debts = self.list_debt_positions(account)
         if symbol not in debts:
             raise ValueError("No call position open for %s" % symbol)
@@ -150,7 +150,7 @@ class Dex():
             'funding_account': account["id"],
             'extensions': []
         })
-        return self.bitshares.finalizeOp(op, account["name"], "active")
+        return self.blockchain.finalizeOp(op, account["name"], "active")
 
     def adjust_debt(self, delta, new_collateral_ratio=None, account=None):
         """ Adjust the amount of debt for an asset
@@ -162,18 +162,18 @@ class Dex():
             :raises ValueError: if required amounts of collateral are not available
         """
         if not account:
-            if "default_account" in self.bitshares.config:
-                account = self.bitshares.config["default_account"]
+            if "default_account" in self.blockchain.config:
+                account = self.blockchain.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, full=True, bitshares_instance=self.bitshares)
+        account = Account(account, full=True, blockchain_instance=self.blockchain)
 
         # We sell quote and pay with base
         symbol = delta["symbol"]
         asset = Asset(
             symbol,
             full=True,
-            bitshares_instance=self.bitshares
+            blockchain_instance=self.blockchain
         )
         if not asset.is_bitasset:
             raise ValueError("%s is not a bitasset!" % symbol)
@@ -193,11 +193,11 @@ class Dex():
         # Derive Amount of Collateral
         collateral_asset = Asset(
             backing_asset_id,
-            bitshares_instance=self.bitshares
+            blockchain_instance=self.blockchain
         )
         settlement_price = Price(
             bitasset["current_feed"]["settlement_price"],
-            bitshares_instance=self.bitshares
+            blockchain_instance=self.blockchain
         )
 
         if symbol in current_debts:
@@ -226,7 +226,7 @@ class Dex():
             'funding_account': account["id"],
             'extensions': []
         })
-        return self.bitshares.finalizeOp(op, account["name"], "active")
+        return self.blockchain.finalizeOp(op, account["name"], "active")
 
     def adjust_collateral_ratio(self, symbol, target_collateral_ratio, account=None):
         """ Adjust the collataral ratio of a debt position
@@ -238,11 +238,11 @@ class Dex():
             :raises ValueError: if required amounts of collateral are not available
         """
         if not account:
-            if "default_account" in self.bitshares.config:
-                account = self.bitshares.config["default_account"]
+            if "default_account" in self.blockchain.config:
+                account = self.blockchain.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, full=True, bitshares_instance=self.bitshares)
+        account = Account(account, full=True, blockchain_instance=self.blockchain)
         current_debts = self.list_debt_positions(account)
         if symbol not in current_debts:
             raise ValueError("No Call position available to adjust! Please borrow first!")

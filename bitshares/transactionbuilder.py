@@ -9,7 +9,7 @@ from .exceptions import (
     InvalidWifError,
     WalletLocked
 )
-from bitshares.instance import shared_bitshares_instance
+from .instance import BlockchainInstance
 import logging
 log = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class ProposalBuilder:
             proposal
         :param bitshares.transactionbuilder.TransactionBuilder: Specify
             your own instance of transaction builder (optional)
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares
+        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
             instance
     """
     def __init__(
@@ -34,11 +34,10 @@ class ProposalBuilder:
         proposal_expiration=None,
         proposal_review=None,
         parent=None,
-        bitshares_instance=None,
         *args,
         **kwargs
     ):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        BlockchainInstance.__init__(self, *args, **kwargs)
 
         self.set_expiration(proposal_expiration or 2 * 24 * 60 * 60)
         self.set_review(proposal_review)
@@ -106,7 +105,7 @@ class ProposalBuilder:
         ops = [operations.Op_wrapper(op=o) for o in list(self.ops)]
         proposer = Account(
             self.proposer,
-            bitshares_instance=self.bitshares
+            blockchain_instance=self.blockchain
         )
         data = {
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -133,9 +132,9 @@ class TransactionBuilder(dict):
         tx={},
         proposer=None,
         expiration=None,
-        bitshares_instance=None
+        **kwargs
     ):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        BlockchainInstance.__init__(self, **kwargs)
         self.clear()
         if tx and isinstance(tx, dict):
             super(TransactionBuilder, self).__init__(tx)
@@ -210,10 +209,10 @@ class TransactionBuilder(dict):
             and permission is supposed to sign the transaction
         """
         assert permission in ["active", "owner"], "Invalid permission"
-        account = Account(account, bitshares_instance=self.bitshares)
+        account = Account(account, blockchain_instance=self.blockchain)
         required_treshold = account[permission]["weight_threshold"]
 
-        if self.bitshares.wallet.locked():
+        if self.blockchain.wallet.locked():
             raise WalletLocked()
 
         def fetchkeys(account, perm, level=0):
@@ -222,7 +221,7 @@ class TransactionBuilder(dict):
             r = []
             for authority in account[perm]["key_auths"]:
                 try:
-                    wif = self.bitshares.wallet.getPrivateKeyForPublicKey(
+                    wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
                         authority[0])
                     r.append([wif, authority[1]])
                 except Exception:
@@ -232,7 +231,7 @@ class TransactionBuilder(dict):
                 # go one level deeper
                 for authority in account[perm]["account_auths"]:
                     auth_account = Account(
-                        authority[0], bitshares_instance=self.bitshares)
+                        authority[0], blockchain_instance=self.blockchain)
                     r.extend(fetchkeys(auth_account, perm, level + 1))
 
             return r
@@ -241,12 +240,12 @@ class TransactionBuilder(dict):
             # is the account an instance of public key?
             if isinstance(account, PublicKey):
                 self.wifs.add(
-                    self.bitshares.wallet.getPrivateKeyForPublicKey(
+                    self.blockchain.wallet.getPrivateKeyForPublicKey(
                         str(account)
                     )
                 )
             else:
-                account = Account(account, bitshares_instance=self.bitshares)
+                account = Account(account, blockchain_instance=self.blockchain)
                 required_treshold = account[permission]["weight_threshold"]
                 keys = fetchkeys(account, permission)
                 if permission != "owner":
@@ -288,13 +287,13 @@ class TransactionBuilder(dict):
                 ops.extend([Operation(op)])
 
         # We now wrap everything into an actual transaction
-        ops = transactions.addRequiredFees(self.bitshares.rpc, ops,
+        ops = transactions.addRequiredFees(self.blockchain.rpc, ops,
                                            asset_id=self.fee_asset_id)
         expiration = transactions.formatTimeFromNow(
-            self.expiration or self.bitshares.expiration
+            self.expiration or self.blockchain.expiration
         )
         ref_block_num, ref_block_prefix = transactions.getBlockParams(
-            self.bitshares.rpc)
+            self.blockchain.rpc)
         self.tx = Signed_Transaction(
             ref_block_num=ref_block_num,
             ref_block_prefix=ref_block_prefix,
@@ -320,19 +319,19 @@ class TransactionBuilder(dict):
 
         # Legacy compatibility!
         # If we are doing a proposal, obtain the account from the proposer_id
-        if self.bitshares.proposer:
+        if self.blockchain.proposer:
             proposer = Account(
-                self.bitshares.proposer,
-                bitshares_instance=self.bitshares)
+                self.blockchain.proposer,
+                blockchain_instance=self.blockchain)
             self.wifs = set()
             self.signing_accounts = list()
             self.appendSigner(proposer["id"], "active")
 
         # We need to set the default prefix, otherwise pubkeys are
         # presented wrongly!
-        if self.bitshares.rpc:
+        if self.blockchain.rpc:
             operations.default_prefix = (
-                self.bitshares.rpc.chain_params["prefix"])
+                self.blockchain.rpc.chain_params["prefix"])
         elif "blockchain" in self:
             operations.default_prefix = self["blockchain"]["prefix"]
 
@@ -344,14 +343,14 @@ class TransactionBuilder(dict):
         if not any(self.wifs):
             raise MissingKeyError
 
-        signedtx.sign(self.wifs, chain=self.bitshares.rpc.chain_params)
+        signedtx.sign(self.wifs, chain=self.blockchain.rpc.chain_params)
         self["signatures"].extend(signedtx.json().get("signatures"))
 
     def verify_authority(self):
         """ Verify the authority of the signed transaction
         """
         try:
-            if not self.bitshares.rpc.verify_authority(self.json()):
+            if not self.blockchain.rpc.verify_authority(self.json()):
                 raise InsufficientAuthorityError
         except Exception as e:
             raise e
@@ -370,19 +369,19 @@ class TransactionBuilder(dict):
 
         ret = self.json()
 
-        if self.bitshares.nobroadcast:
+        if self.blockchain.nobroadcast:
             log.warning("Not broadcasting anything!")
             self.clear()
             return ret
 
         # Broadcast
         try:
-            if self.bitshares.blocking:
-                ret = self.bitshares.rpc.broadcast_transaction_synchronous(
+            if self.blockchain.blocking:
+                ret = self.blockchain.rpc.broadcast_transaction_synchronous(
                     ret, api="network_broadcast")
                 ret.update(**ret["trx"])
             else:
-                self.bitshares.rpc.broadcast_transaction(
+                self.blockchain.rpc.broadcast_transaction(
                     ret, api="network_broadcast")
         except Exception as e:
             raise e
@@ -408,7 +407,7 @@ class TransactionBuilder(dict):
             FIXME: Does not work with owner keys!
         """
         self.constructTx()
-        self["blockchain"] = self.bitshares.rpc.chain_params
+        self["blockchain"] = self.blockchain.rpc.chain_params
 
         if isinstance(account, PublicKey):
             self["missing_signatures"] = [
@@ -424,7 +423,7 @@ class TransactionBuilder(dict):
                 accountObj["name"]: authority
             }})
             for account_auth in authority["account_auths"]:
-                account_auth_account = Account(account_auth[0], bitshares_instance=self.bitshares)
+                account_auth_account = Account(account_auth[0], blockchain_instance=self.blockchain)
                 self["required_authorities"].update({
                     account_auth[0]: account_auth_account.get(permission)
                 })
@@ -435,7 +434,7 @@ class TransactionBuilder(dict):
             ]
             # Add one recursion of keys from account_auths:
             for account_auth in authority["account_auths"]:
-                account_auth_account = Account(account_auth[0], bitshares_instance=self.bitshares)
+                account_auth_account = Account(account_auth[0], blockchain_instance=self.blockchain)
                 self["missing_signatures"].extend(
                     [x[0] for x in account_auth_account[permission]["key_auths"]]
                 )
@@ -447,6 +446,6 @@ class TransactionBuilder(dict):
         """
         missing_signatures = self.get("missing_signatures", [])
         for pub in missing_signatures:
-            wif = self.bitshares.wallet.getPrivateKeyForPublicKey(pub)
+            wif = self.blockchain.wallet.getPrivateKeyForPublicKey(pub)
             if wif:
                 self.appendWif(wif)

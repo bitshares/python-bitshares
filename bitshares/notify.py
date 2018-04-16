@@ -1,10 +1,10 @@
 import logging
 from events import Events
 from bitsharesapi.websocket import BitSharesWebsocket
-from bitshares.instance import shared_bitshares_instance
-from bitshares.market import Market
-from bitshares.price import Order, FilledOrder, UpdateCallOrder
-from bitshares.account import AccountUpdate
+from .instance import BlockchainInstance
+from .market import Market
+from .price import Order, FilledOrder, UpdateCallOrder
+from .account import AccountUpdate
 log = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -19,7 +19,7 @@ class Notify(Events):
         :param fnt on_block: Callback that will be called for each block received
         :param fnt on_account: Callback that will be called for changes of the listed accounts
         :param fnt on_market: Callback that will be called for changes of the listed markets
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
 
         **Example**
 
@@ -60,15 +60,15 @@ class Notify(Events):
         on_block=None,
         on_account=None,
         on_market=None,
-        bitshares_instance=None,
-        keep_alive=25
+        keep_alive=25,
+        **kwargs
     ):
         # Events
         super(Notify, self).__init__()
         self.events = Events()
 
         # BitShares instance
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        BlockchainInstance.__init__(self, **kwargs)
 
         # Callbacks
         if on_tx:
@@ -84,9 +84,9 @@ class Notify(Events):
 
         # Open the websocket
         self.websocket = BitSharesWebsocket(
-            urls=self.bitshares.rpc.urls,
-            user=self.bitshares.rpc.user,
-            password=self.bitshares.rpc.password,
+            urls=self.blockchain.rpc.urls,
+            user=self.blockchain.rpc.user,
+            password=self.blockchain.rpc.password,
             accounts=accounts,
             markets=self.get_market_ids(markets),
             objects=objects,
@@ -98,13 +98,13 @@ class Notify(Events):
             keep_alive=keep_alive
         )
 
-    def get_market_ids(self,markets):
+    def get_market_ids(self, markets):
         # Markets
         market_ids = []
         for market_name in markets:
             market = Market(
                 market_name,
-                bitshares_instance=self.bitshares
+                blockchain_instance=self.blockchain
             )
             market_ids.append([
                 market["base"]["id"],
@@ -141,7 +141,7 @@ class Notify(Events):
                 log.debug("Calling on_market with Order()")
                 self.on_market(Order(
                     d,
-                    bitshares_instance=self.bitshares
+                    blockchain_instance=self.blockchain
                 ))
                 continue
             elif isinstance(d, dict):
@@ -156,17 +156,17 @@ class Notify(Events):
                         if "pays" in i and "receives" in i:
                             self.on_market(FilledOrder(
                                 i,
-                                bitshares_instance=self.bitshares
+                                blockchain_instance=self.blockchain
                             ))
                         elif "for_sale" in i and "sell_price" in i:
                             self.on_market(Order(
                                 i,
-                                bitshares_instance=self.bitshares
+                                blockchain_instance=self.blockchain
                             ))
                         elif "collateral" in i and "call_price" in i:
                             self.on_market(UpdateCallOrder(
                                 i,
-                                bitshares_instance=self.bitshares
+                                blockchain_instance=self.blockchain
                             ))
                         else:
                             if i:
@@ -180,7 +180,7 @@ class Notify(Events):
         """
         self.on_account(AccountUpdate(
             message,
-            bitshares_instance=self.bitshares
+            blockchain_instance=self.blockchain
         ))
 
     def listen(self):
