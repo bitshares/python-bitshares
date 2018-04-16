@@ -20,7 +20,7 @@ def toint(permissions):
     permissions_int = 0
     for p in permissions:
         if permissions[p]:
-            permissions_int += asset_permissions[p]
+            permissions_int |= asset_permissions[p]
     return permissions_int
 
 
