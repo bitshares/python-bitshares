@@ -495,7 +495,7 @@ class FilledOrder(Price):
     def __init__(self, order, bitshares_instance=None, **kwargs):
 
         self.bitshares = bitshares_instance or shared_bitshares_instance()
-
+        self["_bitshares_raw_object"] = order
         if isinstance(order, dict) and "price" in order:
             super(FilledOrder, self).__init__(
                 order.get("price"),
@@ -522,6 +522,9 @@ class FilledOrder(Price):
 
         else:
             raise ValueError("Couldn't parse 'Price'.")
+
+    def get_raw_object(self):
+        return self["_bitshares_raw_object"]
 
     def __repr__(self):
         t = ""
