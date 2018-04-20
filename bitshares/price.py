@@ -483,11 +483,12 @@ class Order(Price):
             # Try load Order as Price
             super(Order, self).__init__(*args, blockchain_instance=self.blockchain, **kwargs)
 
-        self["for_sale"] = Amount(
-            {"amount": self["for_sale"],
-             "asset_id": self["base"]["asset"]["id"]},
-            blockchain_instance=self.blockchain
-        )
+        if "for_sale" in self:
+            self["for_sale"] = Amount(
+                {"amount": self["for_sale"],
+                 "asset_id": self["base"]["asset"]["id"]},
+                blockchain_instance=self.blockchain
+            )
 
     def __repr__(self):
         if "deleted" in self and self["deleted"]:
