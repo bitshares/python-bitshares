@@ -585,9 +585,9 @@ class BitShares(object):
             memo_privkey = memo_key.get_private_key()
             # store private keys
             if storekeys:
-                # self.wallet.addPrivateKey(owner_privkey)
-                self.wallet.addPrivateKey(active_privkey)
-                self.wallet.addPrivateKey(memo_privkey)
+                # self.wallet.addPrivateKey(str(owner_privkey))
+                self.wallet.addPrivateKey(str(active_privkey))
+                self.wallet.addPrivateKey(str(memo_privkey))
         elif (owner_key and active_key and memo_key):
             active_pubkey = PublicKey(
                 active_key, prefix=self.prefix)
@@ -1304,6 +1304,51 @@ class BitShares(object):
         })
         return self.finalizeOp(op, account["name"], "active")
 
+    def update_cer(
+        self,
+        symbol,
+        cer,
+        account=None
+    ):
+        """ Update the Core Exchange Rate (CER) of an asset
+
+            :param str symbol: Symbol of the asset to publish feed for
+            :param bitshares.price.Price cer: Core exchange Rate
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+
+        """
+        assert isinstance(cer, Price), "cer needs to be instance of `bitshares.price.Price`!"
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self)
+        asset = Asset(symbol, bitshares_instance=self, full=True)
+        assert asset["id"] == cer["base"]["asset"]["id"] or \
+            asset["id"] == cer["quote"]["asset"]["id"], \
+            "Price needs to contain the asset of the symbol you'd like to produce a feed for!"
+
+        cer = cer.as_base(symbol)
+        if cer["quote"]["asset"]["id"] != "1.3.0":
+            raise ValueError(
+                "CER must be defined against core asset '1.3.0'")
+
+        options = asset["options"]
+        options.update({
+            "core_exchange_rate": cer.as_base(symbol).json()
+        })
+        op = operations.Asset_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "issuer": account["id"],
+            "asset_to_update": asset["id"],
+            "new_options": options,
+            "extensions": [],
+            "prefix": self.prefix
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
     def update_witness(self, witness_identifier, url=None, key=None, **kwargs):
         """ Upgrade a witness account
 
@@ -1429,13 +1474,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
+        amount = Amount(amount, symbol, bitshares_instance=self)
         account = Account(account, bitshares_instance=self)
         asset = Asset(symbol, bitshares_instance=self)
         op = operations.Asset_fund_fee_pool(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "from_account": account["id"],
             "asset_id": asset["id"],
-            "amount": int(float(amount) * 10 ** asset["precision"]),
+            "amount": int(amount),
             "extensions": []
         })
         return self.finalizeOp(op, account, "active", **kwargs)
@@ -1463,5 +1509,47 @@ class BitShares(object):
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "committee_member_account": account["id"],
             "url": url
+        })
+        return self.finalizeOp(op, account, "active", **kwargs)
+
+    def account_whitelist(
+        self,
+        account_to_whitelist,
+        lists=["white"],   # set of 'white' and/or 'black'
+        account=None,
+        **kwargs
+    ):
+        """ Account whitelisting
+
+            :param str account_to_whitelist: The account we want to add
+                to either the white- or the blacklist
+            :param set lists: (defaults to ``('white')``). Lists the
+                user should be added to. Either empty set, 'black',
+                'white' or both.
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self)
+        account_to_list = Account(account_to_whitelist, bitshares_instance=self)
+
+        if not isinstance(lists, (set, list)):
+            raise ValueError('"lists" must be of instance list()')
+
+        l = operations.Account_whitelist.no_listing
+        if "white" in lists:
+            l += operations.Account_whitelist.white_listed
+        if "black" in lists:
+            l += operations.Account_whitelist.black_listed
+
+        op = operations.Account_whitelist(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "authorizing_account": account["id"],
+            "account_to_list": account_to_list["id"],
+            "new_listing": l,
         })
         return self.finalizeOp(op, account, "active", **kwargs)

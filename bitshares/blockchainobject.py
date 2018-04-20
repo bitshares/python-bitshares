@@ -1,16 +1,28 @@
-from bitshares.instance import shared_bitshares_instance
+from .instance import BlockchainInstance
 from datetime import datetime, timedelta
 
 
 class ObjectCache(dict):
 
-    def __init__(self, initial_data={}, default_expiration=10):
+    def __init__(
+        self,
+        initial_data={},
+        default_expiration=10,
+        no_overwrite=False,
+    ):
         super().__init__(initial_data)
+
+        # Expiration
         self.default_expiration = default_expiration
 
+        # This allows nicer testing
+        self.no_overwrite = no_overwrite
+
     def __setitem__(self, key, value):
-        if key in self:
+        if key in self and not self.no_overwrite:
             del self[key]
+        elif key in self and self.no_overwrite:
+            return
         data = {
             "expires": datetime.utcnow() + timedelta(
                 seconds=self.default_expiration),
@@ -41,7 +53,7 @@ class ObjectCache(dict):
             len(self.keys()), self.default_expiration)
 
 
-class BlockchainObject(dict):
+class BlockchainObject(dict, BlockchainInstance):
 
     space_id = 1
     type_id = None
@@ -57,11 +69,10 @@ class BlockchainObject(dict):
         object_id=None,
         lazy=False,
         use_cache=True,
-        bitshares_instance=None,
         *args,
         **kwargs
     ):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        BlockchainInstance.__init__(self, *args, **kwargs)
         self.cached = False
         self.identifier = None
 
@@ -103,7 +114,8 @@ class BlockchainObject(dict):
     def clear_cache():
         BlockchainObject._cache = ObjectCache()
 
-    def test_valid_objectid(self, i):
+    @staticmethod
+    def objectid_valid(i):
         if "." not in i:
             return False
         parts = i.split(".")
@@ -114,6 +126,9 @@ class BlockchainObject(dict):
             except:
                 pass
             return False
+
+    def test_valid_objectid(self, i):
+        return BlockchainObject.objectid_valid(i)
 
     def testid(self, id):
         parts = id.split(".")

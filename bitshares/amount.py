@@ -1,4 +1,4 @@
-from bitshares.instance import shared_bitshares_instance
+from .instance import BlockchainInstance
 from .asset import Asset
 
 
@@ -10,10 +10,22 @@ class Amount(dict):
         :param list args: Allows to deal with different representations of an amount
         :param float amount: Let's create an instance with a specific amount
         :param str asset: Let's you create an instance with a specific asset (symbol)
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
         :returns: All data required to represent an Amount/Asset
         :rtype: dict
         :raises ValueError: if the data provided is not recognized
+
+        .. code-block:: python
+
+            from peerplays.amount import Amount
+            from peerplays.asset import Asset
+            a = Amount("1 USD")
+            b = Amount(1, "USD")
+            c = Amount("20", Asset("USD"))
+            a + b
+            a * 2
+            a += b
+            a /= 2.0
 
         Way to obtain a proper instance:
 
@@ -38,10 +50,17 @@ class Amount(dict):
             Amount("1 USD") * 2
             Amount("15 GOLD") + Amount("0.5 GOLD")
     """
-    def __init__(self, *args, amount=None, asset=None, bitshares_instance=None):
+    def __init__(
+        self,
+        *args,
+        **kwargs
+    ):
         self["asset"] = {}
 
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        amount = kwargs.get("amount", None)
+        asset = kwargs.get("asset", None)
+
+        BlockchainInstance.__init__(self, *args, **kwargs)
 
         if len(args) == 1 and isinstance(args[0], Amount):
             # Copy Asset object
@@ -51,13 +70,13 @@ class Amount(dict):
 
         elif len(args) == 1 and isinstance(args[0], str):
             self["amount"], self["symbol"] = args[0].split(" ")
-            self["asset"] = Asset(self["symbol"], bitshares_instance=self.bitshares)
+            self["asset"] = Asset(self["symbol"], blockchain_instance=self.blockchain)
 
         elif (len(args) == 1 and
                 isinstance(args[0], dict) and
                 "amount" in args[0] and
                 "asset_id" in args[0]):
-            self["asset"] = Asset(args[0]["asset_id"], bitshares_instance=self.bitshares)
+            self["asset"] = Asset(args[0]["asset_id"], blockchain_instance=self.blockchain)
             self["symbol"] = self["asset"]["symbol"]
             self["amount"] = int(args[0]["amount"]) / 10 ** self["asset"]["precision"]
 
@@ -65,7 +84,7 @@ class Amount(dict):
                 isinstance(args[0], dict) and
                 "amount" in args[0] and
                 "asset" in args[0]):
-            self["asset"] = Asset(args[0]["asset"], bitshares_instance=self.bitshares)
+            self["asset"] = Asset(args[0]["asset"], blockchain_instance=self.blockchain)
             self["symbol"] = self["asset"]["symbol"]
             self["amount"] = int(args[0]["amount"]) / 10 ** self["asset"]["precision"]
 
@@ -76,7 +95,7 @@ class Amount(dict):
 
         elif len(args) == 2 and isinstance(args[1], str):
             self["amount"] = args[0]
-            self["asset"] = Asset(args[1], bitshares_instance=self.bitshares)
+            self["asset"] = Asset(args[1], blockchain_instance=self.blockchain)
             self["symbol"] = self["asset"]["symbol"]
 
         elif isinstance(amount, (int, float)) and asset and isinstance(asset, Asset):
@@ -91,7 +110,7 @@ class Amount(dict):
 
         elif isinstance(amount, (int, float)) and asset and isinstance(asset, str):
             self["amount"] = amount
-            self["asset"] = Asset(asset, bitshares_instance=self.bitshares)
+            self["asset"] = Asset(asset, blockchain_instance=self.blockchain)
             self["symbol"] = asset
 
         else:
@@ -106,7 +125,7 @@ class Amount(dict):
         return Amount(
             amount=self["amount"],
             asset=self["asset"].copy(),
-            bitshares_instance=self.bitshares)
+            blockchain_instance=self.blockchain)
 
     @property
     def amount(self):
@@ -128,7 +147,7 @@ class Amount(dict):
         """ Returns the asset as instance of :class:`bitshares.asset.Asset`
         """
         if not self["asset"]:
-            self["asset"] = Asset(self["symbol"], bitshares_instance=self.bitshares)
+            self["asset"] = Asset(self["symbol"], blockchain_instance=self.blockchain)
         return self["asset"]
 
     def json(self):
