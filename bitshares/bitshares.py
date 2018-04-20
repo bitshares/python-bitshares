@@ -1511,3 +1511,45 @@ class BitShares(object):
             "url": url
         })
         return self.finalizeOp(op, account, "active", **kwargs)
+
+    def account_whitelist(
+        self,
+        account_to_whitelist,
+        lists=["white"],   # set of 'white' and/or 'black'
+        account=None,
+        **kwargs
+    ):
+        """ Account whitelisting
+
+            :param str account_to_whitelist: The account we want to add
+                to either the white- or the blacklist
+            :param set lists: (defaults to ``('white')``). Lists the
+                user should be added to. Either empty set, 'black',
+                'white' or both.
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self)
+        account_to_list = Account(account_to_whitelist, bitshares_instance=self)
+
+        if not isinstance(lists, (set, list)):
+            raise ValueError('"lists" must be of instance list()')
+
+        l = operations.Account_whitelist.no_listing
+        if "white" in lists:
+            l += operations.Account_whitelist.white_listed
+        if "black" in lists:
+            l += operations.Account_whitelist.black_listed
+
+        op = operations.Account_whitelist(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "authorizing_account": account["id"],
+            "account_to_list": account_to_list["id"],
+            "new_listing": l,
+        })
+        return self.finalizeOp(op, account, "active", **kwargs)

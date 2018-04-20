@@ -214,6 +214,22 @@ class Account(BlockchainObject):
     def upgrade(self):
         return self.blockchain.upgrade_account(account=self)
 
+    def whitelist(self, account):
+        """ Add an other account to the whitelist of this account
+        """
+        self.blockchain.account_whitelist(account, lists=["white"], account=self)
+
+    def blacklist(self, account):
+        """ Add an other account to the blacklist of this account
+        """
+        self.blockchain.account_whitelist(account, lists=["black"], account=self)
+
+    def nolist(self, account):
+        """ Remove an other account from any list of this account
+        """
+        self.blockchain.account_whitelist(account, lists=[], account=self)
+
+
 
 class AccountUpdate(dict, BlockchainInstance):
     """ This purpose of this class is to keep track of account updates
