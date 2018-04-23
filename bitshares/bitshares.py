@@ -13,7 +13,7 @@ from .witness import Witness
 from .committee import Committee
 from .vesting import Vesting
 from .worker import Worker
-from .storage import BitsharesStorage
+from .storage import CommonStorage
 from .exceptions import (
     AccountExistsException,
 )
@@ -145,7 +145,7 @@ class BitShares(object):
             self.config = { }
             self.store = None
         else:
-            self.store  = BitsharesStorage(path=self.wallet_path);
+            self.store  = CommonStorage(path=self.wallet_path);
             self.config = self.store.configStorage
 
 

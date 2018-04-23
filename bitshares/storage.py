@@ -495,7 +495,7 @@ class MasterPassword(object):
 
 
 
-class BitsharesStorage():
+class CommonStorage():
 
     def __init__(self, path=None, create=True):
         # Pick path from appdirs

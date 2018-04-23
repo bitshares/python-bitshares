@@ -62,8 +62,8 @@ class Wallet():
 
         self.store = kwargs.pop("storage", None)
         if not self.store:
-            from .storage import BitsharesStorage
-            self.store = BitsharesStorage()
+            from .storage import CommonStorage
+            self.store = CommonStorage()
 
         self.configStorage = self.store.configStorage
 
