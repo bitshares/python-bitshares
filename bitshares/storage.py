@@ -53,8 +53,8 @@ class DataDir(object):
 
     def __init__(self, path=None, mustexist=False):
         if not path:
-            self.data_dir = user_data_dir(self.appname, self.appauthor)
-            self.sqlDataBaseFile = os.path.join(self.data_dir, self.storageDatabaseDefault)
+            self.data_dir = self.preflight(filename=False)
+            self.sqlDataBaseFile = self.preflight(filename=True)
         else:
             self.data_dir = os.path.dirname(path)
             self.sqlDataBaseFile = path
