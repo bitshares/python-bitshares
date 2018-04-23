@@ -1,10 +1,9 @@
-import json
 import logging
 
 from datetime import datetime, timedelta
 from bitsharesapi.bitsharesnoderpc import BitSharesNodeRPC
-from bitsharesbase.account import PrivateKey, PublicKey
-from bitsharesbase import transactions, operations
+from bitsharesbase.account import PublicKey
+from bitsharesbase import operations
 from .asset import Asset
 from .account import Account
 from .amount import Amount
@@ -19,7 +18,7 @@ from .exceptions import (
 )
 from .wallet import Wallet
 from .transactionbuilder import TransactionBuilder, ProposalBuilder
-from .utils import formatTime, test_proposal_in_buffer
+# from .utils import formatTime
 
 log = logging.getLogger(__name__)
 
@@ -179,16 +178,6 @@ class BitShares(object):
     @property
     def prefix(self):
         return self.rpc.chain_params["prefix"]
-
-    def newWallet(self, pwd):
-        """ Create a new wallet. This method is basically only calls
-            :func:`bitshares.wallet.create`.
-
-            :param str pwd: Password to use for the new wallet
-            :raises bitshares.exceptions.WalletExists: if there is already a
-                wallet created
-        """
-        self.wallet.create(pwd)
 
     def set_default_account(self, account):
         """ Set the default account to be used
@@ -1178,7 +1167,8 @@ class BitShares(object):
             only the "orderNumbers". An order number takes the form
             ``1.7.xxx``.
 
-            :param str orderNumbers: The Order Object ide of the form ``1.7.xxxx``
+            :param str orderNumbers: The Order Object ide of the form
+                ``1.7.xxxx``
         """
         if not account:
             if "default_account" in config:
@@ -1205,7 +1195,8 @@ class BitShares(object):
         """ Withdraw vesting balance
 
             :param str vesting_id: Id of the vesting object
-            :param bitshares.amount.Amount Amount: to withdraw ("all" if not provided")
+            :param bitshares.amount.Amount Amount: to withdraw ("all" if not
+                provided")
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
 
@@ -1246,9 +1237,12 @@ class BitShares(object):
 
             :param str symbol: Symbol of the asset to publish feed for
             :param bitshares.price.Price settlement_price: Price for settlement
-            :param bitshares.price.Price cer: Core exchange Rate (default ``settlement_price + 5%``)
-            :param float mssr: Percentage for max short squeeze ratio (default: 110%)
-            :param float mcr: Percentage for maintenance collateral ratio (default: 200%)
+            :param bitshares.price.Price cer: Core exchange Rate (default
+                ``settlement_price + 5%``)
+            :param float mssr: Percentage for max short squeeze ratio (default:
+                110%)
+            :param float mcr: Percentage for maintenance collateral ratio
+                (default: 200%)
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
 
@@ -1258,8 +1252,10 @@ class BitShares(object):
         """
         assert mcr > 100
         assert mssr > 100
-        assert isinstance(settlement_price, Price), "settlement_price needs to be instance of `bitshares.price.Price`!"
-        assert cer is None or isinstance(cer, Price), "cer needs to be instance of `bitshares.price.Price`!"
+        assert isinstance(settlement_price, Price), \
+            "settlement_price needs to be instance of `bitshares.price.Price`!"
+        assert cer is None or isinstance(cer, Price), \
+            "cer needs to be instance of `bitshares.price.Price`!"
         if not account:
             if "default_account" in config:
                 account = config["default_account"]
@@ -1318,7 +1314,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
 
         """
-        assert isinstance(cer, Price), "cer needs to be instance of `bitshares.price.Price`!"
+        assert isinstance(cer, Price), \
+            "cer needs to be instance of `bitshares.price.Price`!"
         if not account:
             if "default_account" in config:
                 account = config["default_account"]
@@ -1413,14 +1410,16 @@ class BitShares(object):
             **Required**
 
             :param str name: Name of the worke
-            :param bitshares.amount.Amount daily_pay: The amount to be paid daily
+            :param bitshares.amount.Amount daily_pay: The amount to be paid
+                daily
             :param datetime end: Date/time of end of the worker
 
             **Optional**
 
             :param str url: URL to read more about the worker
             :param datetime begin: Date/time of begin of the worker
-            :param string payment_type: ["burn", "refund", "vesting"] (default: "vesting")
+            :param string payment_type: ["burn", "refund", "vesting"] (default:
+                "vesting")
             :param int pay_vesting_period_days: Days of vesting (default: 0)
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
@@ -1446,7 +1445,8 @@ class BitShares(object):
         elif payment_type == "burn":
             initializer = [2, {}]
         else:
-            raise ValueError('payment_type not in ["burn", "refund", "vesting"]')
+            raise ValueError(
+                'payment_type not in ["burn", "refund", "vesting"]')
 
         op = operations.Worker_create(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -1535,7 +1535,8 @@ class BitShares(object):
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
-        account_to_list = Account(account_to_whitelist, bitshares_instance=self)
+        account_to_list = Account(
+            account_to_whitelist, bitshares_instance=self)
 
         if not isinstance(lists, (set, list)):
             raise ValueError('"lists" must be of instance list()')
