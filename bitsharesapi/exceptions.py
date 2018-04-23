@@ -42,3 +42,7 @@ class InvalidEndpointUrl(Exception):
 
 class AccountCouldntBeFoundException(Exception):
     pass
+
+
+class InvalidAccountNameException(Exception):
+    pass

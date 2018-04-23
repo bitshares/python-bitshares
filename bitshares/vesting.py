@@ -7,20 +7,21 @@ class Vesting(BlockchainObject):
     """ Read data about a Vesting Balance in the chain
 
         :param str id: Id of the vesting balance
-        :param bitshares bitshares_instance: BitShares() instance to use when accesing a RPC
+        :param bitshares blockchain_instance: BitShares() instance to use when
+            accesing a RPC
 
     """
     type_id = 13
 
     def refresh(self):
-        obj = self.bitshares.rpc.get_objects([self.identifier])[0]
+        obj = self.blockchain.rpc.get_objects([self.identifier])[0]
         if not obj:
             raise VestingBalanceDoesNotExistsException
-        super(Vesting, self).__init__(obj, bitshares_instance=self.bitshares)
+        super(Vesting, self).__init__(obj, blockchain_instance=self.blockchain)
 
     @property
     def account(self):
-        return Account(self["owner"], bitshares_instance=self.bitshares)
+        return Account(self["owner"], blockchain_instance=self.blockchain)
 
     @property
     def claimable(self):
@@ -34,13 +35,13 @@ class Vesting(BlockchainObject):
             ) if float(p["vesting_seconds"]) > 0.0 else 1
             return Amount(
                 self["balance"],
-                bitshares_instance=self.bitshares
+                blockchain_instance=self.blockchain
             ) * ratio
         else:
             raise NotImplementedError("This policy isn't implemented yet")
 
     def claim(self, amount=None):
-        return self.bitshares.vesting_balance_withdraw(
+        return self.blockchain.vesting_balance_withdraw(
             self["id"],
             amount=amount,
             account=self["owner"]

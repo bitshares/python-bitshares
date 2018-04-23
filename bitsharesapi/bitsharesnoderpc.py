@@ -58,6 +58,8 @@ class BitSharesNodeRPC(GrapheneWebsocketRPC, GrapheneHTTPRPC):
                 raise exceptions.MissingRequiredActiveAuthority
             elif re.match("current_account_itr == acnt_indx.indices().get<by_name>().end()", msg):
                 raise exceptions.AccountCouldntBeFoundException(msg)
+            elif re.match("Assert Exception: is_valid_name( name )", msg):
+                raise exceptions.InvalidAccountNameException(msg)
             elif re.match("^no method with name.*", msg):
                 raise exceptions.NoMethodWithName(msg)
             elif msg:

@@ -2,7 +2,7 @@ import logging
 import os
 from graphenebase import bip38
 from bitsharesbase.account import PrivateKey, GPHPrivateKey
-from bitshares.instance import shared_bitshares_instance
+from .instance import BlockchainInstance
 from .account import Account
 from .exceptions import (
     KeyNotFound,
@@ -57,8 +57,8 @@ class Wallet():
     keys = {}  # struct with pubkey as key and wif as value
     keyMap = {}  # type:wif pairs to force certain keys
 
-    def __init__(self, *args, bitshares_instance=None, **kwargs):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+    def __init__(self, *args, **kwargs):
+        BlockchainInstance.__init__(self, *args, **kwargs)
 
         self.store = kwargs.pop("storage", None)
         if not self.store:
@@ -83,8 +83,8 @@ class Wallet():
 
     @property
     def prefix(self):
-        if self.bitshares.is_connected():
-            prefix = self.bitshares.prefix
+        if self.blockchain.is_connected():
+            prefix = self.blockchain.prefix
         else:
             # If not connected, load prefix from config
             prefix = config["prefix"]
@@ -92,9 +92,9 @@ class Wallet():
 
     @property
     def rpc(self):
-        if not self.bitshares.is_connected():
+        if not self.blockchain.is_connected():
             raise OfflineHasNoRPCException("No RPC available in offline mode!")
-        return self.bitshares.rpc
+        return self.blockchain.rpc
 
     def setKeys(self, loadkeys):
         """ This method is strictly only for in memory keys that are
@@ -349,7 +349,7 @@ class Wallet():
         """
         for id in self.getAccountsFromPublicKey(pub):
             try:
-                account = Account(id, bitshares_instance=self.bitshares)
+                account = Account(id, blockchain_instance=self.blockchain)
             except:
                 continue
             yield {"name": account["name"],
@@ -366,7 +366,7 @@ class Wallet():
             return {"name": None, "type": None, "pubkey": pub}
         else:
             try:
-                account = Account(name, bitshares_instance=self.bitshares)
+                account = Account(name, blockchain_instance=self.blockchain)
             except:
                 return
             return {"name": account["name"],

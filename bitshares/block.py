@@ -7,7 +7,7 @@ class Block(BlockchainObject):
     """ Read a single block from the chain
 
         :param int block: block number
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares
+        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
             instance
         :param bool lazy: Use lazy loading
 
@@ -30,10 +30,10 @@ class Block(BlockchainObject):
         """ Even though blocks never change, you freshly obtain its contents
             from an API with this method
         """
-        block = self.bitshares.rpc.get_block(self.identifier)
+        block = self.blockchain.rpc.get_block(self.identifier)
         if not block:
             raise BlockDoesNotExistsException
-        super(Block, self).__init__(block, bitshares_instance=self.bitshares)
+        super(Block, self).__init__(block, blockchain_instance=self.blockchain)
 
     def time(self):
         """ Return a datatime instance for the timestamp of this block
@@ -46,12 +46,12 @@ class BlockHeader(BlockchainObject):
         """ Even though blocks never change, you freshly obtain its contents
             from an API with this method
         """
-        block = self.bitshares.rpc.get_block_header(self.identifier)
+        block = self.blockchain.rpc.get_block_header(self.identifier)
         if not block:
             raise BlockDoesNotExistsException
         super(BlockHeader, self).__init__(
             block,
-            bitshares_instance=self.bitshares
+            blockchain_instance=self.blockchain
         )
 
     def time(self):

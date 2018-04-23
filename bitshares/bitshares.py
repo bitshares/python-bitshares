@@ -1,10 +1,9 @@
-import json
 import logging
 
 from datetime import datetime, timedelta
 from bitsharesapi.bitsharesnoderpc import BitSharesNodeRPC
-from bitsharesbase.account import PrivateKey, PublicKey
-from bitsharesbase import transactions, operations
+from bitsharesbase.account import PublicKey
+from bitsharesbase import operations
 from .asset import Asset
 from .account import Account
 from .amount import Amount
@@ -19,7 +18,7 @@ from .exceptions import (
 )
 from .wallet import Wallet
 from .transactionbuilder import TransactionBuilder, ProposalBuilder
-from .utils import formatTime, test_proposal_in_buffer
+# from .utils import formatTime
 
 log = logging.getLogger(__name__)
 
@@ -190,16 +189,6 @@ class BitShares(object):
     @property
     def prefix(self):
         return self.rpc.chain_params["prefix"]
-
-    def newWallet(self, pwd):
-        """ Create a new wallet. This method is basically only calls
-            :func:`bitshares.wallet.create`.
-
-            :param str pwd: Password to use for the new wallet
-            :raises bitshares.exceptions.WalletExists: if there is already a
-                wallet created
-        """
-        self.wallet.create(pwd)
 
     def set_default_account(self, account):
         """ Set the default account to be used
@@ -596,9 +585,9 @@ class BitShares(object):
             memo_privkey = memo_key.get_private_key()
             # store private keys
             if storekeys:
-                # self.wallet.addPrivateKey(owner_privkey)
-                self.wallet.addPrivateKey(active_privkey)
-                self.wallet.addPrivateKey(memo_privkey)
+                # self.wallet.addPrivateKey(str(owner_privkey))
+                self.wallet.addPrivateKey(str(active_privkey))
+                self.wallet.addPrivateKey(str(memo_privkey))
         elif (owner_key and active_key and memo_key):
             active_pubkey = PublicKey(
                 active_key, prefix=self.prefix)
@@ -1189,7 +1178,8 @@ class BitShares(object):
             only the "orderNumbers". An order number takes the form
             ``1.7.xxx``.
 
-            :param str orderNumbers: The Order Object ide of the form ``1.7.xxxx``
+            :param str orderNumbers: The Order Object ide of the form
+                ``1.7.xxxx``
         """
         if not account:
             if "default_account" in config:
@@ -1216,7 +1206,8 @@ class BitShares(object):
         """ Withdraw vesting balance
 
             :param str vesting_id: Id of the vesting object
-            :param bitshares.amount.Amount Amount: to withdraw ("all" if not provided")
+            :param bitshares.amount.Amount Amount: to withdraw ("all" if not
+                provided")
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
 
@@ -1257,9 +1248,12 @@ class BitShares(object):
 
             :param str symbol: Symbol of the asset to publish feed for
             :param bitshares.price.Price settlement_price: Price for settlement
-            :param bitshares.price.Price cer: Core exchange Rate (default ``settlement_price + 5%``)
-            :param float mssr: Percentage for max short squeeze ratio (default: 110%)
-            :param float mcr: Percentage for maintenance collateral ratio (default: 200%)
+            :param bitshares.price.Price cer: Core exchange Rate (default
+                ``settlement_price + 5%``)
+            :param float mssr: Percentage for max short squeeze ratio (default:
+                110%)
+            :param float mcr: Percentage for maintenance collateral ratio
+                (default: 200%)
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
 
@@ -1269,8 +1263,10 @@ class BitShares(object):
         """
         assert mcr > 100
         assert mssr > 100
-        assert isinstance(settlement_price, Price), "settlement_price needs to be instance of `bitshares.price.Price`!"
-        assert cer is None or isinstance(cer, Price), "cer needs to be instance of `bitshares.price.Price`!"
+        assert isinstance(settlement_price, Price), \
+            "settlement_price needs to be instance of `bitshares.price.Price`!"
+        assert cer is None or isinstance(cer, Price), \
+            "cer needs to be instance of `bitshares.price.Price`!"
         if not account:
             if "default_account" in config:
                 account = config["default_account"]
@@ -1311,6 +1307,52 @@ class BitShares(object):
                 "maximum_short_squeeze_ratio": int(mssr * 10),
                 "maintenance_collateral_ratio": int(mcr * 10),
             },
+            "prefix": self.prefix
+        })
+        return self.finalizeOp(op, account["name"], "active")
+
+    def update_cer(
+        self,
+        symbol,
+        cer,
+        account=None
+    ):
+        """ Update the Core Exchange Rate (CER) of an asset
+
+            :param str symbol: Symbol of the asset to publish feed for
+            :param bitshares.price.Price cer: Core exchange Rate
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+
+        """
+        assert isinstance(cer, Price), \
+            "cer needs to be instance of `bitshares.price.Price`!"
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self)
+        asset = Asset(symbol, bitshares_instance=self, full=True)
+        assert asset["id"] == cer["base"]["asset"]["id"] or \
+            asset["id"] == cer["quote"]["asset"]["id"], \
+            "Price needs to contain the asset of the symbol you'd like to produce a feed for!"
+
+        cer = cer.as_base(symbol)
+        if cer["quote"]["asset"]["id"] != "1.3.0":
+            raise ValueError(
+                "CER must be defined against core asset '1.3.0'")
+
+        options = asset["options"]
+        options.update({
+            "core_exchange_rate": cer.as_base(symbol).json()
+        })
+        op = operations.Asset_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "issuer": account["id"],
+            "asset_to_update": asset["id"],
+            "new_options": options,
+            "extensions": [],
             "prefix": self.prefix
         })
         return self.finalizeOp(op, account["name"], "active")
@@ -1379,14 +1421,16 @@ class BitShares(object):
             **Required**
 
             :param str name: Name of the worke
-            :param bitshares.amount.Amount daily_pay: The amount to be paid daily
+            :param bitshares.amount.Amount daily_pay: The amount to be paid
+                daily
             :param datetime end: Date/time of end of the worker
 
             **Optional**
 
             :param str url: URL to read more about the worker
             :param datetime begin: Date/time of begin of the worker
-            :param string payment_type: ["burn", "refund", "vesting"] (default: "vesting")
+            :param string payment_type: ["burn", "refund", "vesting"] (default:
+                "vesting")
             :param int pay_vesting_period_days: Days of vesting (default: 0)
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
@@ -1412,7 +1456,8 @@ class BitShares(object):
         elif payment_type == "burn":
             initializer = [2, {}]
         else:
-            raise ValueError('payment_type not in ["burn", "refund", "vesting"]')
+            raise ValueError(
+                'payment_type not in ["burn", "refund", "vesting"]')
 
         op = operations.Worker_create(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -1440,13 +1485,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
+        amount = Amount(amount, symbol, bitshares_instance=self)
         account = Account(account, bitshares_instance=self)
         asset = Asset(symbol, bitshares_instance=self)
         op = operations.Asset_fund_fee_pool(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "from_account": account["id"],
             "asset_id": asset["id"],
-            "amount": int(float(amount) * 10 ** asset["precision"]),
+            "amount": int(amount),
             "extensions": []
         })
         return self.finalizeOp(op, account, "active", **kwargs)
@@ -1474,5 +1520,48 @@ class BitShares(object):
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "committee_member_account": account["id"],
             "url": url
+        })
+        return self.finalizeOp(op, account, "active", **kwargs)
+
+    def account_whitelist(
+        self,
+        account_to_whitelist,
+        lists=["white"],   # set of 'white' and/or 'black'
+        account=None,
+        **kwargs
+    ):
+        """ Account whitelisting
+
+            :param str account_to_whitelist: The account we want to add
+                to either the white- or the blacklist
+            :param set lists: (defaults to ``('white')``). Lists the
+                user should be added to. Either empty set, 'black',
+                'white' or both.
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, bitshares_instance=self)
+        account_to_list = Account(
+            account_to_whitelist, bitshares_instance=self)
+
+        if not isinstance(lists, (set, list)):
+            raise ValueError('"lists" must be of instance list()')
+
+        l = operations.Account_whitelist.no_listing
+        if "white" in lists:
+            l += operations.Account_whitelist.white_listed
+        if "black" in lists:
+            l += operations.Account_whitelist.black_listed
+
+        op = operations.Account_whitelist(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "authorizing_account": account["id"],
+            "account_to_list": account_to_list["id"],
+            "new_listing": l,
         })
         return self.finalizeOp(op, account, "active", **kwargs)

@@ -1,6 +1,6 @@
 from fractions import Fraction
-from bitshares.instance import shared_bitshares_instance
 from .exceptions import InvalidAssetException
+from .instance import BlockchainInstance
 from .account import Account
 from .amount import Amount
 from .asset import Asset
@@ -8,7 +8,7 @@ from .utils import formatTimeString
 from .utils import parse_time, assets_from_string
 
 
-class Price(dict):
+class Price(dict, BlockchainInstance):
     """ This class deals with all sorts of prices of any pair of assets to
         simplify dealing with the tuple::
 
@@ -24,7 +24,7 @@ class Price(dict):
         :param list args: Allows to deal with different representations of a price
         :param bitshares.asset.Asset base: Base asset
         :param bitshares.asset.Asset quote: Quote asset
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
         :returns: All data required to represent a price
         :rtype: dict
 
@@ -68,20 +68,20 @@ class Price(dict):
         base=None,
         quote=None,
         base_asset=None,  # to identify sell/buy
-        bitshares_instance=None
+        **kwargs
     ):
 
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        BlockchainInstance.__init__(self, *args, **kwargs)
 
         if (len(args) == 1 and isinstance(args[0], str) and not base and not quote):
             import re
             price, assets = args[0].split(" ")
             base_symbol, quote_symbol = assets_from_string(assets)
-            base = Asset(base_symbol, bitshares_instance=self.bitshares)
-            quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
+            base = Asset(base_symbol, blockchain_instance=self.blockchain)
+            quote = Asset(quote_symbol, blockchain_instance=self.blockchain)
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
-            self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
-            self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
+            self["quote"] = Amount(amount=frac.denominator, asset=quote, blockchain_instance=self.blockchain)
+            self["base"] = Amount(amount=frac.numerator, asset=base, blockchain_instance=self.blockchain)
 
         elif (len(args) == 1 and isinstance(args[0], dict) and
                 "base" in args[0] and
@@ -90,33 +90,33 @@ class Price(dict):
             # Regular 'price' objects according to bitshares-core
             base_id = args[0]["base"]["asset_id"]
             if args[0]["base"]["asset_id"] == base_id:
-                self["base"] = Amount(args[0]["base"], bitshares_instance=self.bitshares)
-                self["quote"] = Amount(args[0]["quote"], bitshares_instance=self.bitshares)
+                self["base"] = Amount(args[0]["base"], blockchain_instance=self.blockchain)
+                self["quote"] = Amount(args[0]["quote"], blockchain_instance=self.blockchain)
             else:
-                self["quote"] = Amount(args[0]["base"], bitshares_instance=self.bitshares)
-                self["base"] = Amount(args[0]["quote"], bitshares_instance=self.bitshares)
+                self["quote"] = Amount(args[0]["base"], blockchain_instance=self.blockchain)
+                self["base"] = Amount(args[0]["quote"], blockchain_instance=self.blockchain)
 
         elif len(args) == 1 and isinstance(args[0], dict) and "receives" in args[0]:
             # Filled order
             assert base_asset, "Need a 'base_asset' asset"
-            base_asset = Asset(base_asset, bitshares_instance=self.bitshares)
+            base_asset = Asset(base_asset, blockchain_instance=self.blockchain)
             if args[0]["receives"]["asset_id"] == base_asset["id"]:
                 # If the seller received "base" in a quote_base market, than
                 # it has been a sell order of quote
-                self["base"] = Amount(args[0]["receives"], bitshares_instance=self.bitshares)
-                self["quote"] = Amount(args[0]["pays"], bitshares_instance=self.bitshares)
+                self["base"] = Amount(args[0]["receives"], blockchain_instance=self.blockchain)
+                self["quote"] = Amount(args[0]["pays"], blockchain_instance=self.blockchain)
                 self["type"] = "sell"
             else:
                 # buy order
-                self["base"] = Amount(args[0]["pays"], bitshares_instance=self.bitshares)
-                self["quote"] = Amount(args[0]["receives"], bitshares_instance=self.bitshares)
+                self["base"] = Amount(args[0]["pays"], blockchain_instance=self.blockchain)
+                self["quote"] = Amount(args[0]["receives"], blockchain_instance=self.blockchain)
                 self["type"] = "buy"
 
         elif len(args) == 1 and (isinstance(base, Asset) and isinstance(quote, Asset)):
             price = args[0]
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
-            self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
-            self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
+            self["quote"] = Amount(amount=frac.denominator, asset=quote, blockchain_instance=self.blockchain)
+            self["base"] = Amount(amount=frac.numerator, asset=base, blockchain_instance=self.blockchain)
 
         elif len(args) == 1 and (isinstance(base, Amount) and isinstance(quote, Amount)):
             price = args[0]
@@ -125,20 +125,20 @@ class Price(dict):
 
         elif (len(args) == 1 and isinstance(base, str) and isinstance(quote, str)):
             price = args[0]
-            base = Asset(base, bitshares_instance=self.bitshares)
-            quote = Asset(quote, bitshares_instance=self.bitshares)
+            base = Asset(base, blockchain_instance=self.blockchain)
+            quote = Asset(quote, blockchain_instance=self.blockchain)
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
-            self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
-            self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
+            self["quote"] = Amount(amount=frac.denominator, asset=quote, blockchain_instance=self.blockchain)
+            self["base"] = Amount(amount=frac.numerator, asset=base, blockchain_instance=self.blockchain)
 
         elif (len(args) == 0 and isinstance(base, str) and isinstance(quote, str)):
-            self["quote"] = Amount(quote, bitshares_instance=self.bitshares)
-            self["base"] = Amount(base, bitshares_instance=self.bitshares)
+            self["quote"] = Amount(quote, blockchain_instance=self.blockchain)
+            self["base"] = Amount(base, blockchain_instance=self.blockchain)
 
         # len(args) > 1
         elif len(args) == 2 and isinstance(args[0], str) and isinstance(args[1], str):
-            self["base"] = Amount(args[1], bitshares_instance=self.bitshares)
-            self["quote"] = Amount(args[0], bitshares_instance=self.bitshares)
+            self["base"] = Amount(args[1], blockchain_instance=self.blockchain)
+            self["quote"] = Amount(args[0], blockchain_instance=self.blockchain)
 
         elif len(args) == 2 and isinstance(args[0], Amount) and isinstance(args[1], Amount):
             self["quote"], self["base"] = args[0], args[1]
@@ -154,16 +154,18 @@ class Price(dict):
             import re
             price = args[0]
             base_symbol, quote_symbol = assets_from_string(args[1])
-            base = Asset(base_symbol, bitshares_instance=self.bitshares)
-            quote = Asset(quote_symbol, bitshares_instance=self.bitshares)
+            base = Asset(base_symbol, blockchain_instance=self.blockchain)
+            quote = Asset(quote_symbol, blockchain_instance=self.blockchain)
             frac = Fraction(float(price)).limit_denominator(10 ** base["precision"])
-            self["quote"] = Amount(amount=frac.denominator, asset=quote, bitshares_instance=self.bitshares)
-            self["base"] = Amount(amount=frac.numerator, asset=base, bitshares_instance=self.bitshares)
+            self["quote"] = Amount(amount=frac.denominator, asset=quote, blockchain_instance=self.blockchain)
+            self["base"] = Amount(amount=frac.numerator, asset=base, blockchain_instance=self.blockchain)
 
         else:
             raise ValueError("Couldn't parse 'Price'.")
 
     def __setitem__(self, key, value):
+        """ Here we set "price" if we change quote or base
+        """
         dict.__setitem__(self, key, value)
         if ("quote" in self and
                 "base" in self and
@@ -219,10 +221,26 @@ class Price(dict):
         return self
 
     def json(self):
+        """
         return {
             "base": self["base"].json(),
             "quote": self["quote"].json()
         }
+        """
+        quote = self["quote"]
+        base = self["base"]
+        frac = Fraction(
+            int(quote) / int(base)
+        ).limit_denominator(10 ** base["asset"]["precision"])
+        return {
+            "base": {
+                "amount": int(frac.denominator),
+                "asset_id": base["asset"]["id"]
+            },
+            "quote": {
+                "amount": int(frac.numerator),
+                "asset_id": quote["asset"]["id"]
+            }}
 
     def __repr__(self):
         return "{price:.{precision}f} {base}/{quote}".format(
@@ -254,21 +272,21 @@ class Price(dict):
             if self["quote"]["symbol"] == other["base"]["symbol"]:
                 a["base"] = Amount(
                     float(self["base"]) * float(other["base"]), self["base"]["symbol"],
-                    bitshares_instance=self.bitshares
+                    blockchain_instance=self.blockchain
                 )
                 a["quote"] = Amount(
                     float(self["quote"]) * float(other["quote"]), other["quote"]["symbol"],
-                    bitshares_instance=self.bitshares
+                    blockchain_instance=self.blockchain
                 )
             # a/b * c/a =  c/b
             elif self["base"]["symbol"] == other["quote"]["symbol"]:
                 a["base"] = Amount(
                     float(self["base"]) * float(other["base"]), other["base"]["symbol"],
-                    bitshares_instance=self.bitshares
+                    blockchain_instance=self.blockchain
                 )
                 a["quote"] = Amount(
                     float(self["quote"]) * float(other["quote"]), self["quote"]["symbol"],
-                    bitshares_instance=self.bitshares
+                    blockchain_instance=self.blockchain
                 )
             else:
                 raise ValueError("Wrong rotation of prices")
@@ -304,11 +322,11 @@ class Price(dict):
                 raise InvalidAssetException
             a["base"] = Amount(
                 float(self["quote"] / other["quote"]), other["quote"]["symbol"],
-                bitshares_instance=self.bitshares
+                blockchain_instance=self.blockchain
             )
             a["quote"] = Amount(
                 float(self["base"] / other["base"]), self["quote"]["symbol"],
-                bitshares_instance=self.bitshares
+                blockchain_instance=self.blockchain
             )
         elif isinstance(other, Amount):
             assert other["asset"]["id"] == self["quote"]["asset"]["id"]
@@ -397,7 +415,7 @@ class Price(dict):
         return Market(
             base=self["base"]["asset"],
             quote=self["quote"]["asset"],
-            bitshares_instance=self.bitshares
+            blockchain_instance=self.blockchain
         )
 
 
@@ -407,7 +425,7 @@ class Order(Price):
         ratio of base and quote) but instead has those amounts represent the
         amounts of an actual order!
 
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
 
         .. note::
 
@@ -415,9 +433,9 @@ class Order(Price):
                 'deleted' key which is set to ``True`` and all other
                 data be ``None``.
     """
-    def __init__(self, *args, bitshares_instance=None, **kwargs):
+    def __init__(self, *args, **kwargs):
 
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        BlockchainInstance.__init__(self, *args, **kwargs)
 
         if (
             len(args) == 1 and
@@ -425,7 +443,7 @@ class Order(Price):
         ):
             """ Load from id
             """
-            order = self.bitshares.rpc.get_objects([args[0]])[0]
+            order = self.blockchain.rpc.get_objects([args[0]])[0]
             if order:
                 super(Order, self).__init__(order["sell_price"])
                 self["seller"] = order["seller"]
@@ -444,8 +462,10 @@ class Order(Price):
         ):
             """ Load from object 1.7.xxx
             """
-            super(Order, self).__init__(args[0]["sell_price"])
-            self["id"] = args[0].get("id")
+            # Take all the arguments with us
+            self.update(args[0])
+            super(Order, self).__init__(args[0]["sell_price"], blockchain_instance=self.blockchain)
+
         elif (
             isinstance(args[0], dict) and
             "min_to_receive" in args[0] and
@@ -453,14 +473,22 @@ class Order(Price):
         ):
             """ Load from an operation
             """
+            # Take all the arguments with us
+            self.update(args[0])
             super(Order, self).__init__(
-                Amount(args[0]["min_to_receive"], bitshares_instance=self.bitshares),
-                Amount(args[0]["amount_to_sell"], bitshares_instance=self.bitshares),
+                Amount(args[0]["min_to_receive"], blockchain_instance=self.blockchain),
+                Amount(args[0]["amount_to_sell"], blockchain_instance=self.blockchain),
             )
-            self["id"] = args[0].get("id")
         else:
             # Try load Order as Price
-            super(Order, self).__init__(*args, **kwargs)
+            super(Order, self).__init__(*args, blockchain_instance=self.blockchain, **kwargs)
+
+        if "for_sale" in self:
+            self["for_sale"] = Amount(
+                {"amount": self["for_sale"],
+                 "asset_id": self["base"]["asset"]["id"]},
+                blockchain_instance=self.blockchain
+            )
 
     def __repr__(self):
         if "deleted" in self and self["deleted"]:
@@ -471,10 +499,15 @@ class Order(Price):
                 t += "(%s) " % self["time"]
             if "type" in self and self["type"]:
                 t += "%s " % str(self["type"])
-            if "quote" in self and self["quote"]:
-                t += "%s " % str(self["quote"])
-            if "base" in self and self["base"]:
-                t += "%s " % str(self["base"])
+            if "for_sale" in self and self["for_sale"]:
+                t += "{} {} ".format(
+                    str(Amount(
+                        float(self["for_sale"]) / self["price"],
+                        self["quote"]["asset"],
+                        blockchain_instance=self.blockchain
+                    )),
+                    str(self["for_sale"]),
+                )
             return t + "@ " + Price.__repr__(self)
 
     __str__ = __repr__
@@ -486,15 +519,15 @@ class FilledOrder(Price):
         ratio of base and quote) but instead has those amounts represent the
         amounts of an actually filled order!
 
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
 
         .. note:: Instances of this class come with an additional ``time`` key
                   that shows when the order has been filled!
     """
 
-    def __init__(self, order, bitshares_instance=None, **kwargs):
+    def __init__(self, order, **kwargs):
 
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        BlockchainInstance.__init__(self, **kwargs)
 
         if isinstance(order, dict) and "price" in order:
             super(FilledOrder, self).__init__(
@@ -502,9 +535,8 @@ class FilledOrder(Price):
                 base=kwargs.get("base"),
                 quote=kwargs.get("quote"),
             )
+            self.update(order)
             self["time"] = formatTimeString(order["date"])
-            self["side1_account_id"] = order["side1_account_id"]
-            self["side2_account_id"] = order["side2_account_id"]
 
         elif isinstance(order, dict):
             # filled orders from account history
@@ -515,6 +547,7 @@ class FilledOrder(Price):
                 order,
                 base_asset=base_asset,
             )
+            self.update(order)
             if "time" in order:
                 self["time"] = formatTimeString(order["time"])
             if "account_id" in order:
@@ -543,11 +576,11 @@ class UpdateCallOrder(Price):
         and ``quote`` Amounts not only be used to represent the **call
         price** (as a ratio of base and quote).
 
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
     """
-    def __init__(self, call, bitshares_instance=None, **kwargs):
+    def __init__(self, call, **kwargs):
 
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+        BlockchainInstance.__init__(self, **kwargs)
 
         if isinstance(call, dict) and "call_price" in call:
             super(UpdateCallOrder, self).__init__(
@@ -581,17 +614,19 @@ class PriceFeed(dict):
         * a settlement price, and
         * a date
 
-        :param bitshares.bitshares.BitShares bitshares_instance: BitShares instance
+        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
 
     """
-    def __init__(self, feed, bitshares_instance=None):
-        self.bitshares = bitshares_instance or shared_bitshares_instance()
+    def __init__(self, feed, **kwargs):
+
+        BlockchainInstance.__init__(self, **kwargs)
+
         if len(feed) == 2:
             super(PriceFeed, self).__init__({
                 "producer": Account(
                     feed[0],
                     lazy=True,
-                    bitshares_instance=self.bitshares
+                    blockchain_instance=self.blockchain
                 ),
                 "date": parse_time(feed[1][0]),
                 "maintenance_collateral_ratio": feed[1][1]["maintenance_collateral_ratio"],
