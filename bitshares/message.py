@@ -6,7 +6,6 @@ from bitsharesbase.account import PublicKey
 from bitshares.instance import shared_bitshares_instance
 from bitshares.account import Account
 from .exceptions import InvalidMessageSignature
-from .storage import configStorage as config
 
 
 log = logging.getLogger(__name__)
@@ -42,6 +41,7 @@ class Message():
 
     def __init__(self, message, bitshares_instance=None):
         self.bitshares = bitshares_instance or shared_bitshares_instance()
+        self.config = self.bitshares.config
         self.message = message
 
     def sign(self, account=None, **kwargs):
@@ -53,8 +53,8 @@ class Message():
             :returns: the signed message encapsulated in a known format
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
 
