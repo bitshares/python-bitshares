@@ -406,8 +406,8 @@ class BitShares(object):
             proposal_review = self.proposal_review
 
         if not proposer:
-            if "default_account" in config:
-                proposer = config["default_account"]
+            if "default_account" in self.config:
+                proposer = self.config["default_account"]
 
         # Else, we create a new object
         proposal = ProposalBuilder(
@@ -458,8 +458,8 @@ class BitShares(object):
         """
         from .memo import Memo
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
 
@@ -659,8 +659,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -710,8 +710,8 @@ class BitShares(object):
         """
         from copy import deepcopy
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
 
@@ -774,8 +774,8 @@ class BitShares(object):
                 by signatures to be able to interact
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
 
@@ -852,8 +852,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
 
@@ -880,8 +880,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -917,8 +917,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -955,8 +955,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -992,8 +992,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -1033,8 +1033,8 @@ class BitShares(object):
         """
         from .proposal import Proposal
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -1083,8 +1083,8 @@ class BitShares(object):
         """
         from .proposal import Proposal
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -1116,8 +1116,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -1148,8 +1148,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -1182,8 +1182,8 @@ class BitShares(object):
                 ``1.7.xxxx``
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, full=False, bitshares_instance=self)
@@ -1213,8 +1213,8 @@ class BitShares(object):
 
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -1268,8 +1268,8 @@ class BitShares(object):
         assert cer is None or isinstance(cer, Price), \
             "cer needs to be instance of `bitshares.price.Price`!"
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -1328,8 +1328,8 @@ class BitShares(object):
         assert isinstance(cer, Price), \
             "cer needs to be instance of `bitshares.price.Price`!"
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -1387,8 +1387,8 @@ class BitShares(object):
         """
         assert isinstance(amount, Amount)
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -1441,8 +1441,8 @@ class BitShares(object):
         if not begin:
             begin = datetime.utcnow() + timedelta(seconds=30)
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -1481,8 +1481,8 @@ class BitShares(object):
         """
         assert isinstance(amount, float)
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         amount = Amount(amount, symbol, bitshares_instance=self)
@@ -1510,8 +1510,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
@@ -1541,8 +1541,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, bitshares_instance=self)
