@@ -1553,3 +1553,52 @@ class BitShares(object):
             "new_listing": l,
         })
         return self.finalizeOp(op, account, "active", **kwargs)
+
+    # FEES #
+    def _get_fee_parameters(self):
+        _fees = self.rpc.get_global_properties()["parameters"]["current_fees"]["parameters"]
+        fees = { }
+        for fee_id, data in _fees:
+            fees[int(fee_id)] = data
+        GRAPHENE_BLOCKCHAIN_PRECISION = self.rpc.get_config()["GRAPHENE_BLOCKCHAIN_PRECISION"]
+        fees[39] = {
+            "fee": 5*GRAPHENE_BLOCKCHAIN_PRECISION,
+            "price_per_output": 5*GRAPHENE_BLOCKCHAIN_PRECISION
+        }
+        fees[40] = {
+            "fee": 5*GRAPHENE_BLOCKCHAIN_PRECISION,
+            "price_per_output": 5*GRAPHENE_BLOCKCHAIN_PRECISION
+        }
+        #fees[41] = {
+        #    "fee": 5*GRAPHENE_BLOCKCHAIN_PRECISION,
+        #}
+        return fees
+
+    # TODO: This fee calculator is not entirely production-ready,
+    # in particular price_per_kbyte was never tested
+    # But! It should work just fine when blind transfers are concerned.
+    def calculate_fee(self, op, core_exchange_rate, opclass=None):
+        if not(hasattr(self, '_fees')):
+            self._fees = self._get_fee_parameters()
+        from bitsharesbase.operations import getOperationIdForClass
+        op_id = int(getOperationIdForClass(opclass.__name__ if opclass else op.__class__.__name__))
+        if not op_id in self._fees:
+            raise KeyError("No fee data for operation " + str(op_id))
+
+        k = self._fees[op_id]
+
+        base_value = int(k["fee"])
+        if "price_per_output" in k:
+            base_value += (len(op["outputs"]) * int(k["price_per_output"]))
+        #if "price_per_kbyte" in k:
+        #    base_value += (len(bytes(op))/1024 * k["price_per_kbyte"])
+        #
+
+        scale = int(core_exchange_rate["quote"]["amount"]) / int(core_exchange_rate["base"]["amount"])
+        rescale = int(core_exchange_rate["base"]["amount"]) / int(core_exchange_rate["quote"]["amount"])
+        value = int(base_value * scale)
+        scaled = int(base_value * scale * rescale)
+        while value * rescale < scaled:
+            value += 1
+
+        return { "amount": value, "asset_id": core_exchange_rate["quote"]["asset_id"] }
