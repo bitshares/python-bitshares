@@ -50,11 +50,7 @@ class Amount(dict):
             Amount("1 USD") * 2
             Amount("15 GOLD") + Amount("0.5 GOLD")
     """
-    def __init__(
-        self,
-        *args,
-        **kwargs
-    ):
+    def __init__(self, *args, **kwargs):
         self["asset"] = {}
 
         amount = kwargs.get("amount", None)

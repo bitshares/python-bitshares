@@ -8,7 +8,7 @@ from .utils import formatTimeString
 from .utils import parse_time, assets_from_string
 
 
-class Price(dict):
+class Price(dict, BlockchainInstance):
     """ This class deals with all sorts of prices of any pair of assets to
         simplify dealing with the tuple::
 

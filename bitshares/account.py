@@ -39,11 +39,7 @@ class Account(BlockchainObject):
 
     type_id = 2
 
-    def __init__(
-        self,
-        *args,
-        **kwargs
-    ):
+    def __init__(self, *args, **kwargs):
         self.full = kwargs.pop("full", False)
         super().__init__(*args, **kwargs)
 
@@ -230,7 +226,6 @@ class Account(BlockchainObject):
         self.blockchain.account_whitelist(account, lists=[], account=self)
 
 
-
 class AccountUpdate(dict, BlockchainInstance):
     """ This purpose of this class is to keep track of account updates
         as they are pushed through by :class:`bitshares.notify.Notify`.
@@ -251,12 +246,7 @@ class AccountUpdate(dict, BlockchainInstance):
 
     """
 
-    def __init__(
-        self,
-        data,
-        *args,
-        **kwargs
-    ):
+    def __init__(self, data, *args, **kwargs):
         BlockchainInstance.__init__(self, *args, **kwargs)
         if isinstance(data, dict):
             super(AccountUpdate, self).__init__(data)

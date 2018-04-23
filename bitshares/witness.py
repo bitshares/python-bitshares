@@ -70,7 +70,7 @@ class Witnesses(list):
             accesing a RPC
     """
     def __init__(self, only_active=False, **kwargs):
-        BlockchainInstance.__init__(self, *args, **kwargs)
+        BlockchainInstance.__init__(self, **kwargs)
         total_witnesses = self.blockchain.rpc.get_witness_count()
         ws = ["1.6.{:d}".format(i + 1) for i in range(total_witnesses - 1)]
         witnesses = [

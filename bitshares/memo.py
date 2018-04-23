@@ -42,12 +42,7 @@ class Memo(object):
         if ``op_data`` being the payload of a transfer operation.
 
     """
-    def __init__(
-        self,
-        from_account=None,
-        to_account=None,
-        **kwargs
-    ):
+    def __init__(self, from_account=None, to_account=None, **kwargs):
         BlockchainInstance.__init__(self, **kwargs)
 
         if to_account:
