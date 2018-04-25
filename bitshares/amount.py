@@ -165,6 +165,11 @@ class Amount(dict):
     def __int__(self):
         return int(self["amount"] * 10 ** self["asset"]["precision"])
 
+    def __neg__(self):
+        a = self.copy()
+        a["amount"] = -float(a)
+        return a
+
     def __add__(self, other):
         a = self.copy()
         if isinstance(other, Amount):
