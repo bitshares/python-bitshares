@@ -384,7 +384,7 @@ class Account_update(GrapheneObject):
 class Account_whitelist(GrapheneObject):
     no_listing = 0              # < No opinion is specified about this account
     white_listed = 1            # < This account is whitelisted, but not blacklisted
-    black_listed = 2,           # < This account is blacklisted, but not whitelisted
+    black_listed = 2            # < This account is blacklisted, but not whitelisted
     white_and_black_listed = 3  # < This account is both whitelisted and blacklisted
 
     def __init__(self, *args, **kwargs):
