@@ -242,12 +242,13 @@ class Market(dict):
         data = {"asks": asks, "bids": bids}
         return data
 
-    def trades(self, limit=25, start=None, stop=None):
+    def trades(self, limit=25, start=None, stop=None, raw=False):
         """ Returns your trade history for a given market.
 
             :param int limit: Limit the amount of orders (default: 25)
             :param datetime start: start time
             :param datetime stop: stop time
+            :param bool raw: return raw json objects instead of FilledOrders
 
         """
         # FIXME, this call should also return whether it was a buy or
@@ -262,6 +263,8 @@ class Market(dict):
             formatTime(stop),
             formatTime(start),
             limit)
+        if raw:
+            return orders
         return list(map(
             lambda x: FilledOrder(
                 x,
