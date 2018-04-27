@@ -69,6 +69,10 @@ def set_shared_config(config):
     """
     assert isinstance(config, dict)
     SharedInstance.config = config
+    # if one is already set, delete
+    if SharedInstance.instance:
+        clear_cache()
+        SharedInstance.instance = None
 
 
 shared_bitshares_instance = shared_blockchain_instance

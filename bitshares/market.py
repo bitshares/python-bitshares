@@ -40,12 +40,7 @@ class Market(dict):
 
     """
 
-    def __init__(
-        self,
-        *args,
-        **kwargs
-    ):
-
+    def __init__(self, *args, **kwargs):
         base = kwargs.get("base", None)
         quote = kwargs.get("quote", None)
         BlockchainInstance.__init__(self, *args, **kwargs)

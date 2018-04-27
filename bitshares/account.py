@@ -39,11 +39,7 @@ class Account(BlockchainObject):
 
     type_id = 2
 
-    def __init__(
-        self,
-        *args,
-        **kwargs
-    ):
+    def __init__(self, *args, **kwargs):
         self.full = kwargs.pop("full", False)
         super().__init__(*args, **kwargs)
 
@@ -217,18 +213,17 @@ class Account(BlockchainObject):
     def whitelist(self, account):
         """ Add an other account to the whitelist of this account
         """
-        self.blockchain.account_whitelist(account, lists=["white"], account=self)
+        return self.blockchain.account_whitelist(account, lists=["white"], account=self)
 
     def blacklist(self, account):
         """ Add an other account to the blacklist of this account
         """
-        self.blockchain.account_whitelist(account, lists=["black"], account=self)
+        return self.blockchain.account_whitelist(account, lists=["black"], account=self)
 
     def nolist(self, account):
         """ Remove an other account from any list of this account
         """
-        self.blockchain.account_whitelist(account, lists=[], account=self)
-
+        return self.blockchain.account_whitelist(account, lists=[], account=self)
 
 
 class AccountUpdate(dict, BlockchainInstance):
@@ -251,12 +246,7 @@ class AccountUpdate(dict, BlockchainInstance):
 
     """
 
-    def __init__(
-        self,
-        data,
-        *args,
-        **kwargs
-    ):
+    def __init__(self, data, *args, **kwargs):
         BlockchainInstance.__init__(self, *args, **kwargs)
         if isinstance(data, dict):
             super(AccountUpdate, self).__init__(data)

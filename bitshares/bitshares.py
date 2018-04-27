@@ -1,10 +1,9 @@
-import json
 import logging
 
 from datetime import datetime, timedelta
 from bitsharesapi.bitsharesnoderpc import BitSharesNodeRPC
-from bitsharesbase.account import PrivateKey, PublicKey
-from bitsharesbase import transactions, operations
+from bitsharesbase.account import PublicKey
+from bitsharesbase import operations
 from .asset import Asset
 from .account import Account
 from .amount import Amount
@@ -19,7 +18,7 @@ from .exceptions import (
 )
 from .wallet import Wallet
 from .transactionbuilder import TransactionBuilder, ProposalBuilder
-from .utils import formatTime, test_proposal_in_buffer
+# from .utils import formatTime
 
 log = logging.getLogger(__name__)
 
@@ -147,7 +146,7 @@ class BitShares(object):
         # txbuffers/propbuffer are initialized and cleared
         self.clear()
 
-        self.wallet = Wallet(bitshares_instance=self, **kwargs)
+        self.wallet = Wallet(blockchain_instance=self, **kwargs)
 
     # -------------------------------------------------------------------------
     # Basic Calls
@@ -179,16 +178,6 @@ class BitShares(object):
     @property
     def prefix(self):
         return self.rpc.chain_params["prefix"]
-
-    def newWallet(self, pwd):
-        """ Create a new wallet. This method is basically only calls
-            :func:`bitshares.wallet.create`.
-
-            :param str pwd: Password to use for the new wallet
-            :raises bitshares.exceptions.WalletExists: if there is already a
-                wallet created
-        """
-        self.wallet.create(pwd)
 
     def set_default_account(self, account):
         """ Set the default account to be used
@@ -302,7 +291,7 @@ class BitShares(object):
                 of the transactions.
         """
         if tx:
-            txbuffer = TransactionBuilder(tx, bitshares_instance=self)
+            txbuffer = TransactionBuilder(tx, blockchain_instance=self)
         else:
             txbuffer = self.txbuffer
         txbuffer.appendWif(wifs)
@@ -414,7 +403,7 @@ class BitShares(object):
             proposer,
             proposal_expiration,
             proposal_review,
-            bitshares_instance=self,
+            blockchain_instance=self,
             parent=parent
         )
         if parent:
@@ -429,7 +418,7 @@ class BitShares(object):
         """
         builder = TransactionBuilder(
             *args,
-            bitshares_instance=self,
+            blockchain_instance=self,
             **kwargs
         )
         self._txbuffers.append(builder)
@@ -463,14 +452,14 @@ class BitShares(object):
         if not account:
             raise ValueError("You need to provide an account")
 
-        account = Account(account, bitshares_instance=self)
-        amount = Amount(amount, asset, bitshares_instance=self)
-        to = Account(to, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
+        amount = Amount(amount, asset, blockchain_instance=self)
+        to = Account(to, blockchain_instance=self)
 
         memoObj = Memo(
             from_account=account,
             to_account=to,
-            bitshares_instance=self
+            blockchain_instance=self
         )
 
         op = operations.Transfer(**{
@@ -563,13 +552,13 @@ class BitShares(object):
             )
 
         try:
-            Account(account_name, bitshares_instance=self)
+            Account(account_name, blockchain_instance=self)
             raise AccountExistsException
         except:
             pass
 
-        referrer = Account(referrer, bitshares_instance=self)
-        registrar = Account(registrar, bitshares_instance=self)
+        referrer = Account(referrer, blockchain_instance=self)
+        registrar = Account(registrar, blockchain_instance=self)
 
         " Generate new keys from password"
         from bitsharesbase.account import PasswordKey, PublicKey
@@ -615,15 +604,15 @@ class BitShares(object):
             active_key_authority.append([k, 1])
 
         for k in additional_owner_accounts:
-            addaccount = Account(k, bitshares_instance=self)
+            addaccount = Account(k, blockchain_instance=self)
             owner_accounts_authority.append([addaccount["id"], 1])
         for k in additional_active_accounts:
-            addaccount = Account(k, bitshares_instance=self)
+            addaccount = Account(k, blockchain_instance=self)
             active_accounts_authority.append([addaccount["id"], 1])
 
         # voting account
         voting_account = Account(
-            proxy_account or "proxy-to-self", bitshares_instance=self)
+            proxy_account or "proxy-to-self", blockchain_instance=self)
 
         op = {
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -663,7 +652,7 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
         op = operations.Account_upgrade(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "account_to_upgrade": account["id"],
@@ -719,7 +708,7 @@ class BitShares(object):
             raise ValueError(
                 "Permission needs to be either 'owner', or 'active"
             )
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
 
         if not weight:
             weight = account[permission]["weight_threshold"]
@@ -733,7 +722,7 @@ class BitShares(object):
             ])
         except:
             try:
-                foreign_account = Account(foreign, bitshares_instance=self)
+                foreign_account = Account(foreign, blockchain_instance=self)
                 authority["account_auths"].append([
                     foreign_account["id"],
                     weight
@@ -783,7 +772,7 @@ class BitShares(object):
             raise ValueError(
                 "Permission needs to be either 'owner', or 'active"
             )
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
         authority = account[permission]
 
         try:
@@ -797,7 +786,7 @@ class BitShares(object):
             ))
         except:
             try:
-                foreign_account = Account(foreign, bitshares_instance=self)
+                foreign_account = Account(foreign, blockchain_instance=self)
                 affected_items = list(
                     filter(lambda x: x[0] == foreign_account["id"],
                            authority["account_auths"]))
@@ -859,7 +848,7 @@ class BitShares(object):
 
         PublicKey(key, prefix=self.prefix)
 
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
         account["options"]["memo_key"] = key
         op = operations.Account_update(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -884,14 +873,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
         options = account["options"]
 
         if not isinstance(witnesses, (list, set, tuple)):
             witnesses = {witnesses}
 
         for witness in witnesses:
-            witness = Witness(witness, bitshares_instance=self)
+            witness = Witness(witness, blockchain_instance=self)
             options["votes"].append(witness["vote_id"])
 
         options["votes"] = list(set(options["votes"]))
@@ -921,14 +910,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
         options = account["options"]
 
         if not isinstance(witnesses, (list, set, tuple)):
             witnesses = {witnesses}
 
         for witness in witnesses:
-            witness = Witness(witness, bitshares_instance=self)
+            witness = Witness(witness, blockchain_instance=self)
             if witness["vote_id"] in options["votes"]:
                 options["votes"].remove(witness["vote_id"])
 
@@ -959,14 +948,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
         options = account["options"]
 
         if not isinstance(committees, (list, set, tuple)):
             committees = {committees}
 
         for committee in committees:
-            committee = Committee(committee, bitshares_instance=self)
+            committee = Committee(committee, blockchain_instance=self)
             options["votes"].append(committee["vote_id"])
 
         options["votes"] = list(set(options["votes"]))
@@ -996,14 +985,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
         options = account["options"]
 
         if not isinstance(committees, (list, set, tuple)):
             committees = {committees}
 
         for committee in committees:
-            committee = Committee(committee, bitshares_instance=self)
+            committee = Committee(committee, blockchain_instance=self)
             if committee["vote_id"] in options["votes"]:
                 options["votes"].remove(committee["vote_id"])
 
@@ -1037,12 +1026,12 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
         is_key = approver and approver[:3] == self.prefix
         if not approver and not is_key:
             approver = account
         elif approver and not is_key:
-            approver = Account(approver, bitshares_instance=self)
+            approver = Account(approver, blockchain_instance=self)
         else:
             approver = PublicKey(approver)
 
@@ -1051,7 +1040,7 @@ class BitShares(object):
 
         op = []
         for proposal_id in proposal_ids:
-            proposal = Proposal(proposal_id, bitshares_instance=self)
+            proposal = Proposal(proposal_id, blockchain_instance=self)
             update_dict = {
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 'fee_paying_account': account["id"],
@@ -1087,18 +1076,18 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
         if not approver:
             approver = account
         else:
-            approver = Account(approver, bitshares_instance=self)
+            approver = Account(approver, blockchain_instance=self)
 
         if not isinstance(proposal_ids, (list, set, tuple)):
             proposal_ids = {proposal_ids}
 
         op = []
         for proposal_id in proposal_ids:
-            proposal = Proposal(proposal_id, bitshares_instance=self)
+            proposal = Proposal(proposal_id, blockchain_instance=self)
             op.append(operations.Proposal_update(**{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 'fee_paying_account': account["id"],
@@ -1120,14 +1109,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
         options = account["options"]
 
         if not isinstance(workers, (list, set, tuple)):
             workers = {workers}
 
         for worker in workers:
-            worker = Worker(worker, bitshares_instance=self)
+            worker = Worker(worker, blockchain_instance=self)
             options["votes"].append(worker["vote_for"])
         options["votes"] = list(set(options["votes"]))
 
@@ -1152,14 +1141,14 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
         options = account["options"]
 
         if not isinstance(workers, (list, set, tuple)):
             workers = {workers}
 
         for worker in workers:
-            worker = Worker(worker, bitshares_instance=self)
+            worker = Worker(worker, blockchain_instance=self)
             if worker["vote_for"] in options["votes"]:
                 options["votes"].remove(worker["vote_for"])
         options["votes"] = list(set(options["votes"]))
@@ -1178,14 +1167,15 @@ class BitShares(object):
             only the "orderNumbers". An order number takes the form
             ``1.7.xxx``.
 
-            :param str orderNumbers: The Order Object ide of the form ``1.7.xxxx``
+            :param str orderNumbers: The Order Object ide of the form
+                ``1.7.xxxx``
         """
         if not account:
             if "default_account" in config:
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, full=False, bitshares_instance=self)
+        account = Account(account, full=False, blockchain_instance=self)
 
         if not isinstance(orderNumbers, (list, set, tuple)):
             orderNumbers = {orderNumbers}
@@ -1205,7 +1195,8 @@ class BitShares(object):
         """ Withdraw vesting balance
 
             :param str vesting_id: Id of the vesting object
-            :param bitshares.amount.Amount Amount: to withdraw ("all" if not provided")
+            :param bitshares.amount.Amount Amount: to withdraw ("all" if not
+                provided")
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
 
@@ -1215,10 +1206,10 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
 
         if not amount:
-            obj = Vesting(vesting_id, bitshares_instance=self)
+            obj = Vesting(vesting_id, blockchain_instance=self)
             amount = obj.claimable
 
         op = operations.Vesting_balance_withdraw(**{
@@ -1246,9 +1237,12 @@ class BitShares(object):
 
             :param str symbol: Symbol of the asset to publish feed for
             :param bitshares.price.Price settlement_price: Price for settlement
-            :param bitshares.price.Price cer: Core exchange Rate (default ``settlement_price + 5%``)
-            :param float mssr: Percentage for max short squeeze ratio (default: 110%)
-            :param float mcr: Percentage for maintenance collateral ratio (default: 200%)
+            :param bitshares.price.Price cer: Core exchange Rate (default
+                ``settlement_price + 5%``)
+            :param float mssr: Percentage for max short squeeze ratio (default:
+                110%)
+            :param float mcr: Percentage for maintenance collateral ratio
+                (default: 200%)
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
 
@@ -1258,15 +1252,17 @@ class BitShares(object):
         """
         assert mcr > 100
         assert mssr > 100
-        assert isinstance(settlement_price, Price), "settlement_price needs to be instance of `bitshares.price.Price`!"
-        assert cer is None or isinstance(cer, Price), "cer needs to be instance of `bitshares.price.Price`!"
+        assert isinstance(settlement_price, Price), \
+            "settlement_price needs to be instance of `bitshares.price.Price`!"
+        assert cer is None or isinstance(cer, Price), \
+            "cer needs to be instance of `bitshares.price.Price`!"
         if not account:
             if "default_account" in config:
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
-        asset = Asset(symbol, bitshares_instance=self, full=True)
+        account = Account(account, blockchain_instance=self)
+        asset = Asset(symbol, blockchain_instance=self, full=True)
         backing_asset = asset["bitasset_data"]["options"]["short_backing_asset"]
         assert asset["id"] == settlement_price["base"]["asset"]["id"] or \
             asset["id"] == settlement_price["quote"]["asset"]["id"], \
@@ -1318,14 +1314,15 @@ class BitShares(object):
                 to (defaults to ``default_account``)
 
         """
-        assert isinstance(cer, Price), "cer needs to be instance of `bitshares.price.Price`!"
+        assert isinstance(cer, Price), \
+            "cer needs to be instance of `bitshares.price.Price`!"
         if not account:
             if "default_account" in config:
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
-        asset = Asset(symbol, bitshares_instance=self, full=True)
+        account = Account(account, blockchain_instance=self)
+        asset = Asset(symbol, blockchain_instance=self, full=True)
         assert asset["id"] == cer["base"]["asset"]["id"] or \
             asset["id"] == cer["quote"]["asset"]["id"], \
             "Price needs to contain the asset of the symbol you'd like to produce a feed for!"
@@ -1383,7 +1380,7 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
         op = operations.Asset_reserve(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "payer": account["id"],
@@ -1413,14 +1410,16 @@ class BitShares(object):
             **Required**
 
             :param str name: Name of the worke
-            :param bitshares.amount.Amount daily_pay: The amount to be paid daily
+            :param bitshares.amount.Amount daily_pay: The amount to be paid
+                daily
             :param datetime end: Date/time of end of the worker
 
             **Optional**
 
             :param str url: URL to read more about the worker
             :param datetime begin: Date/time of begin of the worker
-            :param string payment_type: ["burn", "refund", "vesting"] (default: "vesting")
+            :param string payment_type: ["burn", "refund", "vesting"] (default:
+                "vesting")
             :param int pay_vesting_period_days: Days of vesting (default: 0)
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
@@ -1435,7 +1434,7 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
 
         if payment_type == "refund":
             initializer = [0, {}]
@@ -1446,7 +1445,8 @@ class BitShares(object):
         elif payment_type == "burn":
             initializer = [2, {}]
         else:
-            raise ValueError('payment_type not in ["burn", "refund", "vesting"]')
+            raise ValueError(
+                'payment_type not in ["burn", "refund", "vesting"]')
 
         op = operations.Worker_create(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -1474,9 +1474,9 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        amount = Amount(amount, symbol, bitshares_instance=self)
-        account = Account(account, bitshares_instance=self)
-        asset = Asset(symbol, bitshares_instance=self)
+        amount = Amount(amount, symbol, blockchain_instance=self)
+        account = Account(account, blockchain_instance=self)
+        asset = Asset(symbol, blockchain_instance=self)
         op = operations.Asset_fund_fee_pool(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "from_account": account["id"],
@@ -1503,7 +1503,7 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
 
         op = operations.Committee_member_create(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -1534,8 +1534,9 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        account = Account(account, bitshares_instance=self)
-        account_to_list = Account(account_to_whitelist, bitshares_instance=self)
+        account = Account(account, blockchain_instance=self)
+        account_to_list = Account(
+            account_to_whitelist, blockchain_instance=self)
 
         if not isinstance(lists, (set, list)):
             raise ValueError('"lists" must be of instance list()')

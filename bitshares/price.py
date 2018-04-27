@@ -8,7 +8,7 @@ from .utils import formatTimeString
 from .utils import parse_time, assets_from_string
 
 
-class Price(dict):
+class Price(dict, BlockchainInstance):
     """ This class deals with all sorts of prices of any pair of assets to
         simplify dealing with the tuple::
 
@@ -483,11 +483,12 @@ class Order(Price):
             # Try load Order as Price
             super(Order, self).__init__(*args, blockchain_instance=self.blockchain, **kwargs)
 
-        self["for_sale"] = Amount(
-            {"amount": self["for_sale"],
-             "asset_id": self["base"]["asset"]["id"]},
-            blockchain_instance=self.blockchain
-        )
+        if "for_sale" in self:
+            self["for_sale"] = Amount(
+                {"amount": self["for_sale"],
+                 "asset_id": self["base"]["asset"]["id"]},
+                blockchain_instance=self.blockchain
+            )
 
     def __repr__(self):
         if "deleted" in self and self["deleted"]:
@@ -534,9 +535,8 @@ class FilledOrder(Price):
                 base=kwargs.get("base"),
                 quote=kwargs.get("quote"),
             )
+            self.update(order)
             self["time"] = formatTimeString(order["date"])
-            self["side1_account_id"] = order["side1_account_id"]
-            self["side2_account_id"] = order["side2_account_id"]
 
         elif isinstance(order, dict):
             # filled orders from account history
@@ -547,6 +547,7 @@ class FilledOrder(Price):
                 order,
                 base_asset=base_asset,
             )
+            self.update(order)
             if "time" in order:
                 self["time"] = formatTimeString(order["time"])
             if "account_id" in order:

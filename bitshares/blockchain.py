@@ -19,25 +19,15 @@ class Blockchain(object):
     """
     def __init__(
         self,
-        blockchain_instance=None,
         mode="irreversible",
-        max_block_wait_repetition=None,
+        max_block_wait_repetition=3,
         *args,
         **kwargs
     ):
         BlockchainInstance.__init__(self, *args, **kwargs)
-
-        if mode == "irreversible":
-            self.mode = 'last_irreversible_block_num'
-        elif mode == "head":
-            self.mode = "head_block_number"
-        else:
-            raise ValueError("invalid value for 'mode'!")
-
-        if max_block_wait_repetition:
-            self.max_block_wait_repetition = max_block_wait_repetition
-        else:
-            self.max_block_wait_repetition = 3
+        assert mode in ["irreversible", "head"], "invalid value for 'mode'!"
+        self.mode = mode
+        self.max_block_wait_repetition = max_block_wait_repetition
 
     def is_irreversible_mode(self):
         return self.mode == 'last_irreversible_block_num'
