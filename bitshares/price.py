@@ -481,7 +481,7 @@ class Order(Price):
             )
         else:
             # Try load Order as Price
-            super(Order, self).__init__(*args, blockchain_instance=self.blockchain, **kwargs)
+            super(Order, self).__init__(*args, **kwargs)
 
         if "for_sale" in self:
             self["for_sale"] = Amount(
