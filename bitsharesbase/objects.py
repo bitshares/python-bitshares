@@ -319,7 +319,7 @@ class AccountCreateExtensions(Extension):
                 if isArgsThisClass(self, args):
                         self.data = args[0].data
                 else:
-                    if len(args) == 1 and len(kwargs) == 0:
+                    if len(args) == 1 and len(kwargs) == 0 and not(isinstance(args[0], list)):
                         kwargs = args[0]
 #                    assert "1.3.0" in kwargs["markets"], "CORE asset must be in 'markets' to pay fees"
                     super().__init__(OrderedDict([
