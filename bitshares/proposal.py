@@ -1,7 +1,7 @@
 from .instance import BlockchainInstance
 from .account import Account
 from .exceptions import ProposalDoesNotExistException
-from .blockchainobject import BlockchainObject
+from .blockchainobject import BlockchainObject, ObjectCache
 from .utils import parse_time
 import logging
 log = logging.getLogger(__name__)
