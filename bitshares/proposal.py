@@ -27,6 +27,14 @@ class Proposal(BlockchainObject):
         yield from self["proposed_transaction"]["operations"]
 
     @property
+    def proposer(self):
+        """ Return the proposer of the proposal if available in the backend,
+            else returns None
+        """
+        if "proposer" in self:
+            return self["proposer"]
+
+    @property
     def expiration(self):
         return parse_time(self.get("expiration_time"))
 
@@ -47,11 +55,17 @@ class Proposals(list):
         :param str account: Account name
         :param bitshares blockchain_instance: BitShares() instance to use when accesing a RPC
     """
+    cache = ObjectCache()
+
     def __init__(self, account, **kwargs):
         BlockchainInstance.__init__(self, **kwargs)
 
-        account = Account(account, blockchain_instance=self.blockchain)
-        proposals = self.blockchain.rpc.get_proposed_transactions(account["id"])
+        account = Account(account)
+        if account["id"] in Proposals.cache:
+            proposals = Proposals.cache[account["id"]]
+        else:
+            proposals = self.blockchain.rpc.get_proposed_transactions(account["id"])
+            Proposals.cache[account["id"]] = proposals
 
         super(Proposals, self).__init__(
             [

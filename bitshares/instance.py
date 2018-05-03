@@ -68,7 +68,7 @@ def set_shared_config(config):
         without requiring to actually create an instance
     """
     assert isinstance(config, dict)
-    SharedInstance.config = config
+    SharedInstance.config.update(config)
     # if one is already set, delete
     if SharedInstance.instance:
         clear_cache()

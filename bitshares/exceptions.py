@@ -120,8 +120,26 @@ class InvalidMessageSignature(Exception):
     pass
 
 
+class KeyNotFound(Exception):
+    """ Key not found
+    """
+    pass
+
+
+class InvalidMemoKeyException(Exception):
+    """ Memo key in message is invalid
+    """
+    pass
+
+
 class OfflineHasNoRPCException(Exception):
     """ When in offline mode, we don't have RPC
+    """
+    pass
+
+
+class WrongMemoKey(Exception):
+    """ The memo provided is not equal the one on the blockchain
     """
     pass
 

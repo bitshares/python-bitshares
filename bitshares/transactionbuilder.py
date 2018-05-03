@@ -97,6 +97,9 @@ class ProposalBuilder:
             return dict()
         return raw.json()
 
+    def __dict__(self):
+        return self.json()
+
     def get_raw(self):
         """ Returns an instance of base "Operations" for further processing
         """
@@ -437,7 +440,8 @@ class TransactionBuilder(dict):
             for account_auth in authority["account_auths"]:
                 account_auth_account = Account(account_auth[0], blockchain_instance=self.blockchain)
                 self["missing_signatures"].extend(
-                    [x[0] for x in account_auth_account[permission]["key_auths"]]
+                    [x[0]
+                     for x in account_auth_account[permission]["key_auths"]]
                 )
 
     def appendMissingSignatures(self):
