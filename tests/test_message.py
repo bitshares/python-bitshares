@@ -18,6 +18,8 @@ class Testcases(unittest.TestCase):
             wif=[wif]
         )
         set_shared_bitshares_instance(self.bts)
+        self.bts.set_default_account("init0")
+
 
     def test_sign_message(self):
         def new_refresh(self):
