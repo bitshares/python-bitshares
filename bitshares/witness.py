@@ -69,13 +69,13 @@ class Witnesses(list):
         :param bitshares blockchain_instance: BitShares() instance to use when
             accesing a RPC
     """
-    def __init__(self, only_active=False, **kwargs):
+    def __init__(self, only_active=False, lazy=True, **kwargs):
         BlockchainInstance.__init__(self, **kwargs)
         self.schedule = self.blockchain.rpc.get_object(
             "2.12.0").get("current_shuffled_witnesses", [])
 
         witnesses = [
-            Witness(x, blockchain_instance=self.blockchain)
+            Witness(x, lazy=lazy, blockchain_instance=self.blockchain)
             for x in self.schedule
         ]
 
