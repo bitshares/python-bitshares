@@ -114,7 +114,7 @@ ____________________________
    market = Market("USD:BTS")
    print(market.ticker())
    market.bitshares.wallet.unlock("wallet-passphrase")
-   print(market.sell(300, 100)  # sell 100 USD for 300 BTS/USD
+   print(market.sell(300, 100))  # sell 100 USD for 300 BTS/USD
 
 Adjust collateral
 _________________

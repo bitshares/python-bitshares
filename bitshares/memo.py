@@ -1,17 +1,20 @@
-from .instance import BlockchainInstance
 import random
+from .instance import BlockchainInstance
 from bitsharesbase import memo as BtsMemo
 from bitsharesbase.account import PrivateKey, PublicKey
 from .account import Account
-from .exceptions import MissingKeyError, KeyNotFound
+from .exceptions import MissingKeyError
 
 
 class Memo(object):
     """ Deals with Memos that are attached to a transfer
 
-        :param bitshares.account.Account from_account: Account that has sent the memo
-        :param bitshares.account.Account to_account: Account that has received the memo
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
+        :param bitshares.account.Account from_account: Account that has sent
+            the memo
+        :param bitshares.account.Account to_account: Account that has received
+            the memo
+        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
+            instance
 
         A memo is encrypted with a shared secret derived from a private key of
         the sender and a public key of the receiver. Due to the underlying
@@ -73,11 +76,14 @@ class Memo(object):
         if not memo_wif:
             raise MissingKeyError("Memo key for %s missing!" % self.from_account["name"])
 
+        if not hasattr(self, 'chain_prefix'):
+            self.chain_prefix = self.blockchain.prefix
+
         enc = BtsMemo.encode_memo(
             PrivateKey(memo_wif),
             PublicKey(
                 self.to_account["options"]["memo_key"],
-                prefix=self.blockchain.prefix
+                prefix=self.chain_prefix
             ),
             nonce,
             memo
@@ -120,9 +126,12 @@ class Memo(object):
                     "Need any of {}".format(
                     [memo["to"], memo["from"]]))
 
+        if not hasattr(self, 'chain_prefix'):
+            self.chain_prefix = self.blockchain.prefix
+
         return BtsMemo.decode_memo(
             PrivateKey(memo_wif),
-            PublicKey(pubkey, prefix=self.blockchain.prefix),
+            PublicKey(pubkey, prefix=self.chain_prefix),
             memo.get("nonce"),
             memo.get("message")
         )

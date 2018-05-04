@@ -27,6 +27,30 @@ from .objects import (
 )
 
 default_prefix = "BTS"
+class_idmap = {}
+class_namemap = {}
+
+
+def fill_classmaps():
+    for name, ind in operations.items():
+        classname = name[0:1].upper() + name[1:]
+        class_namemap[classname] = ind
+        try:
+            class_idmap[ind] = globals()[classname]
+        except Exception:
+            continue
+
+
+def getOperationClassForId(op_id):
+    """ Convert an operation id into the corresponding class
+    """
+    return class_idmap[op_id] if op_id in class_idmap else None
+
+
+def getOperationIdForClass(name):
+    """ Convert an operation classname into the corresponding id
+    """
+    return class_namemap[name] if name in class_namemap else None
 
 
 def getOperationNameForId(i):
@@ -384,7 +408,7 @@ class Account_update(GrapheneObject):
 class Account_whitelist(GrapheneObject):
     no_listing = 0              # < No opinion is specified about this account
     white_listed = 1            # < This account is whitelisted, but not blacklisted
-    black_listed = 2,           # < This account is blacklisted, but not whitelisted
+    black_listed = 2            # < This account is blacklisted, but not whitelisted
     white_and_black_listed = 3  # < This account is both whitelisted and blacklisted
 
     def __init__(self, *args, **kwargs):
@@ -567,3 +591,6 @@ class Committee_member_create(GrapheneObject):
                 ('committee_member_account', ObjectId(kwargs["committee_member_account"], "account")),
                 ('url', String(kwargs["url"])),
             ]))
+
+
+fill_classmaps()

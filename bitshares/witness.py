@@ -71,11 +71,12 @@ class Witnesses(list):
     """
     def __init__(self, only_active=False, **kwargs):
         BlockchainInstance.__init__(self, **kwargs)
-        total_witnesses = self.blockchain.rpc.get_witness_count()
-        ws = ["1.6.{:d}".format(i + 1) for i in range(total_witnesses - 1)]
+        self.schedule = self.blockchain.rpc.get_object(
+            "2.12.0").get("current_shuffled_witnesses", [])
+
         witnesses = [
-            Witness(x, lazy=True, blockchain_instance=self.blockchain)
-            for x in ws
+            Witness(x, blockchain_instance=self.blockchain)
+            for x in self.schedule
         ]
 
         if only_active:
@@ -89,3 +90,18 @@ class Witnesses(list):
                     witnesses))
 
         super(Witnesses, self).__init__(witnesses)
+
+    def __contains__(self, item):
+        from .account import Account
+        if BlockchainObject.objectid_valid(item):
+            id = item
+        elif isinstance(item, Account):
+            id = item["id"]
+        else:
+            account = Account(item, blockchain_instance=self.blockchain)
+            id = account["id"]
+
+        return (
+            any([id == x["id"] for x in self]) or
+            any([id == x["witness_account"] for x in self])
+        )
