@@ -69,3 +69,58 @@ class Testcases(unittest.TestCase):
             op["account_to_upgrade"],
             "1.2.1",
         )
+
+    def test_openorders(self):
+        account = Account("witness-account")
+        self.assertIsInstance(account.openorders, list)
+
+    def test_calls(self):
+        account = Account("witness-account")
+        self.assertIsInstance(account.callpositions, dict)
+
+    def test_whitelist(self):
+        from bitsharesbase.operations import Account_whitelist
+        account = Account("witness-account")
+        tx = account.whitelist("committee-account")
+        self.assertEqual(len(tx["operations"]), 1)
+        self.assertEqual(tx["operations"][0][0], 7)
+        self.assertEqual(tx["operations"][0][1]["authorizing_account"], account["id"])
+        self.assertEqual(tx["operations"][0][1]["new_listing"], Account_whitelist.white_listed)
+
+    def test_blacklist(self):
+        from bitsharesbase.operations import Account_whitelist
+        account = Account("witness-account")
+        tx = account.blacklist("committee-account")
+        self.assertEqual(len(tx["operations"]), 1)
+        self.assertEqual(tx["operations"][0][0], 7)
+        self.assertEqual(tx["operations"][0][1]["authorizing_account"], account["id"])
+        self.assertEqual(tx["operations"][0][1]["new_listing"], Account_whitelist.black_listed)
+
+    def test_unlist(self):
+        from bitsharesbase.operations import Account_whitelist
+        account = Account("witness-account")
+        tx = account.nolist("committee-account")
+        self.assertEqual(len(tx["operations"]), 1)
+        self.assertEqual(tx["operations"][0][0], 7)
+        self.assertEqual(tx["operations"][0][1]["authorizing_account"], account["id"])
+        self.assertEqual(tx["operations"][0][1]["new_listing"], Account_whitelist.no_listing)
+
+    def test_accountupdate(self):
+        from bitshares.account import AccountUpdate
+        t = {'id': '2.6.29',
+             'lifetime_fees_paid': '44261516129',
+             'most_recent_op': '2.9.0',
+             'owner': '1.2.29',
+             'pending_fees': 0,
+             'pending_vested_fees': 16310,
+             'total_core_in_orders': '6788845277634',
+             'total_ops': 0}
+        update = AccountUpdate(t)
+        self.assertEqual(update["owner"], "1.2.29")
+        self.assertIsInstance(update.account, Account)
+        update.__repr__()
+
+        update = AccountUpdate("committee-account")
+        self.assertEqual(update["owner"], "1.2.0")
+        self.assertIsInstance(update.account, Account)
+        update.__repr__()
