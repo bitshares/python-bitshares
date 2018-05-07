@@ -9,7 +9,7 @@ from .account import Account
 from bitsharesbase import operations
 
 
-class Market(dict):
+class Market(BlockchainInstance):
     """ This class allows to easily access Markets on the blockchain for trading, etc.
 
         :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
