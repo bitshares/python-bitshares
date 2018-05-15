@@ -389,8 +389,9 @@ class TransactionBuilder(dict):
                     ret, api="network_broadcast")
         except Exception as e:
             raise e
+        finally:
+            self.clear()
 
-        self.clear()
         return ret
 
     def clear(self):
