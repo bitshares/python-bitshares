@@ -1,5 +1,12 @@
-from Crypto import Random
-from Crypto.Cipher import AES
+try:
+    from Cryptodome.Cipher import AES
+    from Cryptodome import Random
+except ImportError:
+    try:
+        from Crypto.Cipher import AES
+        from Crypto import Random
+    except ImportError:
+        raise ImportError("Missing dependency: pyCryptodome")
 import hashlib
 import base64
 

@@ -2,9 +2,12 @@ import sys
 import hashlib
 from binascii import hexlify, unhexlify
 try:
-    from Crypto.Cipher import AES
+    from Cryptodome.Cipher import AES
 except ImportError:
-    raise ImportError("Missing dependency: pycryptodome")
+    try:
+        from Crypto.Cipher import AES
+    except ImportError:
+        raise ImportError("Missing dependency: pyCryptodome")
 from .account import PrivateKey, PublicKey
 import struct
 
