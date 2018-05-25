@@ -178,14 +178,14 @@ class Dex(BlockchainInstance):
 
         # Check minimum collateral ratio
         backing_asset_id = bitasset["options"]["short_backing_asset"]
-        maintenance_col_ratio = bitasset["current_feed"]["maintenance_collateral_ratio"] / 1000
+        # maintenance_col_ratio = bitasset["current_feed"]["maintenance_collateral_ratio"] / 1000
         current_debts = self.list_debt_positions(account)
         if not new_collateral_ratio and symbol not in current_debts:
             new_collateral_ratio = maintenance_col_ratio
         elif not new_collateral_ratio and symbol in current_debts:
             new_collateral_ratio = current_debts[symbol]["ratio"]
-        if maintenance_col_ratio > new_collateral_ratio:
-            raise ValueError("Collateral Ratio has to be higher than %5.2f" % maintenance_col_ratio)
+        # if maintenance_col_ratio > new_collateral_ratio:
+        #     raise ValueError("Collateral Ratio has to be higher than %5.2f" % maintenance_col_ratio)
 
         # Derive Amount of Collateral
         collateral_asset = Asset(
