@@ -355,7 +355,7 @@ class Price(dict, BlockchainInstance):
     def __lt__(self, other):
         if isinstance(other, Price):
             assert other["base"]["symbol"] == self["base"]["symbol"]
-            assert other["quote"]["symbol"] == self["base"]["symbol"]
+            assert other["quote"]["symbol"] == self["quote"]["symbol"]
             return self["price"] < other["price"]
         else:
             return self["price"] < float(other or 0)
@@ -363,7 +363,7 @@ class Price(dict, BlockchainInstance):
     def __le__(self, other):
         if isinstance(other, Price):
             assert other["base"]["symbol"] == self["base"]["symbol"]
-            assert other["quote"]["symbol"] == self["base"]["symbol"]
+            assert other["quote"]["symbol"] == self["quote"]["symbol"]
             return self["price"] <= other["price"]
         else:
             return self["price"] <= float(other or 0)
@@ -371,7 +371,7 @@ class Price(dict, BlockchainInstance):
     def __eq__(self, other):
         if isinstance(other, Price):
             assert other["base"]["symbol"] == self["base"]["symbol"]
-            assert other["quote"]["symbol"] == self["base"]["symbol"]
+            assert other["quote"]["symbol"] == self["quote"]["symbol"]
             return self["price"] == other["price"]
         else:
             return self["price"] == float(other or 0)
@@ -379,7 +379,7 @@ class Price(dict, BlockchainInstance):
     def __ne__(self, other):
         if isinstance(other, Price):
             assert other["base"]["symbol"] == self["base"]["symbol"]
-            assert other["quote"]["symbol"] == self["base"]["symbol"]
+            assert other["quote"]["symbol"] == self["quote"]["symbol"]
             return self["price"] != other["price"]
         else:
             return self["price"] != float(other or 0)
@@ -387,7 +387,7 @@ class Price(dict, BlockchainInstance):
     def __ge__(self, other):
         if isinstance(other, Price):
             assert other["base"]["symbol"] == self["base"]["symbol"]
-            assert other["quote"]["symbol"] == self["base"]["symbol"]
+            assert other["quote"]["symbol"] == self["quote"]["symbol"]
             return self["price"] >= other["price"]
         else:
             return self["price"] >= float(other or 0)
@@ -395,7 +395,7 @@ class Price(dict, BlockchainInstance):
     def __gt__(self, other):
         if isinstance(other, Price):
             assert other["base"]["symbol"] == self["base"]["symbol"]
-            assert other["quote"]["symbol"] == self["base"]["symbol"]
+            assert other["quote"]["symbol"] == self["quote"]["symbol"]
             return self["price"] > other["price"]
         else:
             return self["price"] > float(other or 0)
