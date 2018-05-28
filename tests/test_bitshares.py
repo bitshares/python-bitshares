@@ -205,7 +205,7 @@ class Testcases(unittest.TestCase):
 
     def test_approvewitness(self):
         bts = self.bts
-        tx = bts.approvewitness("init0")
+        tx = bts.approvewitness("1.6.1")
         self.assertEqual(
             getOperationNameForId(tx["operations"][0][0]),
             "account_update"
@@ -217,7 +217,7 @@ class Testcases(unittest.TestCase):
 
     def test_approvecommittee(self):
         bts = self.bts
-        tx = bts.approvecommittee("init0")
+        tx = bts.approvecommittee("1.5.0")
         self.assertEqual(
             getOperationNameForId(tx["operations"][0][0]),
             "account_update"
