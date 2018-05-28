@@ -153,7 +153,7 @@ class Message():
         # Test if memo key is the same as on the blockchain
         if not account["options"]["memo_key"] == memo_key:
             raise WrongMemoKey(
-                "Memo Key of account {} on the Blockchain".format(
+                "Memo Key of account {} on the Blockchain ".format(
                     account["name"]) +
                 "differs from memo key in the message: {} != {}".format(
                     account["options"]["memo_key"], memo_key
