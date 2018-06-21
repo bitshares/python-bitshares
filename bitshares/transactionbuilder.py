@@ -144,8 +144,8 @@ class TransactionBuilder(dict):
             self._require_reconstruction = False
         else:
             self._require_reconstruction = True
+            self.set_fee_asset(kwargs.get("fee_asset", None))
         self.set_expiration(kwargs.get("expiration", 30))
-        self.fee_asset_id = "1.3.0"
 
     def set_expiration(self, p):
         self.expiration = p
@@ -255,8 +255,7 @@ class TransactionBuilder(dict):
                 # If we couldn't find an active key, let's try overwrite it
                 # with an owner key
                 if not keys and permission != "owner":
-                    _keys = fetchkeys(account, "owner")
-                    keys.extend(_keys)
+                    keys.extend(fetchkeys(account, "owner"))
                 for x in keys:
                     self.wifs.add(x[0])
 
@@ -275,7 +274,13 @@ class TransactionBuilder(dict):
     def set_fee_asset(self, fee_asset):
         """ Set asset to fee
         """
-        self.fee_asset_id = fee_asset["id"]
+        from .amount import Amount
+        if isinstance(fee_asset, Amount):
+            self.fee_asset_id = fee_asset["id"]
+        elif fee_asset:
+            self.fee_asset_id = fee_asset
+        else:
+            self.fee_asset_id = "1.3.0"
 
     def constructTx(self):
         """ Construct the actual transaction and store it in the class's dict
