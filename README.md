@@ -43,3 +43,8 @@ $ python3 setup.py install --user
 ```
 $ pip3 install --user --upgrade
 ```
+
+## Discussion and Developers
+
+Discussions around development and use of this library can be found in
+a [dedicated Telegram Channel](https://t.me/pybitshares)

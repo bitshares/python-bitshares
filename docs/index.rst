@@ -126,6 +126,11 @@ _________________
    dex.bitshares.wallet.unlock("wallet-passphrase")
    dex.adjust_collateral_ratio("SILVER", 3.5)
 
+Developers and Community
+------------------------
+
+Discussions around development and use of this library can be found in
+a [dedicated Telegram Channel](https://t.me/pybitshares)
 
 General
 -------------------------
