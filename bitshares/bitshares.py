@@ -884,6 +884,7 @@ class BitShares(object):
             lambda x: float(x.split(":")[0]) == 1,
             options["votes"]
         )))
+        options["voting_account"] = "1.2.5"  # Account("proxy-to-self")["id"]
 
         op = operations.Account_update(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -922,6 +923,7 @@ class BitShares(object):
             lambda x: float(x.split(":")[0]) == 1,
             options["votes"]
         )))
+        options["voting_account"] = "1.2.5"  # Account("proxy-to-self")["id"]
 
         op = operations.Account_update(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -959,6 +961,7 @@ class BitShares(object):
             lambda x: float(x.split(":")[0]) == 0,
             options["votes"]
         )))
+        options["voting_account"] = "1.2.5"  # Account("proxy-to-self")["id"]
 
         op = operations.Account_update(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -997,6 +1000,7 @@ class BitShares(object):
             lambda x: float(x.split(":")[0]) == 0,
             options["votes"]
         )))
+        options["voting_account"] = "1.2.5"  # Account("proxy-to-self")["id"]
 
         op = operations.Account_update(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -1115,6 +1119,7 @@ class BitShares(object):
             worker = Worker(worker, blockchain_instance=self)
             options["votes"].append(worker["vote_for"])
         options["votes"] = list(set(options["votes"]))
+        options["voting_account"] = "1.2.5"  # Account("proxy-to-self")["id"]
 
         op = operations.Account_update(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -1148,6 +1153,39 @@ class BitShares(object):
             if worker["vote_for"] in options["votes"]:
                 options["votes"].remove(worker["vote_for"])
         options["votes"] = list(set(options["votes"]))
+        options["voting_account"] = "1.2.5"  # Account("proxy-to-self")["id"]
+
+        op = operations.Account_update(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "account": account["id"],
+            "new_options": options,
+            "extensions": {},
+            "prefix": self.prefix
+        })
+        return self.finalizeOp(op, account["name"], "active", **kwargs)
+
+    def unset_proxy(self, account=None, **kwargs):
+        """ Unset the proxy account to start voting yourself
+        """
+        return self.set_proxy("proxy-to-self", account=account, **kwargs)
+
+    def set_proxy(self, proxy_account, account=None, **kwargs):
+        """ Set a specific proxy for account
+
+            :param bitshares.account.Account proxy_account: Account to be
+                    proxied
+            :param str account: (optional) the account to allow access
+                to (defaults to ``default_account``)
+        """
+        if not account:
+            if "default_account" in config:
+                account = config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+        proxy = Account(proxy_account, blockchain_instance=self)
+        options = account["options"]
+        options["voting_account"] = proxy["id"]
 
         op = operations.Account_update(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
