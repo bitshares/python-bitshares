@@ -446,8 +446,7 @@ class Order(Price):
             order = self.blockchain.rpc.get_objects([args[0]])[0]
             if order:
                 super(Order, self).__init__(order["sell_price"])
-                self["seller"] = order["seller"]
-                self["id"] = order.get("id")
+                self.update(order)
                 self["deleted"] = False
             else:
                 self["id"] = args[0]
@@ -500,13 +499,24 @@ class Order(Price):
             if "type" in self and self["type"]:
                 t += "%s " % str(self["type"])
             if "for_sale" in self and self["for_sale"]:
-                t += "{} {} ".format(
+                t += "{} for {} ".format(
                     str(Amount(
                         float(self["for_sale"]) / self["price"],
                         self["quote"]["asset"],
                         blockchain_instance=self.blockchain
                     )),
                     str(self["for_sale"]),
+                )
+            else:
+                t += "{} for {} ".format(
+                    str(Amount(
+                        self["amount_to_sell"],
+                        blockchain_instance=self.blockchain
+                    )),
+                    str(Amount(
+                        self["min_to_receive"],
+                        blockchain_instance=self.blockchain
+                    )),
                 )
             return t + "@ " + Price.__repr__(self)
 
