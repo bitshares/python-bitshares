@@ -47,8 +47,8 @@ $ pip3 install --user --upgrade
 ## Contributing
 
 python-bitshares welcomes contributions from anyone and everyone. Please
-see our [guidelines for contributing](CONTRIBUTING) and the [code of
-conduct](CODE_OF_CONDUCT).
+see our [guidelines for contributing](CONTRIBUTING.md) and the [code of
+conduct](CODE_OF_CONDUCT.md).
 
 ### Discussion and Developers
 

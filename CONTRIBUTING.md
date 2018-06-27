@@ -12,7 +12,7 @@ Code of Conduct
 ---------------
 
 All members of our community are expected to follow our [Code of
-Conduct](CODE_OF_CONDUCT). Please make sure you are welcoming and
+Conduct](CODE_OF_CONDUCT.md). Please make sure you are welcoming and
 friendly in all of our spaces.
 
 Get in touch
@@ -46,9 +46,9 @@ get started with:
 Git Flow
 ~~~~~~~~
 
-This project makes heavy use of `git
-flow <http://nvie.com/posts/a-successful-git-branching-model/>`__. If
-you are not familiar with it, then the most important thing for you to
+This project makes heavy use of [git
+flow](http://nvie.com/posts/a-successful-git-branching-model/). If you
+are not familiar with it, then the most important thing for you to
 understand is that:
 
 **pull requests need to be made against the `develop` branch**!
@@ -57,7 +57,7 @@ Contributor License Agreement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Upon submission of a pull request, you will be asked to sign the
-[Contributor License Agreement](CLA) digitally through a
+[Contributor License Agreement](CLA.md) digitally through a
 github-connected service.
 
 ### 1. Where do I go from here?
@@ -94,8 +94,7 @@ The entire test suite can be run in a sandbox through
 * **Ensure the bug was not already reported** by [searching all issues][https://github.com/bitshares/python-bitshares/issues].
 
 * If you're unable to find an open issue addressing the problem,
-  [open a new
-  one][https://github.com/bitshares/python-bitshares/issues/new]. Be sure
+  [open a new one][https://github.com/bitshares/python-bitshares/issues/new]. Be sure
   to include a **title and clear description**, as much relevant
   information as possible, and a **code sample** or an **executable test
   case** demonstrating the expected behavior that is not occurring.
@@ -108,7 +107,7 @@ The entire test suite can be run in a sandbox through
 ### 5. Implement your fix or feature
 
 At this point, you're ready to make your changes! Feel free to ask for help;
-everyone is a beginner at first :smile_cat:
+everyone is a beginner at first
 
 ### 6. Get the style right
 
@@ -166,7 +165,7 @@ A PR can only be merged into `develop` by a maintainer if:
 * It has been approved by at least two maintainers. If it was a maintainer who opened the PR, only one extra approval is needed.
 * It has no requested changes.
 * It is up to date with current `develop`.
-* Did the contributor sign the [CLA](CLA)
+* Did the contributor sign the [CLA](CLA.md)
 
 Any maintainer is allowed to merge a PR if all of these conditions are met.
 
