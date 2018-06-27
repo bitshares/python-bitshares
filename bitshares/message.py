@@ -1,11 +1,17 @@
 import re
+import json
 import logging
 from binascii import hexlify, unhexlify
 from graphenebase.ecdsa import verify_message, sign_message
 from bitsharesbase.account import PublicKey
 from .instance import BlockchainInstance
 from .account import Account
-from .exceptions import InvalidMessageSignature
+from .exceptions import (
+    InvalidMessageSignature,
+    AccountDoesNotExistsException,
+    InvalidMemoKeyException,
+    WrongMemoKey
+)
 from .storage import configStorage as config
 
 
@@ -18,6 +24,7 @@ MESSAGE_SPLIT = (
     "-----END BITSHARES SIGNED MESSAGE-----"
 )
 
+# This is the message that is actually signed
 SIGNED_MESSAGE_META = """{message}
 account={meta[account]}
 memokey={meta[memokey]}
@@ -49,6 +56,7 @@ class Message():
 
             :param str account: (optional) the account that owns the bet
                 (defaults to ``default_account``)
+            :raises ValueError: If not account for signing is provided
 
             :returns: the signed message encapsulated in a known format
         """
@@ -72,14 +80,18 @@ class Message():
             account["options"]["memo_key"]
         )
 
-        # signature
+        # We strip the message here so we know for sure there are no trailing
+        # whitespaces or returns
         message = self.message.strip()
+
+        enc_message = SIGNED_MESSAGE_META.format(**locals())
+
+        # signature
         signature = hexlify(sign_message(
-            SIGNED_MESSAGE_META.format(**locals()),
+            enc_message,
             wif
         )).decode("ascii")
 
-        message = self.message
         return SIGNED_MESSAGE_ENCAPSULATED.format(
             MESSAGE_SPLIT=MESSAGE_SPLIT,
             **locals()
@@ -100,41 +112,63 @@ class Message():
 
         assert len(parts) > 2, "Incorrect number of message parts"
 
+        # Strip away all whitespaces before and after the message
         message = parts[0].strip()
         signature = parts[2].strip()
         # Parse the meta data
         meta = dict(re.findall(r'(\S+)=(.*)', parts[1]))
 
+        log.info("Message is: {}".format(message))
+        log.info("Meta is: {}".format(json.dumps(meta)))
+        log.info("Signature is: {}".format(signature))
+
         # Ensure we have all the data in meta
-        assert "account" in meta
-        assert "memokey" in meta
-        assert "block" in meta
-        assert "timestamp" in meta
+        assert "account" in meta, "No 'account' could be found in meta data"
+        assert "memokey" in meta, "No 'memokey' could be found in meta data"
+        assert "block" in meta, "No 'block' could be found in meta data"
+        assert "timestamp" in meta, \
+            "No 'timestamp' could be found in meta data"
+
+        account_name = meta.get("account").strip()
+        memo_key = meta["memokey"].strip()
+
+        try:
+            PublicKey(memo_key)
+        except Exception:
+            raise InvalidMemoKeyException(
+                "The memo key in the message is invalid"
+            )
 
         # Load account from blockchain
-        account = Account(
-            meta.get("account"),
-            blockchain_instance=self.blockchain)
+        try:
+            account = Account(
+                account_name,
+                blockchain_instance=self.blockchain)
+        except AccountDoesNotExistsException:
+            raise AccountDoesNotExistsException(
+                "Could not find account {}. Are you connected to the right chain?".format(
+                    account_name
+                ))
 
         # Test if memo key is the same as on the blockchain
-        if not account["options"]["memo_key"] == meta["memokey"]:
-            log.error(
-                "Memo Key of account {} on the Blockchain".format(
+        if not account["options"]["memo_key"] == memo_key:
+            raise WrongMemoKey(
+                "Memo Key of account {} on the Blockchain ".format(
                     account["name"]) +
                 "differs from memo key in the message: {} != {}".format(
-                    account["options"]["memo_key"], meta["memokey"]
+                    account["options"]["memo_key"], memo_key
                 )
             )
 
         # Reformat message
-        message = SIGNED_MESSAGE_META.format(**locals())
+        enc_message = SIGNED_MESSAGE_META.format(**locals())
 
         # Verify Signature
-        pubkey = verify_message(message, unhexlify(signature))
+        pubkey = verify_message(enc_message, unhexlify(signature))
 
         # Verify pubky
         pk = PublicKey(hexlify(pubkey).decode("ascii"))
-        if format(pk, self.blockchain.prefix) != meta["memokey"]:
+        if format(pk, self.blockchain.prefix) != memo_key:
             raise InvalidMessageSignature
 
         return True

@@ -44,3 +44,6 @@ docs:
 	make -C docs clean html
 
 release: clean check dist git
+
+authors:
+	git shortlog -e -s -n > AUTHORS

@@ -13,7 +13,7 @@ class ObjectCache(dict):
         super().__init__(initial_data)
 
         # Expiration
-        self.default_expiration = default_expiration
+        self.set_expiration(default_expiration)
 
         # This allows nicer testing
         self.no_overwrite = no_overwrite
@@ -52,6 +52,9 @@ class ObjectCache(dict):
         return "ObjectCache(n={}, default_expiration={})".format(
             len(self.keys()), self.default_expiration)
 
+    def set_expiration(self, expiration):
+        self.default_expiration = expiration
+
 
 class BlockchainObject(dict, BlockchainInstance):
 
@@ -75,6 +78,9 @@ class BlockchainObject(dict, BlockchainInstance):
         BlockchainInstance.__init__(self, *args, **kwargs)
         self.cached = False
         self.identifier = None
+
+        if "_cache_expiration" in kwargs:
+            BlockchainObject.set_expiration(kwargs["_cache_expiration"])
 
         # We don't read lists, sets, or tuples
         if isinstance(data, (list, set, tuple)):
@@ -145,10 +151,12 @@ class BlockchainObject(dict, BlockchainInstance):
             "Valid id's for {} are {}.{}.x".format(
                 self.__class__.__name__, self.space_id, self.type_ids)
 
-    def cache(self):
+    def cache(self, key=None):
         # store in cache
-        if dict.__contains__(self, "id"):
+        if key is None and dict.__contains__(self, "id"):
             BlockchainObject._cache[self.get("id")] = self
+        elif key:
+            BlockchainObject._cache[key] = self
 
     def iscached(self, id):
         return id in BlockchainObject._cache

@@ -1,3 +1,4 @@
+from bitshares import BitShares
 from bitsharesbase import (
     transactions,
     memo,
@@ -13,7 +14,6 @@ import unittest
 from pprint import pprint
 from binascii import hexlify
 
-TEST_AGAINST_CLI_WALLET = False
 
 prefix = "BTS"
 wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
@@ -39,14 +39,10 @@ class Testcases(unittest.TestCase):
             print()
         self.assertEqual(self.cm[:-130], txWire[:-130])
 
-        if TEST_AGAINST_CLI_WALLET:
-            from grapheneapi.grapheneapi import GrapheneAPI
-            rpc = GrapheneAPI("localhost", 8092)
-            self.cm = rpc.serialize_transaction(tx.json())
-            # print("soll: %s" % self.cm[:-130])
-            # print("ist:  %s" % txWire[:-130])
-            # print(txWire[:-130] == self.cm[:-130])
-            self.assertEqual(self.cm[:-130], txWire[:-130])
+        # Test against Bitshares backened
+        bitshares = BitShares()
+        self.cm = bitshares.rpc.get_transaction_hex(tx.json())
+        self.assertEqual(self.cm[:-130], txWire[:-130])
 
     def test_call_update(self):
         self.op = operations.Call_order_update(**{

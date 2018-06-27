@@ -40,6 +40,18 @@ services that use the BitShares blockchain. It comes with
 * push notification API
 * *and more*
 
+General
+-------------------------
+.. toctree::
+   :maxdepth: 1
+
+   installation
+   quickstart
+   tutorials
+   configuration
+   contribute
+   support
+
 Quickstart
 ----------
 
@@ -126,18 +138,11 @@ _________________
    dex.bitshares.wallet.unlock("wallet-passphrase")
    dex.adjust_collateral_ratio("SILVER", 3.5)
 
+Developers and Community
+------------------------
 
-General
--------------------------
-.. toctree::
-   :maxdepth: 1
-
-   installation
-   quickstart
-   tutorials
-   configuration
-   contribute
-   support
+Discussions around development and use of this library can be found in
+a [dedicated Telegram Channel](https://t.me/pybitshares)
 
 Packages
 --------

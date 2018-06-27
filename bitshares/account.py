@@ -54,7 +54,7 @@ class Account(BlockchainObject):
                 [self.identifier])[0]
         if not account:
             raise AccountDoesNotExistsException(self.identifier)
-        self.identifier = account["id"]
+        self.cache(account["name"])
 
         if self.full:
             account = self.blockchain.rpc.get_full_accounts(

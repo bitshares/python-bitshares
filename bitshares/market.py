@@ -9,7 +9,7 @@ from .account import Account
 from bitsharesbase import operations
 
 
-class Market(dict):
+class Market(BlockchainInstance, dict):
     """ This class allows to easily access Markets on the blockchain for trading, etc.
 
         :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
@@ -49,11 +49,11 @@ class Market(dict):
             quote_symbol, base_symbol = assets_from_string(args[0])
             quote = Asset(quote_symbol, blockchain_instance=self.blockchain)
             base = Asset(base_symbol, blockchain_instance=self.blockchain)
-            super(Market, self).__init__({"base": base, "quote": quote})
+            dict.__init__(self, {"base": base, "quote": quote})
         elif len(args) == 0 and base and quote:
-            super(Market, self).__init__({"base": base, "quote": quote})
+            dict.__init__(self, {"base": base, "quote": quote})
         elif len(args) == 2 and not base and not quote:
-            super(Market, self).__init__({"base": args[1], "quote": args[0]})
+            dict.__init__(self, {"base": args[1], "quote": args[0]})
         else:
             raise ValueError("Unknown Market Format: %s" % str(args))
 
