@@ -145,7 +145,7 @@ class TransactionBuilder(dict):
         else:
             self._require_reconstruction = True
             self.set_fee_asset(kwargs.get("fee_asset", None))
-        self.set_expiration(kwargs.get("expiration", 30))
+        self.set_expiration(kwargs.get("expiration", self.blockchain.expiration)) or 30
 
     def set_expiration(self, p):
         self.expiration = p
