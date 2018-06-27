@@ -44,7 +44,18 @@ $ python3 setup.py install --user
 $ pip3 install --user --upgrade
 ```
 
-## Discussion and Developers
+## Contributing
 
-Discussions around development and use of this library can be found in
-a [dedicated Telegram Channel](https://t.me/pybitshares)
+python-bitshares welcomes contributions from anyone and everyone. Please
+see our [guidelines for contributing](CONTRIBUTING) and the [code of
+conduct](CODE_OF_CONDUCT).
+
+### Discussion and Developers
+
+Discussions around development and use of this library can be found in a
+[dedicated Telegram Channel](https://t.me/pybitshares)
+
+### License
+
+A copy of the license is available in the repository's
+[LICENSE](LICENSE.txt) file.
