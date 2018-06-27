@@ -1,28 +1,23 @@
-Contributing
-============
+# Contributing
 
-Introduction
-------------
+## Introduction
 
 You are here to help BitShares and the python-bitshares library?
 Awesome, feel welcome and read the following sections in order to know
 how to ask questions and how to work on something.
 
-Code of Conduct
----------------
+## Code of Conduct
 
 All members of our community are expected to follow our [Code of
 Conduct](CODE_OF_CONDUCT.md). Please make sure you are welcoming and
 friendly in all of our spaces.
 
-Get in touch
-------------
+## Get in touch
 
 Feel free to get in contact with the developer community on
 [Telegram](https://t.me/pybitshares).
 
-Contributing to development
----------------------------
+## Contributing to development
 
 When contributing to this repository, please first discuss the change
 you wish to make via issue, email, or any other method with the owners
@@ -31,8 +26,7 @@ of this repository before making a change.
 Please note we have a code of conduct, please follow it in all your
 interactions with the project.
 
-Your First Contribution
-~~~~~~~~~~~~~~~~~~~~~~~
+### Your First Contribution
 
 To familiarize yourself with the code and procedures, we recommend to
 get started with:
@@ -43,8 +37,7 @@ get started with:
 * make a website
 * write a tutorial
 
-Git Flow
-~~~~~~~~
+### Git Flow
 
 This project makes heavy use of [git
 flow](http://nvie.com/posts/a-successful-git-branching-model/). If you
@@ -53,8 +46,7 @@ understand is that:
 
 **pull requests need to be made against the `develop` branch**!
 
-Contributor License Agreement
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### Contributor License Agreement
 
 Upon submission of a pull request, you will be asked to sign the
 [Contributor License Agreement](CLA.md) digitally through a
