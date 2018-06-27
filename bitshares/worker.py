@@ -37,7 +37,7 @@ class Workers(list):
         :param bitshares blockchain_instance: BitShares() instance to use when
             accesing a RPC
     """
-    def __init__(self, account_name=None, **kwargs):
+    def __init__(self, account_name=None, lazy=False, **kwargs):
         BlockchainInstance.__init__(self, **kwargs)
         if account_name:
             account = Account(account_name, blockchain_instance=self.blockchain)
@@ -48,7 +48,7 @@ class Workers(list):
 
         super(Workers, self).__init__(
             [
-                Worker(x, lazy=True, blockchain_instance=self.blockchain)
+                Worker(x, lazy=lazy, blockchain_instance=self.blockchain)
                 for x in self.workers
             ]
         )
