@@ -5,6 +5,7 @@
 ![](https://img.shields.io/github/downloads/xeroc/python-bitshares/total.svg?style=for-the-badge)
 ![](https://img.shields.io/pypi/pyversions/bitshares.svg?style=for-the-badge)
 ![](https://img.shields.io/pypi/l/bitshares.svg?style=for-the-badge)
+![](https://cla-assistant.io/readme/badge/bitshares/python-bitshares)
 
 **Stable**
 
