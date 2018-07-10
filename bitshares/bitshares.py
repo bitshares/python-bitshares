@@ -1508,7 +1508,7 @@ class BitShares(object):
                 account = config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
-        amount = Amount(amount, symbol, blockchain_instance=self)
+        amount = Amount(amount, "1.3.0", blockchain_instance=self)
         account = Account(account, blockchain_instance=self)
         asset = Asset(symbol, blockchain_instance=self)
         op = operations.Asset_fund_fee_pool(**{
