@@ -98,7 +98,7 @@ class Asset(BlockchainObject):
 
     @property
     def market_fee_percent(self):
-        return self["options"]["market_fee_percent"] / 100
+        return self["options"]["market_fee_percent"] / 100 / 100
 
     @property
     def max_market_fee(self):
