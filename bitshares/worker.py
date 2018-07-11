@@ -15,13 +15,21 @@ class Worker(BlockchainObject):
     """
     type_id = 14
 
+    def __init__(self, *args, **kwargs):
+        super(Worker, self).__init__(*args, **kwargs)
+        self.post_format()
+
+    def post_format(self):
+        if isinstance(self["work_end_date"], str):
+            self["work_end_date"] = formatTimeString(self["work_end_date"])
+            self["work_begin_date"] = formatTimeString(self["work_begin_date"])
+
     def refresh(self):
         worker = self.blockchain.rpc.get_object(self.identifier)
         if not worker:
             raise WorkerDoesNotExistsException
-        worker["work_end_date"] = formatTimeString(worker["work_end_date"])
-        worker["work_begin_date"] = formatTimeString(worker["work_begin_date"])
         super(Worker, self).__init__(worker, blockchain_instance=self.blockchain)
+        self.post_format()
         self.cached = True
 
     @property

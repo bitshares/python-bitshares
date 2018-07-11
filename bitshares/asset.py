@@ -97,6 +97,18 @@ class Asset(BlockchainObject):
             self.refresh()
 
     @property
+    def market_fee_percent(self):
+        return self["options"]["market_fee_percent"] / 100 / 100
+
+    @property
+    def max_market_fee(self):
+        from .amount import Amount
+        return Amount({
+            "amount": self["options"]["max_market_fee"],
+            "asset_id": self["id"]
+        })
+
+    @property
     def feeds(self):
         from .price import PriceFeed
         self.ensure_full()
