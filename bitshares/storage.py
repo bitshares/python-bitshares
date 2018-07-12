@@ -235,7 +235,7 @@ class Configuration(DataDir):
 
     #: Default configuration
     config_defaults = {
-        "node": "wss://node.bitshares.eu",
+        "node": "wss://eu.nodes.bitshares.ws",
         "rpcpassword": "",
         "rpcuser": "",
         "order-expiration": 7 * 24 * 60 * 60,

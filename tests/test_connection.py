@@ -18,7 +18,7 @@ class Testcases(unittest.TestCase):
         )
 
         b2 = BitShares(
-            "wss://node.bitshares.eu",
+            "wss://eu.nodes.bitshares.ws",
             nobroadcast=True,
         )
 
@@ -33,7 +33,7 @@ class Testcases(unittest.TestCase):
         test = Asset("1.3.0")
 
         b2 = BitShares(
-            "wss://node.bitshares.eu",
+            "wss://eu.nodes.bitshares.ws",
             nobroadcast=True,
         )
         set_shared_bitshares_instance(b2)
