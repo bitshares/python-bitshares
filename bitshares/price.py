@@ -507,7 +507,7 @@ class Order(Price):
                     )),
                     str(self["for_sale"]),
                 )
-            else:
+            elif "amount_to_sell" in self:
                 t += "{} for {} ".format(
                     str(Amount(
                         self["amount_to_sell"],
@@ -515,6 +515,19 @@ class Order(Price):
                     )),
                     str(Amount(
                         self["min_to_receive"],
+                        blockchain_instance=self.blockchain
+                    )),
+                )
+            elif "quote" in self and "base" in self:
+                t += "{} for {} ".format(
+                    str(Amount({
+                        "amount": self["quote"],
+                        "asset_id": self["quote"]["asset"]["id"]},
+                        blockchain_instance=self.blockchain
+                    )),
+                    str(Amount({
+                        "amount": self["base"],
+                        "asset_id": self["base"]["asset"]["id"]},
                         blockchain_instance=self.blockchain
                     )),
                 )
