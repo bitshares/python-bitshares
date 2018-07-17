@@ -210,14 +210,12 @@ class TransactionBuilder(dict):
             and permission is supposed to sign the transaction
         """
         assert permission in ["active", "owner"], "Invalid permission"
-        account = Account(account, blockchain_instance=self.blockchain)
-        required_treshold = account[permission]["weight_threshold"]
 
         if self.blockchain.wallet.locked():
             raise WalletLocked()
 
         # Let's define a helper function for recursion
-        def fetchkeys(account, perm, level=0):
+        def fetchkeys(account, perm, level=0, required_treshold=1):
             if level > 2:
                 return []
             r = []
@@ -234,7 +232,7 @@ class TransactionBuilder(dict):
                 for authority in account[perm]["account_auths"]:
                     auth_account = Account(
                         authority[0], blockchain_instance=self.blockchain)
-                    r.extend(fetchkeys(auth_account, perm, level + 1))
+                    r.extend(fetchkeys(auth_account, perm, level + 1, required_treshold))
 
             return r
 
@@ -251,11 +249,11 @@ class TransactionBuilder(dict):
             else:
                 account = Account(account, blockchain_instance=self.blockchain)
                 required_treshold = account[permission]["weight_threshold"]
-                keys = fetchkeys(account, permission)
+                keys = fetchkeys(account, permission, required_treshold=required_treshold)
                 # If we couldn't find an active key, let's try overwrite it
                 # with an owner key
                 if not keys and permission != "owner":
-                    keys.extend(fetchkeys(account, "owner"))
+                    keys.extend(fetchkeys(account, "owner", required_treshold=required_treshold))
                 for x in keys:
                     self.wifs.add(x[0])
 
