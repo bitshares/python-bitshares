@@ -143,8 +143,3 @@ class WrongMemoKey(Exception):
     """
     pass
 
-
-class KeyNotFound(Exception):
-    """ Key not found
-    """
-    pass
