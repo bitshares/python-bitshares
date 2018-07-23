@@ -1017,6 +1017,8 @@ class BitShares(object):
         """ Approve Proposal
 
             :param list proposal_id: Ids of the proposals
+            :param str appprover: The account or key to use for approval
+                (defaults to ``account``)
             :param str account: (optional) the account to allow access
                 to (defaults to ``default_account``)
         """
@@ -1045,7 +1047,6 @@ class BitShares(object):
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 'fee_paying_account': account["id"],
                 'proposal': proposal["id"],
-                'active_approvals_to_add': [approver["id"]],
                 "prefix": self.prefix
             }
             if is_key:
@@ -1058,8 +1059,9 @@ class BitShares(object):
                 })
             op.append(operations.Proposal_update(**update_dict))
         if is_key:
-            self.txbuffer.appendSigner(account["name"], "active")
-        return self.finalizeOp(op, approver["name"], "active", **kwargs)
+            self.txbuffer.appendSigner(approver, "active")
+            return self.finalizeOp(op, account["name"], "active", **kwargs)
+        return self.finalizeOp(op, approver, "active", **kwargs)
 
     def disapproveproposal(
         self, proposal_ids, account=None, approver=None, **kwargs
