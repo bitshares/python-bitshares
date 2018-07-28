@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from bitsharesapi.bitsharesnoderpc import BitSharesNodeRPC
 from bitsharesbase.account import PublicKey
 from bitsharesbase import operations
+from .instance import set_shared_blockchain_instance, shared_blockchain_instance
 from .asset import Asset
 from .account import Account
 from .amount import Amount
@@ -326,6 +327,20 @@ class BitShares(object):
         """ Unlock the internal wallet
         """
         return self.wallet.unlock(*args, **kwargs)
+
+    # -------------------------------------------------------------------------
+    # Shared instance interface
+    # -------------------------------------------------------------------------
+    def set_shared_instance(self):
+        """ This method allows to set the current instance as default
+        """
+        set_shared_blockchain_instance(self)
+
+    @classmethod
+    def get_shared_instance(cls, self):
+        """ This interface allows to obtain the default instance
+        """
+        return shared_blockchain_instance()
 
     # -------------------------------------------------------------------------
     # Transaction Buffers
