@@ -358,7 +358,7 @@ class Configuration(DataDir):
         connection.commit()
 
     def wipe(self):
-        """ Delete all keys from the configuration store
+        """ Delete all configuration from the configuration store
         """
         query = ("DELETE FROM %s " % (self.__tablename__) +
                  "WHERE key<>?",
