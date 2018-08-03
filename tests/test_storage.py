@@ -1,6 +1,14 @@
 import unittest
 from pprint import pprint
 from bitshares import storage
+from bitsharesbase.account import PrivateKey
+
+
+def pubprivpair(wif):
+    return(
+        str(wif),
+        str(PrivateKey("5Hqr1Rx6v3MLAvaYCxLYqaSEsm4eHaDFkLksPF2e1sDS7omneaZ").pubkey)
+    )
 
 
 class Testcases(unittest.TestCase):
@@ -39,7 +47,7 @@ class Testcases(unittest.TestCase):
 
         self.assertEqual(len(keys.getPublicKeys()), 1)
         keys.add(
-            "5Hqr1Rx6v3MLAvaYCxLYqaSEsm4eHaDFkLksPF2e1sDS7omneaZ"
+            *pubprivpair("5Hqr1Rx6v3MLAvaYCxLYqaSEsm4eHaDFkLksPF2e1sDS7omneaZ")
         )
         self.assertEqual(len(keys.getPublicKeys()), 2)
         self.assertEqual(
@@ -48,6 +56,8 @@ class Testcases(unittest.TestCase):
             ),
             "5Hqr1Rx6v3MLAvaYCxLYqaSEsm4eHaDFkLksPF2e1sDS7omneaZ"
         )
+        keys.delete("BTS5u9tEsKaqtCpKibrXJAMhaRUVBspB5pr9X34PPdrSbvBb6ajZY")
+        self.assertEqual(len(keys.getPublicKeys()), 1)
 
     def test_masterpassword(self):
         password = "foobar"
@@ -90,7 +100,7 @@ class Testcases(unittest.TestCase):
         assert keys.unlocked()
 
         keys.add(
-            "5Hqr1Rx6v3MLAvaYCxLYqaSEsm4eHaDFkLksPF2e1sDS7omneaZ"
+            *pubprivpair("5Hqr1Rx6v3MLAvaYCxLYqaSEsm4eHaDFkLksPF2e1sDS7omneaZ")
         )
         self.assertEqual(len(keys.getPublicKeys()), 1)
         self.assertEqual(
@@ -99,3 +109,6 @@ class Testcases(unittest.TestCase):
             ),
             "5Hqr1Rx6v3MLAvaYCxLYqaSEsm4eHaDFkLksPF2e1sDS7omneaZ"
         )
+
+        keys.delete("BTS5u9tEsKaqtCpKibrXJAMhaRUVBspB5pr9X34PPdrSbvBb6ajZY")
+        self.assertEqual(len(keys.getPublicKeys()), 0)

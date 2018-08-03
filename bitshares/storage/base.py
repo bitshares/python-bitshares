@@ -1,8 +1,8 @@
 import os
 import hashlib
 
+from graphenebase.account import PrivateKey
 from graphenebase import bip38
-from bitsharesbase.account import PrivateKey
 from binascii import hexlify
 
 from ..aes import AESCipher
@@ -65,7 +65,47 @@ class BaseStore(dict):
             self.delete(key)
 
 
+class BaseKeyStore(BaseStore):
+    """ The BaseKeyStore defines the interface for key storage
+    """
+
+    defaults = {}
+
+    # Interface to deal with encrypted keys
+    def getPublicKeys(self):
+        """ Returns the public keys stored in the database
+        """
+        pass
+
+    def getPrivateKeyForPublicKey(self, pub):
+        """ Returns the (possibly encrypted) private key that
+            corresponds to a public key
+
+           :param str pub: Public key
+
+           The encryption scheme is BIP38
+        """
+        pass
+
+    def add(self, wif, pub=None):
+        """ Add a new public/private key pair (correspondence has to be
+            checked elsewhere!)
+
+           :param str pub: Public key
+           :param str wif: Private key
+        """
+        pass
+
+    def delete(self, pub):
+        """ Delete a pubkey/privatekey pair from the store
+        """
+        pass
+
+
 class DefaultConfigurationStore(BaseStore):
+    """ A simple example that shows how to set defaults
+        for the Base Store
+    """
 
     defaults = {
         "node": "wss://node.bitshares.eu",
@@ -73,6 +113,46 @@ class DefaultConfigurationStore(BaseStore):
         "rpcuser": "",
         "order-expiration": 7 * 24 * 60 * 60,
     }
+
+
+class InRamKeyStore(BaseKeyStore):
+    """ A simple Store that stores keys unencrypted in RAM
+    """
+
+    defaults = {
+        # Well-known key
+        "BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV": "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+    }
+
+    # Interface to deal with encrypted keys
+    def getPublicKeys(self):
+        """ Returns the public keys stored in the database
+        """
+        return self.keys()
+
+    def getPrivateKeyForPublicKey(self, pub):
+        """ Returns the (possibly encrypted) private key that
+            corresponds to a public key
+
+           :param str pub: Public key
+
+           The encryption scheme is BIP38
+        """
+        return self.get(str(pub), None)
+
+    def add(self, wif, pub):
+        """ Add a new public/private key pair (correspondence has to be
+            checked elsewhere!)
+
+           :param str pub: Public key
+           :param str wif: Private key
+        """
+        self[str(pub)] = wif
+
+    def delete(self, pub):
+        """ Delete a pubkey/privatekey pair from the store
+        """
+        BaseStore.delete(self, str(pub))
 
 
 class MasterPassword(object):
@@ -182,35 +262,6 @@ class MasterPassword(object):
         self.password = newpassword
         self.saveEncrytpedMaster()
 
-class BaseKeyStore(BaseStore):
-
-    defaults = {}
-
-    # Interface to deal with encrypted keys
-    def getPublicKeys(self):
-        """ Returns the public keys stored in the database
-        """
-        pass
-
-    def getPrivateKeyForPublicKey(self, pub):
-        """ Returns the (possibly encrypted) private key that
-            corresponds to a public key
-
-           :param str pub: Public key
-
-           The encryption scheme is BIP38
-        """
-        pass
-
-    def add(self, wif, pub=None):
-        """ Add a new public/private key pair (correspondence has to be
-            checked elsewhere!)
-
-           :param str pub: Public key
-           :param str wif: Private key
-        """
-        pass
-
 
 class DefaultEncryptedKeyStore(BaseKeyStore, MasterPassword):
 
@@ -234,14 +285,14 @@ class DefaultEncryptedKeyStore(BaseKeyStore, MasterPassword):
            The encryption scheme is BIP38
         """
         assert self.unlocked()
-        wif = self.get(pub, None)
+        wif = self.get(str(pub), None)
         if wif:
             return format(
                 bip38.decrypt(wif, self.masterkey),
                 "wif"
             )
 
-    def add(self, wif, pub=None):
+    def add(self, wif, pub):
         """ Add a new public/private key pair (correspondence has to be
             checked elsewhere!)
 
@@ -249,44 +300,12 @@ class DefaultEncryptedKeyStore(BaseKeyStore, MasterPassword):
            :param str wif: Private key
         """
         assert self.unlocked()
-        if not pub:
-            pub = str(PrivateKey(wif).pubkey)
-        self[pub] = format(bip38.encrypt(
+        self[str(pub)] = format(bip38.encrypt(
                 PrivateKey(wif),
                 self.masterkey
             ), "encwif")
 
-
-class InRamKeyStore(BaseKeyStore):
-
-    defaults = {
-        # Well-known key
-        "BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV": "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
-    }
-
-    # Interface to deal with encrypted keys
-    def getPublicKeys(self):
-        """ Returns the public keys stored in the database
+    def delete(self, pub):
+        """ Delete a pubkey/privatekey pair from the store
         """
-        return self.keys()
-
-    def getPrivateKeyForPublicKey(self, pub):
-        """ Returns the (possibly encrypted) private key that
-            corresponds to a public key
-
-           :param str pub: Public key
-
-           The encryption scheme is BIP38
-        """
-        return self.get(pub, None)
-
-    def add(self, wif, pub=None):
-        """ Add a new public/private key pair (correspondence has to be
-            checked elsewhere!)
-
-           :param str pub: Public key
-           :param str wif: Private key
-        """
-        if not pub:
-            pub = str(PrivateKey(wif).pubkey)
-        self[pub] = wif
+        BaseStore.delete(self, str(pub))
