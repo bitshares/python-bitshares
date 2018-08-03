@@ -1,5 +1,16 @@
-bitshares\.storage module
-=========================
+bitshares\.storage package
+==========================
+
+Submodules
+----------
+
+.. toctree::
+
+   bitshares.storage.base
+   bitshares.storage.sqlite
+
+Module contents
+---------------
 
 .. automodule:: bitshares.storage
     :members:
