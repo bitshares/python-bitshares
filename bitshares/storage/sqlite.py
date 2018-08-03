@@ -6,7 +6,7 @@ import hashlib
 from binascii import hexlify
 from appdirs import user_data_dir
 
-from .base import BaseConfiguration
+from .base import BaseConfiguration, BaseKey
 from ..exceptions import WrongMasterPasswordException
 from ..aes import AESCipher
 
@@ -60,7 +60,7 @@ class DataDir(object):
                 raise
 
 
-class Key(DataDir):
+class Key(DataDir, BaseKey):
     """ This is the key storage that stores the public key and the
         (possibly encrypted) private key in the `keys` table in the
         SQLite3 database.
@@ -68,7 +68,7 @@ class Key(DataDir):
     __tablename__ = 'keys'
 
     def __init__(self):
-        super(Key, self).__init__()
+        DataDir.__init__(self)
 
     def exists(self):
         """ Check if the database table exists
@@ -201,7 +201,7 @@ class Configuration(DataDir, BaseConfiguration):
     }
 
     def __init__(self):
-        super(Configuration, self).__init__()
+        DataDir.__init__(self)
 
     def exists(self):
         """ Check if the database table exists

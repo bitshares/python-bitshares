@@ -1,6 +1,7 @@
-from .sqlite import Key, Configuration as C, MasterPassword
+from .sqlite import Key as K, Configuration as C, MasterPassword
 
 from .base import BaseConfiguration as Configuration
+from .base import BaseKey as Key
 
 
 
