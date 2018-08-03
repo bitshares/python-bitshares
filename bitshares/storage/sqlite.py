@@ -6,7 +6,7 @@ import hashlib
 from binascii import hexlify
 from appdirs import user_data_dir
 
-from .base import BaseConfiguration, BaseKey
+from .base import BaseStore, BaseKeyStore
 from ..exceptions import WrongMasterPasswordException
 from ..aes import AESCipher
 
@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 timeformat = "%Y%m%d-%H%M%S"
 
 
-class DataDir(object):
+class SQLiteFile():
     """ This class ensures that the user's data is stored in its OS
         preotected user directory:
 
@@ -33,7 +33,11 @@ class DataDir(object):
 
          Furthermore, it offers an interface to generated backups
          in the `backups/` directory every now and then.
+
+         .. note:: The file name can be overwritten when providing a keyword
+            argument ``profile``.
     """
+
     appname = "bitshares"
     appauthor = "Fabian Schuh"
     storageDatabase = "bitshares.sqlite"
@@ -41,11 +45,10 @@ class DataDir(object):
     data_dir = user_data_dir(appname, appauthor)
     sqlDataBaseFile = os.path.join(data_dir, storageDatabase)
 
-    def __init__(self):
-        #: Storage
-        self.mkdir_p()
+    def __init__(self, *args, **kwargs):
+        if "profile" in kwargs:
+            self.sqlDataBaseFile = "{}.sqlite".format(kwargs["profile"])
 
-    def mkdir_p(self):
         """ Ensure that the directory in which the data is stored
             exists
         """
@@ -60,193 +63,63 @@ class DataDir(object):
                 raise
 
 
-class SqliteKey(DataDir, BaseKey):
-    """ This is the key storage that stores the public key and the
-        (possibly encrypted) private key in the `keys` table in the
-        SQLite3 database.
-    """
-    __tablename__ = 'keys'
+class BaseSQLiteStore(BaseStore, SQLiteFile):
 
-    def __init__(self):
-        DataDir.__init__(self)
+    __tablename__ = None
+    __key__ = None
+    __value__ = None
 
-    def exists(self):
-        """ Check if the database table exists
-        """
-        query = ("SELECT name FROM sqlite_master " +
-                 "WHERE type='table' AND name=?",
-                 (self.__tablename__, ))
-        connection = sqlite3.connect(self.sqlDataBaseFile)
-        cursor = connection.cursor()
-        cursor.execute(*query)
-        return True if cursor.fetchone() else False
-
-    def create(self):
-        """ Create the new table in the SQLite database
-        """
-        query = ('CREATE TABLE %s (' % self.__tablename__ +
-                 'id INTEGER PRIMARY KEY AUTOINCREMENT,' +
-                 'pub STRING(256),' +
-                 'wif STRING(256)' +
-                 ')')
-        connection = sqlite3.connect(self.sqlDataBaseFile)
-        cursor = connection.cursor()
-        cursor.execute(query)
-        connection.commit()
-
-    def getPublicKeys(self):
-        """ Returns the public keys stored in the database
-        """
-        query = ("SELECT pub from %s " % (self.__tablename__))
-        connection = sqlite3.connect(self.sqlDataBaseFile)
-        cursor = connection.cursor()
-        cursor.execute(query)
-        results = cursor.fetchall()
-        return [x[0] for x in results]
-
-    def getPrivateKeyForPublicKey(self, pub):
-        """ Returns the (possibly encrypted) private key that
-            corresponds to a public key
-
-           :param str pub: Public key
-
-           The encryption scheme is BIP38
-        """
-        query = ("SELECT wif from %s " % (self.__tablename__) +
-                 "WHERE pub=?",
-                 (pub,))
-        connection = sqlite3.connect(self.sqlDataBaseFile)
-        cursor = connection.cursor()
-        cursor.execute(*query)
-        key = cursor.fetchone()
-        if key:
-            return key[0]
-        else:
-            return None
-
-    def updateWif(self, pub, wif):
-        """ Change the wif to a pubkey
-
-           :param str pub: Public key
-           :param str wif: Private key
-        """
-        query = ("UPDATE %s " % self.__tablename__ +
-                 "SET wif=? WHERE pub=?",
-                 (wif, pub))
-        connection = sqlite3.connect(self.sqlDataBaseFile)
-        cursor = connection.cursor()
-        cursor.execute(*query)
-        connection.commit()
-
-    def add(self, wif, pub):
-        """ Add a new public/private key pair (correspondence has to be
-            checked elsewhere!)
-
-           :param str pub: Public key
-           :param str wif: Private key
-        """
-        if self.getPrivateKeyForPublicKey(pub):
-            raise ValueError("Key already in storage")
-        query = ('INSERT INTO %s (pub, wif) ' % self.__tablename__ +
-                 'VALUES (?, ?)',
-                 (pub, wif))
-        connection = sqlite3.connect(self.sqlDataBaseFile)
-        cursor = connection.cursor()
-        cursor.execute(*query)
-        connection.commit()
-
-    def delete(self, pub):
-        """ Delete the key identified as `pub`
-
-           :param str pub: Public key
-        """
-        query = ("DELETE FROM %s " % (self.__tablename__) +
-                 "WHERE pub=?",
-                 (pub,))
-        connection = sqlite3.connect(self.sqlDataBaseFile)
-        cursor = connection.cursor()
-        cursor.execute(*query)
-        connection.commit()
-
-    def wipe(self, sure=False):
-        """ Purge the entire wallet. No keys will survive this!
-        """
-        if not sure:
-            log.error(
-                "You need to confirm that you are sure "
-                "and understand the implications of "
-                "wiping your wallet!"
-            )
-            return
-        else:
-            query = "DELETE FROM %s " % self.__tablename__
-            connection = sqlite3.connect(self.sqlDataBaseFile)
-            cursor = connection.cursor()
-            cursor.execute(query)
-            connection.commit()
-
-
-class SqliteConfiguration(DataDir, BaseConfiguration):
-    """ This is the configuration storage that stores key/value
-        pairs in the `config` table of the SQLite3 database.
-    """
-    __tablename__ = "config"
-
-    #: Default configuration
-    config_defaults = {
-        "node": "wss://node.bitshares.eu",
-        "rpcpassword": "",
-        "rpcuser": "",
-        "order-expiration": 7 * 24 * 60 * 60,
-    }
-
-    def __init__(self):
-        DataDir.__init__(self)
-
-    def exists(self):
-        """ Check if the database table exists
-        """
-        query = ("SELECT name FROM sqlite_master " +
-                 "WHERE type='table' AND name=?",
-                 (self.__tablename__, ))
-        connection = sqlite3.connect(self.sqlDataBaseFile)
-        cursor = connection.cursor()
-        cursor.execute(*query)
-        return True if cursor.fetchone() else False
-
-    def create(self):
-        """ Create the new table in the SQLite database
-        """
-        query = ('CREATE TABLE %s (' % self.__tablename__ +
-                 'id INTEGER PRIMARY KEY AUTOINCREMENT,' +
-                 'key STRING(256),' +
-                 'value STRING(256)' +
-                 ')')
-        connection = sqlite3.connect(self.sqlDataBaseFile)
-        cursor = connection.cursor()
-        cursor.execute(query)
-        connection.commit()
+    def __init__(self, *args, **kwargs):
+        #: Storage
+        SQLiteFile.__init__(self, *args, **kwargs)
+        if not self.exists():
+            self.create()
 
     def _haveKey(self, key):
         """ Is the key `key` available int he configuration?
         """
-        query = ("SELECT value FROM %s " % (self.__tablename__) +
-                 "WHERE key=?",
-                 (key,)
-                 )
+        query = (
+            "SELECT {} FROM {} WHERE {}=?".format(
+                self.__value__,
+                self.__tablename__,
+                self.__key__
+            ), (key,))
         connection = sqlite3.connect(self.sqlDataBaseFile)
         cursor = connection.cursor()
         cursor.execute(*query)
         return True if cursor.fetchone() else False
 
-    def __getitem__(self, key):
-        """ This method behaves differently from regular `dict` in that
-            it returns `None` if a key is not found!
+    def __setitem__(self, key, value):
+        """ Sets an item in the store
         """
-        query = ("SELECT value FROM %s " % (self.__tablename__) +
-                 "WHERE key=?",
-                 (key,)
-                 )
+        if self._haveKey(key):
+            query = (
+                "UPDATE {} SET {}=? WHERE {}=?".format(
+                    self.__tablename__,
+                    self.__value__,
+                    self.__key__
+                ), (value, key))
+        else:
+            query = (
+                "INSERT INTO {} ({}, {}) VALUES (?, ?)".format(
+                    self.__tablename__,
+                    self.__key__,
+                    self.__value__,
+            ), (key, value))
+        connection = sqlite3.connect(self.sqlDataBaseFile)
+        cursor = connection.cursor()
+        cursor.execute(*query)
+        connection.commit()
+
+    def __getitem__(self, key):
+        """ Gets an item from the store as if it was a dictionary
+        """
+        query = (
+            "SELECT {} FROM {} WHERE {}=?".format(
+                self.__value__,
+                self.__tablename__,
+                self.__key__
+            ), (key,))
         connection = sqlite3.connect(self.sqlDataBaseFile)
         cursor = connection.cursor()
         cursor.execute(*query)
@@ -254,10 +127,49 @@ class SqliteConfiguration(DataDir, BaseConfiguration):
         if result:
             return result[0]
         else:
-            if key in self.config_defaults:
-                return self.config_defaults[key]
+            if key in self.defaults:
+                return self.defaults[key]
             else:
                 return None
+
+    def __iter__(self):
+        """ Iterates through the store
+        """
+        return iter(self.items())
+
+    def __len__(self):
+        """ return lenght of store
+        """
+        query = ("SELECT id from {}".format(self.__tablename__))
+        connection = sqlite3.connect(self.sqlDataBaseFile)
+        cursor = connection.cursor()
+        cursor.execute(query)
+        return len(cursor.fetchall())
+
+    def __contains__(self, key):
+        """ Tests if a key is contained in the store.
+
+            May test againsts self.defaults
+        """
+        if self._haveKey(key) or key in self.defaults:
+            return True
+        else:
+            return False
+
+    def items(self):
+        """ returns all items off the store as tuples
+        """
+        query = ("SELECT {}, {} from {}".format(
+            self.__key__,
+            self.__value__,
+            self.__tablename__))
+        connection = sqlite3.connect(self.sqlDataBaseFile)
+        cursor = connection.cursor()
+        cursor.execute(query)
+        r = []
+        for key, value in cursor.fetchall():
+            r.append((key, value))
+        return r
 
     def get(self, key, default=None):
         """ Return the key if exists or a default value
@@ -267,70 +179,106 @@ class SqliteConfiguration(DataDir, BaseConfiguration):
         else:
             return default
 
-    def __contains__(self, key):
-        if self._haveKey(key) or key in self.config_defaults:
-            return True
-        else:
-            return False
-
-    def __setitem__(self, key, value):
-        if self._haveKey(key):
-            query = ("UPDATE %s " % self.__tablename__ +
-                     "SET value=? WHERE key=?",
-                     (value, key))
-        else:
-            query = ("INSERT INTO %s " % self.__tablename__ +
-                     "(key, value) VALUES (?, ?)",
-                     (key, value))
-        connection = sqlite3.connect(self.sqlDataBaseFile)
-        cursor = connection.cursor()
-        cursor.execute(*query)
-        connection.commit()
-
+    # Specific for this library
     def delete(self, key):
-        """ Delete a key from the configuration store
+        """ Delete a key from the store
         """
-        query = ("DELETE FROM %s " % (self.__tablename__) +
-                 "WHERE key=?",
-                 (key,))
+        query = (
+            "DELETE FROM {} WHERE {}=?".format(
+                self.__tablename__,
+                self.__key__
+            ), (key,))
         connection = sqlite3.connect(self.sqlDataBaseFile)
         cursor = connection.cursor()
         cursor.execute(*query)
         connection.commit()
 
-    def wipe(self, sure=False):
-        """ Purge the entire wallet. No keys will survive this!
+    def wipe(self):
+        """ Wipe the store
         """
-        if not sure:
-            log.error(
-                "You need to confirm that you are sure "
-                "and understand the implications of "
-                "wiping your wallet!"
-            )
-            return
-        else:
-            query = "DELETE FROM %s " % self.__tablename__
-            connection = sqlite3.connect(self.sqlDataBaseFile)
-            cursor = connection.cursor()
-            cursor.execute(query)
-            connection.commit()
-
-    def __iter__(self):
-        return iter(self.items())
-
-    def items(self):
-        query = ("SELECT key, value from %s " % (self.__tablename__))
+        query = "DELETE FROM {}".format(self.__tablename__)
         connection = sqlite3.connect(self.sqlDataBaseFile)
         cursor = connection.cursor()
         cursor.execute(query)
-        r = {}
-        for key, value in cursor.fetchall():
-            r[key] = value
-        return r
+        connection.commit()
 
-    def __len__(self):
-        query = ("SELECT id from %s " % (self.__tablename__))
+    def exists(self):
+        """ Check if the database table exists
+        """
+        query = ("SELECT name FROM sqlite_master " +
+                 "WHERE type='table' AND name=?",
+                 (self.__tablename__, ))
+        connection = sqlite3.connect(self.sqlDataBaseFile)
+        cursor = connection.cursor()
+        cursor.execute(*query)
+        return True if cursor.fetchone() else False
+
+    def create(self):
+        """ Create the new table in the SQLite database
+        """
+        query = (
+            """
+            CREATE TABLE {} (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                {} STRING(256),
+                {} STRING(256)
+            )"""
+        ).format(
+            self.__tablename__,
+            self.__key__,
+            self.__value__
+        )
         connection = sqlite3.connect(self.sqlDataBaseFile)
         cursor = connection.cursor()
         cursor.execute(query)
-        return len(cursor.fetchall())
+        connection.commit()
+
+
+class DefaultSqliteConfigurationStore(BaseSQLiteStore, BaseStore):
+    """ This is the configuration storage that stores key/value
+        pairs in the `config` table of the SQLite3 database.
+    """
+    __tablename__ = "config"
+    __key__ = "key"
+    __value__ = "value"
+
+    #: Default configuration
+    defaults = {
+        "node": "wss://node.bitshares.eu",
+        "rpcpassword": "",
+        "rpcuser": "",
+        "order-expiration": 7 * 24 * 60 * 60,
+    }
+
+
+class DefaultSqliteKeyStore(BaseSQLiteStore, BaseKeyStore):
+    """ This is the key storage that stores the public key and the
+        (possibly encrypted) private key in the `keys` table in the
+        SQLite3 database.
+    """
+    __tablename__ = 'keys'
+    __key__ = "pub"
+    __value__ = "wif"
+
+    def getPublicKeys(self):
+        """ Returns the public keys stored in the database
+        """
+        return [k for k, v in self.items()]
+
+    def getPrivateKeyForPublicKey(self, pub):
+        """ Returns the (possibly encrypted) private key that
+            corresponds to a public key
+
+           :param str pub: Public key
+
+           The encryption scheme is BIP38
+        """
+        return self[pub]
+
+    def add(self, wif, pub=None):
+        """ Change the wif to a pubkey
+
+           :param str pub: Public key
+           :param str wif: Private key
+        """
+        self[str(pub)] = str(wif)

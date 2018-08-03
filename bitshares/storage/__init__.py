@@ -1,9 +1,17 @@
 #from .sqlite import SqliteKey as K, SqliteConfiguration as C
-
-from .base import DefaultConfigurationStore as Configuration
-from .base import DefaultEncryptedKeyStore as EncryptedKey
+from .base import DefaultConfigurationStore
+from .base import DefaultEncryptedKeyStore
 from .base import MasterPassword
-from .base import InRamKeyStore as Key
+from .base import InRamKeyStore
+from . import sqlite
+
+__all__ = [
+    "base",
+    "sqlite"
+]
+Configuration = DefaultConfigurationStore
+EncryptedKey = DefaultEncryptedKeyStore
+Key = InRamKeyStore
 
 # Create keyStorage
 configStorage = Configuration()

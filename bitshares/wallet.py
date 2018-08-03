@@ -1,7 +1,8 @@
 import logging
 import os
 from graphenebase import bip38
-from bitsharesbase.account import PrivateKey, GPHPrivateKey
+# from bitsharesbase.account import PrivateKey
+from .storage import DefaultConfigurationStore, InRamKeyStore, DefaultEncryptedKeyStore
 from .instance import BlockchainInstance
 from .account import Account
 from .exceptions import (
@@ -9,11 +10,9 @@ from .exceptions import (
     InvalidWifError,
     WalletExists,
     WalletLocked,
-    WrongMasterPasswordException,
     NoWalletException,
     OfflineHasNoRPCException
 )
-from .storage import configStorage as config
 
 
 log = logging.getLogger(__name__)
@@ -45,21 +44,17 @@ class Wallet():
           any account. This mode is only used for *foreign*
           signatures!
     """
-    keys = []
-    rpc = None
-    masterpassword = None
-
-    # Keys from database
-    configStorage = None
-    MasterPassword = None
-    keyStorage = None
-
-    # Manually provided keys
-    keys = {}  # struct with pubkey as key and wif as value
-    keyMap = {}  # type:wif pairs to force certain keys
-
     def __init__(self, *args, **kwargs):
         BlockchainInstance.__init__(self, *args, **kwargs)
+
+        self.config = kwargs.get(
+            "config_store",
+            DefaultConfigurationStore()
+        )
+        self.store = kwargs.get(
+            "key_store",
+            InRamKeyStore(config=self.config)
+        )
 
         # Compatibility after name change from wif->keys
         if "wif" in kwargs and "keys" not in kwargs:
@@ -67,14 +62,6 @@ class Wallet():
 
         if "keys" in kwargs:
             self.setKeys(kwargs["keys"])
-        else:
-            """ If no keys are provided manually we load the SQLite
-                keyStorage
-            """
-            from .storage import (keyStorage,
-                                  MasterPassword)
-            self.MasterPassword = MasterPassword
-            self.keyStorage = keyStorage
 
     @property
     def prefix(self):
@@ -82,7 +69,7 @@ class Wallet():
             prefix = self.blockchain.prefix
         else:
             # If not connected, load prefix from config
-            prefix = config["prefix"]
+            prefix = self.config["prefix"]
         return prefix or "BTS"   # default prefix is BTS
 
     @property
@@ -98,56 +85,47 @@ class Wallet():
         log.debug(
             "Force setting of private keys. Not using the wallet database!")
         if isinstance(loadkeys, dict):
-            Wallet.keyMap = loadkeys
             loadkeys = list(loadkeys.values())
         elif not isinstance(loadkeys, list):
             loadkeys = [loadkeys]
 
         for wif in loadkeys:
-            pub = self._get_pub_from_wif(wif)
-            Wallet.keys[pub] = str(wif)
+            assert hasattr(wif, "pubkey"), "Requires an instance of PrivateKey"
+            pub = str(wif.pubkey)
+            self.store.add(str(wif), pub)
 
     def unlock(self, pwd=None):
         """ Unlock the wallet database
         """
-        if not self.created():
-            raise NoWalletException
-
-        if not pwd:
-            self.tryUnlockFromEnv()
-        else:
-            if (self.masterpassword is None and
-                    config[self.MasterPassword.config_key]):
-                self.masterpwd = self.MasterPassword(pwd)
-                self.masterpassword = self.masterpwd.decrypted_master
-
-    def tryUnlockFromEnv(self):
-        if "UNLOCK" in os.environ:
-            log.debug("Trying to use environmental variable to unlock wallet")
-            self.unlock(os.environ.get("UNLOCK"))
-        else:
-            raise WrongMasterPasswordException
+        if isinstance(self.store, DefaultEncryptedKeyStore):
+            return self.store.unlock()
 
     def lock(self):
         """ Lock the wallet database
         """
-        self.masterpassword = None
+        if isinstance(self.store, DefaultEncryptedKeyStore):
+            return self.store.lock()
 
     def unlocked(self):
         """ Is the wallet database unlocked?
         """
-        return not self.locked()
+        if isinstance(self.store, DefaultEncryptedKeyStore):
+            return self.store.locked()
+        if isinstance(self.store, InRamKeyStore):
+            return True
 
     def locked(self):
         """ Is the wallet database locked?
         """
-        if Wallet.keys:  # Keys have been manually provided!
+        if isinstance(self.store, InRamKeyStore):
             return False
-        try:
-            self.tryUnlockFromEnv()
-        except:
-            pass
-        return not bool(self.masterpassword)
+
+        if isinstance(self.store, DefaultEncryptedKeyStore):
+            try:
+                self.store.tryUnlockFromEnv()
+            except:
+                pass
+            return self.store.locked()
 
     def changePassphrase(self, new_pwd):
         """ Change the passphrase for the wallet database
@@ -158,11 +136,8 @@ class Wallet():
     def created(self):
         """ Do we have a wallet database already?
         """
-        if len(self.getPublicKeys()):
+        if len(self.store.getPublicKeys()):
             # Already keys installed
-            return True
-        elif self.MasterPassword.config_key in config:
-            # no keys but a master password
             return True
         else:
             return False
@@ -170,94 +145,31 @@ class Wallet():
     def create(self, pwd):
         """ Alias for newWallet()
         """
-        self.newWallet(pwd)
+        pass
 
     def newWallet(self, pwd):
         """ Create a new wallet database
         """
-        if self.created():
-            raise WalletExists("You already have created a wallet!")
-        self.masterpwd = self.MasterPassword(pwd)
-        self.masterpassword = self.masterpwd.decrypted_master
-        self.masterpwd.saveEncrytpedMaster()
-
-    def encrypt_wif(self, wif):
-        """ Encrypt a wif key
-        """
-        assert not self.locked()
-        return format(
-            bip38.encrypt(PrivateKey(wif), self.masterpassword), "encwif")
-
-    def decrypt_wif(self, encwif):
-        """ decrypt a wif key
-        """
-        try:
-            # Try to decode as wif
-            PrivateKey(encwif)
-            return encwif
-        except:
-            pass
-        assert not self.locked()
-        return format(bip38.decrypt(encwif, self.masterpassword), "wif")
-
-    def _get_pub_from_wif(self, wif):
-        """ Get the pubkey as string, from the wif key as string
-        """
-        # it could be either graphenebase or bitsharesbase so we can't check
-        # the type directly
-        if isinstance(wif, PrivateKey) or isinstance(wif, GPHPrivateKey):
-            wif = str(wif)
-        try:
-            return format(PrivateKey(wif).pubkey, self.prefix)
-        except:
-            raise InvalidWifError(
-                "Invalid Private Key Format. Please use WIF!")
+        pass
 
     def addPrivateKey(self, wif):
         """ Add a private key to the wallet database
         """
-        pub = self._get_pub_from_wif(wif)
-
-        if self.keyStorage:
-            # Test if wallet exists
-            if not self.created():
-                raise NoWalletException
-            self.keyStorage.add(self.encrypt_wif(wif), pub)
+        assert hasattr(wif, "pubkey"), "Requires an instance of PrivateKey"
+        pub = str(wif.pubkey)
+        self.store.add(str(wif), pub)
 
     def getPrivateKeyForPublicKey(self, pub):
         """ Obtain the private key for a given public key
 
             :param str pub: Public Key
         """
-        if(Wallet.keys):
-            if pub in Wallet.keys:
-                return Wallet.keys[pub]
-            elif len(Wallet.keys) == 1:
-                # If there is only one key in my overwrite-storage, then
-                # use that one! Whether it will has sufficient
-                # authorization is left to ensure by the developer
-                return list(self.keys.values())[0]
-        else:
-            # Test if wallet exists
-            if not self.created():
-                raise NoWalletException
-
-            if not self.unlocked():
-                raise WalletLocked
-
-            encwif = self.keyStorage.getPrivateKeyForPublicKey(pub)
-            if not encwif:
-                raise KeyNotFound("No private key for {} found".format(pub))
-            return self.decrypt_wif(encwif)
+        return self.store.getPrivateKeyForPublicKey(pub)
 
     def removePrivateKeyFromPublicKey(self, pub):
         """ Remove a key from the wallet database
         """
-        if self.keyStorage:
-            # Test if wallet exists
-            if not self.created():
-                raise NoWalletException
-            self.keyStorage.delete(pub)
+        self.store.delete(str(pub))
 
     def removeAccount(self, account):
         """ Remove all keys associated with a given account
@@ -265,57 +177,43 @@ class Wallet():
         accounts = self.getAccounts()
         for a in accounts:
             if a["name"] == account:
-                self.removePrivateKeyFromPublicKey(a["pubkey"])
+                self.store.delete(a["pubkey"])
 
     def getOwnerKeyForAccount(self, name):
         """ Obtain owner Private Key for an account from the wallet database
         """
-        if "owner" in Wallet.keyMap:
-            return Wallet.keyMap.get("owner")
-        else:
-            account = self.rpc.get_account(name)
-            if not account:
-                return
-            for authority in account["owner"]["key_auths"]:
-                key = self.getPrivateKeyForPublicKey(authority[0])
-                if key:
-                    return key
-            return False
+        account = self.rpc.get_account(name)
+        for authority in account["owner"]["key_auths"]:
+            key = self.getPrivateKeyForPublicKey(authority[0])
+            if key:
+                return key
+        return False
 
     def getMemoKeyForAccount(self, name):
         """ Obtain owner Memo Key for an account from the wallet database
         """
-        if "memo" in Wallet.keyMap:
-            return Wallet.keyMap.get("memo")
-        else:
-            account = self.rpc.get_account(name)
-            if not account:
-                return
-            key = self.getPrivateKeyForPublicKey(
-                account["options"]["memo_key"])
-            if key:
-                return key
-            return False
+        account = self.rpc.get_account(name)
+        key = self.getPrivateKeyForPublicKey(
+            account["options"]["memo_key"])
+        if key:
+            return key
+        return False
 
     def getActiveKeyForAccount(self, name):
         """ Obtain owner Active Key for an account from the wallet database
         """
-        if "active" in Wallet.keyMap:
-            return Wallet.keyMap.get("active")
-        else:
-            account = self.rpc.get_account(name)
-            if not account:
-                return
-            for authority in account["active"]["key_auths"]:
-                key = self.getPrivateKeyForPublicKey(authority[0])
-                if key:
-                    return key
-            return False
+        account = self.rpc.get_account(name)
+        for authority in account["active"]["key_auths"]:
+            key = self.getPrivateKeyForPublicKey(authority[0])
+            if key:
+                return key
+        return False
 
     def getAccountFromPrivateKey(self, wif):
         """ Obtain account name from private key
         """
-        pub = self._get_pub_from_wif(wif)
+        assert hasattr(wif, "pubkey"), "Requires an instance of PrivateKey"
+        pub = str(wif.pubkey)
         return self.getAccountFromPublicKey(pub)
 
     def getAccountsFromPublicKey(self, pub):
@@ -352,23 +250,6 @@ class Wallet():
                    "type": self.getKeyType(account, pub),
                    "pubkey": pub}
 
-    def getAccount(self, pub):
-        """ Get the account data for a public key (first account found for this
-            public key)
-        """
-        name = self.getAccountFromPublicKey(pub)
-        if not name:
-            return {"name": None, "type": None, "pubkey": pub}
-        else:
-            try:
-                account = Account(name, blockchain_instance=self.blockchain)
-            except:
-                return
-            return {"name": account["name"],
-                    "account": account,
-                    "type": self.getKeyType(account, pub),
-                    "pubkey": pub}
-
     def getKeyType(self, account, pub):
         """ Get key type
         """
@@ -394,10 +275,7 @@ class Wallet():
     def getPublicKeys(self):
         """ Return all installed public keys
         """
-        if self.keyStorage:
-            return self.keyStorage.getPublicKeys()
-        else:
-            return list(Wallet.keys.keys())
+        return self.store.getPublicKeys()
 
     def wipe(self, sure=False):
         if not sure:
@@ -408,9 +286,4 @@ class Wallet():
             )
             return
         else:
-            from .storage import (
-                keyStorage,
-                MasterPassword
-            )
-            MasterPassword.wipe(sure)
-            keyStorage.wipe(sure)
+            self.store.wipe()

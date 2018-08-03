@@ -6,6 +6,7 @@ from graphenebase import bip38
 from binascii import hexlify
 
 from ..aes import AESCipher
+from ..exceptions import WrongMasterPasswordException
 
 class BaseStore(dict):
     defaults = {}
@@ -147,7 +148,7 @@ class InRamKeyStore(BaseKeyStore):
            :param str pub: Public key
            :param str wif: Private key
         """
-        self[str(pub)] = wif
+        self[str(pub)] = str(wif)
 
     def delete(self, pub):
         """ Delete a pubkey/privatekey pair from the store
@@ -301,7 +302,7 @@ class DefaultEncryptedKeyStore(BaseKeyStore, MasterPassword):
         """
         assert self.unlocked()
         self[str(pub)] = format(bip38.encrypt(
-                PrivateKey(wif),
+                PrivateKey(str(wif)),
                 self.masterkey
             ), "encwif")
 
@@ -309,3 +310,12 @@ class DefaultEncryptedKeyStore(BaseKeyStore, MasterPassword):
         """ Delete a pubkey/privatekey pair from the store
         """
         BaseStore.delete(self, str(pub))
+
+    def tryUnlockFromEnv(self):
+        if self.unlocked():
+            return
+        if "UNLOCK" in os.environ:
+            log.debug("Trying to use environmental variable to unlock wallet")
+            self.unlock(os.environ.get("UNLOCK"))
+        else:
+            raise WrongMasterPasswordException
