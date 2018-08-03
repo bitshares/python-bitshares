@@ -60,7 +60,7 @@ class DataDir(object):
                 raise
 
 
-class Key(DataDir, BaseKey):
+class SqliteKey(DataDir, BaseKey):
     """ This is the key storage that stores the public key and the
         (possibly encrypted) private key in the `keys` table in the
         SQLite3 database.
@@ -186,7 +186,7 @@ class Key(DataDir, BaseKey):
             connection.commit()
 
 
-class Configuration(DataDir, BaseConfiguration):
+class SqliteConfiguration(DataDir, BaseConfiguration):
     """ This is the configuration storage that stores key/value
         pairs in the `config` table of the SQLite3 database.
     """
@@ -298,13 +298,22 @@ class Configuration(DataDir, BaseConfiguration):
         cursor.execute(*query)
         connection.commit()
 
-    def wipe(self):
-        """ Delete all configuration from the configuration store
+    def wipe(self, sure=False):
+        """ Purge the entire wallet. No keys will survive this!
         """
-        query = ("DELETE FROM %s " % (self.__tablename__) +
-                 "WHERE key<>?",
-                 (MasterPassword.config_key,))
-        self.sql_execute(query)
+        if not sure:
+            log.error(
+                "You need to confirm that you are sure "
+                "and understand the implications of "
+                "wiping your wallet!"
+            )
+            return
+        else:
+            query = "DELETE FROM %s " % self.__tablename__
+            connection = sqlite3.connect(self.sqlDataBaseFile)
+            cursor = connection.cursor()
+            cursor.execute(query)
+            connection.commit()
 
     def __iter__(self):
         return iter(self.items())
@@ -325,100 +334,3 @@ class Configuration(DataDir, BaseConfiguration):
         cursor = connection.cursor()
         cursor.execute(query)
         return len(cursor.fetchall())
-
-
-class MasterPassword(object):
-    """ The keys are encrypted with a Masterpassword that is stored in
-        the configurationStore. It has a checksum to verify correctness
-        of the password
-    """
-
-    password = ""
-    decrypted_master = ""
-
-    #: This key identifies the encrypted master password stored in the
-    #: confiration
-    config_key = "encrypted_master_password"
-
-    def __init__(self, password):
-        """ The encrypted private keys in `keys` are encrypted with a
-            random encrypted masterpassword that is stored in the
-            configuration.
-
-            The password is used to encrypt this masterpassword. To
-            decrypt the keys stored in the keys database, one must use
-            BIP38, decrypt the masterpassword from the configuration
-            store with the user password, and use the decrypted
-            masterpassword to decrypt the BIP38 encrypted private keys
-            from the keys storage!
-
-            :param str password: Password to use for en-/de-cryption
-        """
-        self.config = Configuration()
-        self.password = password
-        if self.config_key not in self.config:
-            self.newMaster()
-            self.saveEncrytpedMaster()
-        else:
-            self.decryptEncryptedMaster()
-
-    def decryptEncryptedMaster(self):
-        """ Decrypt the encrypted masterpassword
-        """
-        aes = AESCipher(self.password)
-        checksum, encrypted_master = self.config[self.config_key].split("$")
-        try:
-            decrypted_master = aes.decrypt(encrypted_master)
-        except:
-            raise WrongMasterPasswordException
-        if checksum != self.deriveChecksum(decrypted_master):
-            raise WrongMasterPasswordException
-        self.decrypted_master = decrypted_master
-
-    def saveEncrytpedMaster(self):
-        """ Store the encrypted master password in the configuration
-            store
-        """
-        self.config[self.config_key] = self.getEncryptedMaster()
-
-    def newMaster(self):
-        """ Generate a new random masterpassword
-        """
-        # make sure to not overwrite an existing key
-        if (self.config_key in self.config and
-                self.config[self.config_key]):
-            return
-        self.decrypted_master = hexlify(os.urandom(32)).decode("ascii")
-
-    def deriveChecksum(self, s):
-        """ Derive the checksum
-        """
-        checksum = hashlib.sha256(bytes(s, "ascii")).hexdigest()
-        return checksum[:4]
-
-    def getEncryptedMaster(self):
-        """ Obtain the encrypted masterkey
-        """
-        if not self.decrypted_master:
-            raise Exception("master not decrypted")
-        aes = AESCipher(self.password)
-        return "{}${}".format(self.deriveChecksum(self.decrypted_master),
-                              aes.encrypt(self.decrypted_master))
-
-    def changePassword(self, newpassword):
-        """ Change the password
-        """
-        self.password = newpassword
-        self.saveEncrytpedMaster()
-
-    @staticmethod
-    def wipe(sure=False):
-        if not sure:
-            log.error(
-                "You need to confirm that you are sure "
-                "and understand the implications of "
-                "wiping your wallet!"
-            )
-            return
-        else:
-            Configuration().delete(MasterPassword.config_key)
