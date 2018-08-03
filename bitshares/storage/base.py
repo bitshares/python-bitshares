@@ -64,18 +64,8 @@ class BaseStore(dict):
         for key in keys:
             self.delete(key)
 
-    def create(self):
-        """ Creates the store if not exists()
-        """
-        pass
 
-    def exists(self):
-        """ Returns True if the store exists
-        """
-        return True
-
-
-class BaseConfiguration(BaseStore):
+class DefaultConfigurationStore(BaseStore):
 
     defaults = {
         "node": "wss://node.bitshares.eu",
@@ -192,8 +182,37 @@ class MasterPassword(object):
         self.password = newpassword
         self.saveEncrytpedMaster()
 
+class BaseKeyStore(BaseStore):
 
-class BaseEncryptedKey(BaseStore, MasterPassword):
+    defaults = {}
+
+    # Interface to deal with encrypted keys
+    def getPublicKeys(self):
+        """ Returns the public keys stored in the database
+        """
+        pass
+
+    def getPrivateKeyForPublicKey(self, pub):
+        """ Returns the (possibly encrypted) private key that
+            corresponds to a public key
+
+           :param str pub: Public key
+
+           The encryption scheme is BIP38
+        """
+        pass
+
+    def add(self, wif, pub=None):
+        """ Add a new public/private key pair (correspondence has to be
+            checked elsewhere!)
+
+           :param str pub: Public key
+           :param str wif: Private key
+        """
+        pass
+
+
+class DefaultEncryptedKeyStore(BaseKeyStore, MasterPassword):
 
     defaults = {}
 
@@ -238,7 +257,7 @@ class BaseEncryptedKey(BaseStore, MasterPassword):
             ), "encwif")
 
 
-class BaseKey(BaseStore):
+class InRamKeyStore(BaseKeyStore):
 
     defaults = {
         # Well-known key

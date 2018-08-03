@@ -7,7 +7,6 @@ class Testcases(unittest.TestCase):
 
     def test_configstorage(self):
         config = storage.base.BaseStore()
-        self.assertTrue(config.exists())
 
         config["node"] = "example"
         config["foobar"] = "action"
@@ -25,7 +24,7 @@ class Testcases(unittest.TestCase):
         self.assertNotIn("node", config)
 
     def test_keystore(self):
-        keys = storage.base.BaseKey()
+        keys = storage.base.InRamKeyStore()
         self.assertIn(
             "BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
             keys.getPublicKeys()
@@ -53,7 +52,7 @@ class Testcases(unittest.TestCase):
     def test_masterpassword(self):
         password = "foobar"
         config = storage.base.BaseStore()
-        keys = storage.base.BaseEncryptedKey(storage=config)
+        keys = storage.base.DefaultEncryptedKeyStore(storage=config)
         self.assertFalse(keys.has_masterpassword())
         master = keys.newMaster(password)
         self.assertEqual(
@@ -86,7 +85,7 @@ class Testcases(unittest.TestCase):
     def test_encryptedkeystore(self):
         password = "foobar"
         config = storage.base.BaseStore()
-        keys = storage.base.BaseEncryptedKey(storage=config)
+        keys = storage.base.DefaultEncryptedKeyStore(storage=config)
         keys.newMaster(password)
         assert keys.unlocked()
 
