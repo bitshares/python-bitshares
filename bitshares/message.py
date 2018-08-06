@@ -12,7 +12,6 @@ from .exceptions import (
     InvalidMemoKeyException,
     WrongMemoKey
 )
-from .storage import configStorage as config
 
 
 log = logging.getLogger(__name__)
@@ -61,8 +60,8 @@ class Message():
             :returns: the signed message encapsulated in a known format
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.blockchain.config:
+                account = self.blockchain.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
 

@@ -1,109 +1,16 @@
 import os
-import hashlib
+import logging
 
-from graphenebase.account import PrivateKey
-from graphenebase import bip38
-from binascii import hexlify
+from .masterpassword import MasterPassword
+from .interfaces import KeyInterface, ConfigInterface
+from .ram import InRamStore
+from .sqlite import SQLiteStore
 
-from ..aes import AESCipher
-from ..exceptions import WrongMasterPasswordException
-
-class BaseStore(dict):
-    defaults = {}
-
-    def __init__(self, *args, **kwargs):
-        dict.__init__(self, self.defaults)
-        dict.update(self, *args, **kwargs)
-
-    def __setitem__(self, key, value):
-        """ Sets an item in the store
-        """
-        return dict.__setitem__(self, key, value)
-
-    def __getitem__(self, key):
-        """ Gets an item from the store as if it was a dictionary
-        """
-        return dict.__getitem__(self, key)
-
-    def __iter__(self):
-        """ Iterates through the store
-        """
-        return dict.__iter__(self)
-
-    def __len__(self):
-        """ return lenght of store
-        """
-        return dict.__len__(self)
-
-    def __contains__(self, key):
-        """ Tests if a key is contained in the store.
-
-            May test againsts self.defaults
-        """
-        return dict.__contains__(self, key)
-
-    def items(self):
-        """ returns all items off the store as tuples
-        """
-        return dict.items(self)
-
-    def get(self, key, default=None):
-        """ Return the key if exists or a default value
-        """
-        return dict.get(self, key, default)
-
-    # Specific for this library
-    def delete(self, key):
-        """ Delete a key from the store
-        """
-        self.pop(key, None)
-
-    def wipe(self):
-        """ Wipe the store
-        """
-        keys = list(self.keys()).copy()
-        for key in keys:
-            self.delete(key)
+log = logging.getLogger(__name__)
 
 
-class BaseKeyStore(BaseStore):
-    """ The BaseKeyStore defines the interface for key storage
-    """
-
-    defaults = {}
-
-    # Interface to deal with encrypted keys
-    def getPublicKeys(self):
-        """ Returns the public keys stored in the database
-        """
-        pass
-
-    def getPrivateKeyForPublicKey(self, pub):
-        """ Returns the (possibly encrypted) private key that
-            corresponds to a public key
-
-           :param str pub: Public key
-
-           The encryption scheme is BIP38
-        """
-        pass
-
-    def add(self, wif, pub=None):
-        """ Add a new public/private key pair (correspondence has to be
-            checked elsewhere!)
-
-           :param str pub: Public key
-           :param str wif: Private key
-        """
-        pass
-
-    def delete(self, pub):
-        """ Delete a pubkey/privatekey pair from the store
-        """
-        pass
-
-
-class DefaultConfigurationStore(BaseStore):
+# Configuration
+class InRamConfigurationStore(InRamStore, ConfigInterface):
     """ A simple example that shows how to set defaults
         for the Base Store
     """
@@ -116,206 +23,131 @@ class DefaultConfigurationStore(BaseStore):
     }
 
 
-class InRamKeyStore(BaseKeyStore):
-    """ A simple Store that stores keys unencrypted in RAM
+class SqliteConfigurationStore(SQLiteStore, ConfigInterface):
+    """ This is the configuration storage that stores key/value
+        pairs in the `config` table of the SQLite3 database.
     """
+    __tablename__ = "config"
+    __key__ = "key"
+    __value__ = "value"
 
+    #: Default configuration
     defaults = {
-        # Well-known key
-        "BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV": "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+        "node": "wss://node.bitshares.eu",
+        "rpcpassword": "",
+        "rpcuser": "",
+        "order-expiration": 7 * 24 * 60 * 60,
     }
 
-    # Interface to deal with encrypted keys
+
+# Keys
+class InRamPlainKeyStore(InRamStore, KeyInterface):
+    """ A simple Store that stores keys unencrypted in RAM
+    """
     def getPublicKeys(self):
-        """ Returns the public keys stored in the database
-        """
-        return self.keys()
+        return [k for k, v in self.items()]
 
     def getPrivateKeyForPublicKey(self, pub):
-        """ Returns the (possibly encrypted) private key that
-            corresponds to a public key
-
-           :param str pub: Public key
-
-           The encryption scheme is BIP38
-        """
         return self.get(str(pub), None)
 
     def add(self, wif, pub):
-        """ Add a new public/private key pair (correspondence has to be
-            checked elsewhere!)
-
-           :param str pub: Public key
-           :param str wif: Private key
-        """
         self[str(pub)] = str(wif)
 
     def delete(self, pub):
-        """ Delete a pubkey/privatekey pair from the store
-        """
-        BaseStore.delete(self, str(pub))
+        InRamStore.delete(self, str(pub))
 
 
-class MasterPassword(object):
-    """ The keys are encrypted with a Masterpassword that is stored in
-        the configurationStore. It has a checksum to verify correctness
-        of the password
-    """
+class InRamEncryptedKeyStore(MasterPassword, InRamStore, KeyInterface):
 
-    password = None
-    decrypted_master = None
+    # Interface to deal with encrypted keys
+    def getPublicKeys(self):
+        return [k for k, v in self.items()]
 
-    #: This key identifies the encrypted master password stored in the
-    #: confiration
-    storage_key = "encrypted_master_password"
+    def getPrivateKeyForPublicKey(self, pub):
+        assert self.unlocked()
+        wif = self.get(str(pub), None)
+        if wif:
+            return self.decrypt(wif)  # From Masterpassword
 
-    def __init__(self, storage=None):
-        """ The encrypted private keys in `keys` are encrypted with a
-            random encrypted masterpassword that is stored in the
-            configuration.
-        """
-        self.storage = storage
+    def add(self, wif, pub):
+        assert self.unlocked()  # From Masterpassword
+        self[str(pub)] = self.encrypt(str(wif))  # From Masterpassword
 
-    @property
-    def masterkey(self):
-        return self.decrypted_master
+    def delete(self, pub):
+        InRamStore.delete(self, str(pub))
 
-    def has_masterpassword(self):
-        return self.storage_key in self.storage
+    def is_encrypted(self):
+        return True
 
-    def unlocked(self):
-        return bool(self.password)
-
-    def lock(self):
-        self.password = None
+    def locked(self):
+        return MasterPassword.locked(self)
 
     def unlock(self, password):
-        """ The password is used to encrypt this masterpassword. To
-            decrypt the keys stored in the keys database, one must use
-            BIP38, decrypt the masterpassword from the configuration
-            store with the user password, and use the decrypted
-            masterpassword to decrypt the BIP38 encrypted private keys
-            from the keys storage!
+        return MasterPassword.unlock(self, password)
 
-            :param str password: Password to use for en-/de-cryption
-        """
-        self.password = password
-        if self.storage_key not in self.storage:
-            self.newMaster()
-            self.saveEncrytpedMaster()
-        else:
-            self.decryptEncryptedMaster()
-
-    def decryptEncryptedMaster(self):
-        """ Decrypt the encrypted masterpassword
-        """
-        aes = AESCipher(self.password)
-        checksum, encrypted_master = self.storage[self.storage_key].split("$")
-        try:
-            decrypted_master = aes.decrypt(encrypted_master)
-        except:
-            raise WrongMasterPasswordException
-        if checksum != self.deriveChecksum(decrypted_master):
-            raise WrongMasterPasswordException
-        self.decrypted_master = decrypted_master
-
-    def saveEncrytpedMaster(self):
-        self.storage[self.storage_key] = self.getEncryptedMaster()
-
-    def newMaster(self, password):
-        """ Generate a new random masterpassword
-        """
-        # make sure to not overwrite an existing key
-        if (self.storage_key in self.storage and
-                self.storage[self.storage_key]):
-            raise Exception("Storage already has a masterpassword!")
-
-        self.decrypted_master = hexlify(os.urandom(32)).decode("ascii")
-
-        # Encrypt and save master
-        self.password = password
-        self.saveEncrytpedMaster()
-        return self.masterkey
-
-    def deriveChecksum(self, s):
-        """ Derive the checksum
-        """
-        checksum = hashlib.sha256(bytes(s, "ascii")).hexdigest()
-        return checksum[:4]
-
-    def getEncryptedMaster(self):
-        """ Obtain the encrypted masterkey
-        """
-        if not self.masterkey:
-            raise Exception("master not decrypted")
-        if not self.unlocked():
-            raise Exception("Need to unlock storage!")
-        aes = AESCipher(self.password)
-        return "{}${}".format(
-            self.deriveChecksum(self.masterkey),
-            aes.encrypt(self.masterkey)
-        )
-
-    def changePassword(self, newpassword):
-        """ Change the password
-        """
-        assert self.unlocked()
-        self.password = newpassword
-        self.saveEncrytpedMaster()
+    def lock(self):
+        return MasterPassword.lock(self)
 
 
-class DefaultEncryptedKeyStore(BaseKeyStore, MasterPassword):
+class SqlitePlainKeyStore(SQLiteStore, KeyInterface):
+    """ This is the key storage that stores the public key and the
+        **unencrypted** private key in the `keys` table in the SQLite3
+        database.
+    """
+    __tablename__ = 'keys'
+    __key__ = "pub"
+    __value__ = "wif"
 
-    defaults = {}
+    def getPublicKeys(self):
+        return [k for k, v in self.items()]
+
+    def getPrivateKeyForPublicKey(self, pub):
+        return self[pub]
+
+    def add(self, wif, pub=None):
+        self[str(pub)] = str(wif)
+
+    def delete(self, pub):
+        SQLiteStore.delete(self, str(pub))
+
+
+class SqliteEncryptedKeyStore(MasterPassword, SQLiteStore, KeyInterface):
+    """ This is the key storage that stores the public key and the
+        **encrypted** private key in the `keys` table in the SQLite3 database.
+    """
+    __tablename__ = 'keys'
+    __key__ = "pub"
+    __value__ = "wif"
 
     def __init__(self, *args, **kwargs):
+        SQLiteStore.__init__(self, *args, **kwargs)
         MasterPassword.__init__(self, *args, **kwargs)
 
     # Interface to deal with encrypted keys
     def getPublicKeys(self):
-        """ Returns the public keys stored in the database
-        """
-        return self.keys()
+        return [k for k, v in self.items()]
 
     def getPrivateKeyForPublicKey(self, pub):
-        """ Returns the (possibly encrypted) private key that
-            corresponds to a public key
-
-           :param str pub: Public key
-
-           The encryption scheme is BIP38
-        """
         assert self.unlocked()
         wif = self.get(str(pub), None)
         if wif:
-            return format(
-                bip38.decrypt(wif, self.masterkey),
-                "wif"
-            )
+            return self.decrypt(wif)  # From Masterpassword
 
     def add(self, wif, pub):
-        """ Add a new public/private key pair (correspondence has to be
-            checked elsewhere!)
-
-           :param str pub: Public key
-           :param str wif: Private key
-        """
-        assert self.unlocked()
-        self[str(pub)] = format(bip38.encrypt(
-                PrivateKey(str(wif)),
-                self.masterkey
-            ), "encwif")
+        assert self.unlocked()  # From Masterpassword
+        self[str(pub)] = self.encrypt(str(wif))  # From Masterpassword
 
     def delete(self, pub):
-        """ Delete a pubkey/privatekey pair from the store
-        """
-        BaseStore.delete(self, str(pub))
+        SQLiteStore.delete(self, str(pub))
 
-    def tryUnlockFromEnv(self):
-        if self.unlocked():
-            return
-        if "UNLOCK" in os.environ:
-            log.debug("Trying to use environmental variable to unlock wallet")
-            self.unlock(os.environ.get("UNLOCK"))
-        else:
-            raise WrongMasterPasswordException
+    def is_encrypted(self):
+        return True
+
+    def locked(self):
+        return MasterPassword.locked(self)
+
+    def unlock(self, password):
+        return MasterPassword.unlock(self, password)
+
+    def lock(self):
+        return MasterPassword.lock(self)

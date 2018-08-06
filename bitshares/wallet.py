@@ -1,8 +1,8 @@
 import logging
 import os
 from graphenebase import bip38
-# from bitsharesbase.account import PrivateKey
-from .storage import DefaultConfigurationStore, InRamKeyStore, DefaultEncryptedKeyStore
+from bitsharesbase.account import PrivateKey
+from .storage import SqliteEncryptedKeyStore, InRamPlainKeyStore
 from .instance import BlockchainInstance
 from .account import Account
 from .exceptions import (
@@ -47,21 +47,18 @@ class Wallet():
     def __init__(self, *args, **kwargs):
         BlockchainInstance.__init__(self, *args, **kwargs)
 
-        self.config = kwargs.get(
-            "config_store",
-            DefaultConfigurationStore()
-        )
-        self.store = kwargs.get(
-            "key_store",
-            InRamKeyStore(config=self.config)
-        )
-
         # Compatibility after name change from wif->keys
         if "wif" in kwargs and "keys" not in kwargs:
             kwargs["keys"] = kwargs["wif"]
 
         if "keys" in kwargs:
+            self.store = InRamPlainKeyStore()
             self.setKeys(kwargs["keys"])
+        else:
+            self.store = kwargs.get(
+                "key_store",
+                SqliteEncryptedKeyStore(config=self.blockchain.config)
+            )
 
     @property
     def prefix(self):
@@ -69,7 +66,7 @@ class Wallet():
             prefix = self.blockchain.prefix
         else:
             # If not connected, load prefix from config
-            prefix = self.config["prefix"]
+            prefix = self.blockchain.config["prefix"]
         return prefix or "BTS"   # default prefix is BTS
 
     @property
@@ -88,49 +85,33 @@ class Wallet():
             loadkeys = list(loadkeys.values())
         elif not isinstance(loadkeys, list):
             loadkeys = [loadkeys]
-
         for wif in loadkeys:
-            assert hasattr(wif, "pubkey"), "Requires an instance of PrivateKey"
-            pub = str(wif.pubkey)
+            pub = str(PrivateKey(str(wif)).pubkey)
             self.store.add(str(wif), pub)
 
-    def unlock(self, pwd=None):
+    def unlock(self, pwd):
         """ Unlock the wallet database
         """
-        if isinstance(self.store, DefaultEncryptedKeyStore):
-            return self.store.unlock()
+        return self.store.unlock(pwd)
 
     def lock(self):
         """ Lock the wallet database
         """
-        if isinstance(self.store, DefaultEncryptedKeyStore):
-            return self.store.lock()
+        return self.store.lock()
 
     def unlocked(self):
         """ Is the wallet database unlocked?
         """
-        if isinstance(self.store, DefaultEncryptedKeyStore):
-            return self.store.locked()
-        if isinstance(self.store, InRamKeyStore):
-            return True
+        return not self.store.locked()
 
     def locked(self):
         """ Is the wallet database locked?
         """
-        if isinstance(self.store, InRamKeyStore):
-            return False
-
-        if isinstance(self.store, DefaultEncryptedKeyStore):
-            try:
-                self.store.tryUnlockFromEnv()
-            except:
-                pass
-            return self.store.locked()
+        return self.store.locked()
 
     def changePassphrase(self, new_pwd):
         """ Change the passphrase for the wallet database
         """
-        assert not self.locked()
         self.masterpwd.changePassword(new_pwd)
 
     def created(self):
@@ -155,8 +136,7 @@ class Wallet():
     def addPrivateKey(self, wif):
         """ Add a private key to the wallet database
         """
-        assert hasattr(wif, "pubkey"), "Requires an instance of PrivateKey"
-        pub = str(wif.pubkey)
+        pub = str(PrivateKey(str(wif)).pubkey)
         self.store.add(str(wif), pub)
 
     def getPrivateKeyForPublicKey(self, pub):
@@ -212,8 +192,7 @@ class Wallet():
     def getAccountFromPrivateKey(self, wif):
         """ Obtain account name from private key
         """
-        assert hasattr(wif, "pubkey"), "Requires an instance of PrivateKey"
-        pub = str(wif.pubkey)
+        pub = str(PrivateKey(wif).pubkey)
         return self.getAccountFromPublicKey(pub)
 
     def getAccountsFromPublicKey(self, pub):

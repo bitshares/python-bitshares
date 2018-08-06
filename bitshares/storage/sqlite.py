@@ -1,14 +1,10 @@
 import os
 import sqlite3
 import logging
-import hashlib
 
-from binascii import hexlify
 from appdirs import user_data_dir
 
-from .base import BaseStore, BaseKeyStore
-from ..exceptions import WrongMasterPasswordException
-from ..aes import AESCipher
+from .interfaces import StoreInterface
 
 log = logging.getLogger(__name__)
 timeformat = "%Y%m%d-%H%M%S"
@@ -40,14 +36,15 @@ class SQLiteFile():
 
     appname = "bitshares"
     appauthor = "Fabian Schuh"
-    storageDatabase = "bitshares.sqlite"
-
     data_dir = user_data_dir(appname, appauthor)
-    sqlDataBaseFile = os.path.join(data_dir, storageDatabase)
 
     def __init__(self, *args, **kwargs):
         if "profile" in kwargs:
-            self.sqlDataBaseFile = "{}.sqlite".format(kwargs["profile"])
+            self.storageDatabase = "{}.sqlite".format(kwargs["profile"])
+        else:
+            self.storageDatabase = "bitshares.sqlite"
+
+        self.sqlDataBaseFile = os.path.join(self.data_dir, self.storageDatabase)
 
         """ Ensure that the directory in which the data is stored
             exists
@@ -63,7 +60,7 @@ class SQLiteFile():
                 raise
 
 
-class BaseSQLiteStore(BaseStore, SQLiteFile):
+class SQLiteStore(SQLiteFile, StoreInterface):
 
     __tablename__ = None
     __key__ = None
@@ -76,7 +73,7 @@ class BaseSQLiteStore(BaseStore, SQLiteFile):
             self.create()
 
     def _haveKey(self, key):
-        """ Is the key `key` available int he configuration?
+        """ Is the key `key` available?
         """
         query = (
             "SELECT {} FROM {} WHERE {}=?".format(
@@ -232,53 +229,3 @@ class BaseSQLiteStore(BaseStore, SQLiteFile):
         cursor = connection.cursor()
         cursor.execute(query)
         connection.commit()
-
-
-class DefaultSqliteConfigurationStore(BaseSQLiteStore, BaseStore):
-    """ This is the configuration storage that stores key/value
-        pairs in the `config` table of the SQLite3 database.
-    """
-    __tablename__ = "config"
-    __key__ = "key"
-    __value__ = "value"
-
-    #: Default configuration
-    defaults = {
-        "node": "wss://node.bitshares.eu",
-        "rpcpassword": "",
-        "rpcuser": "",
-        "order-expiration": 7 * 24 * 60 * 60,
-    }
-
-
-class DefaultSqliteKeyStore(BaseSQLiteStore, BaseKeyStore):
-    """ This is the key storage that stores the public key and the
-        (possibly encrypted) private key in the `keys` table in the
-        SQLite3 database.
-    """
-    __tablename__ = 'keys'
-    __key__ = "pub"
-    __value__ = "wif"
-
-    def getPublicKeys(self):
-        """ Returns the public keys stored in the database
-        """
-        return [k for k, v in self.items()]
-
-    def getPrivateKeyForPublicKey(self, pub):
-        """ Returns the (possibly encrypted) private key that
-            corresponds to a public key
-
-           :param str pub: Public key
-
-           The encryption scheme is BIP38
-        """
-        return self[pub]
-
-    def add(self, wif, pub=None):
-        """ Change the wif to a pubkey
-
-           :param str pub: Public key
-           :param str wif: Private key
-        """
-        self[str(pub)] = str(wif)
