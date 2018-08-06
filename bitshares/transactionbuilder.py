@@ -1,4 +1,5 @@
 from .account import Account
+from .asset import Asset
 from bitsharesbase.objects import Operation
 from bitsharesbase.account import PrivateKey, PublicKey
 from bitsharesbase.signedtransactions import Signed_Transaction
@@ -274,6 +275,8 @@ class TransactionBuilder(dict):
         """
         from .amount import Amount
         if isinstance(fee_asset, Amount):
+            self.fee_asset_id = fee_asset["id"]
+        elif isinstance(fee_asset, Asset):
             self.fee_asset_id = fee_asset["id"]
         elif fee_asset:
             self.fee_asset_id = fee_asset
