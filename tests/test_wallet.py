@@ -21,8 +21,8 @@ set_shared_bitshares_instance(bitshares)
 class Testcases(unittest.TestCase):
 
     def test_init(self):
-        config = storage.base.BaseStore()
-        key_store = storage.InRamKeyStore(config=config)
+        config = storage.InRamConfigurationStore()
+        key_store = storage.InRamPlainKeyStore(config=config)
         wallet = Wallet(key_store=key_store)
         # InRamStore comes with a default key
         self.assertTrue(wallet.created())
@@ -46,7 +46,7 @@ class Testcases(unittest.TestCase):
             ),
             str(wif2)
         )
-        wallet.unlock()
+        wallet.unlock("")
         wallet.lock()
         # is unlocked because InRamKeyStore and not encrypted
         self.assertTrue(wallet.unlocked())

@@ -1,3 +1,9 @@
+import random
+import unittest
+
+from pprint import pprint
+from binascii import hexlify
+
 from bitshares import BitShares
 from bitsharesbase import (
     transactions,
@@ -9,10 +15,8 @@ from bitsharesbase import (
 from bitsharesbase.objects import Operation
 from bitsharesbase.signedtransactions import Signed_Transaction
 from bitsharesbase.account import PrivateKey
-import random
-import unittest
-from pprint import pprint
-from binascii import hexlify
+
+from .fixtures import fixture_data, bitshares
 
 
 prefix = "BTS"
@@ -24,6 +28,9 @@ expiration = "2016-04-06T08:29:27"
 
 class Testcases(unittest.TestCase):
 
+    def setUp(self):
+        fixture_data()
+
     def doit(self, printWire=False):
         ops = [Operation(self.op)]
         tx = Signed_Transaction(ref_block_num=ref_block_num,
@@ -33,16 +40,23 @@ class Testcases(unittest.TestCase):
         tx = tx.sign([wif], chain=prefix)
         tx.verify([PrivateKey(wif).pubkey], prefix)
         txWire = hexlify(bytes(tx)).decode("ascii")
+
+        # Test against Bitshares backened
+        live = bitshares.rpc.get_transaction_hex(tx.json())
+
+        # Compare expected result with online backend
+        self.assertEqual(live[:-130], self.cm[:-130])
+
         if printWire:
             print()
             print(txWire)
             print()
+
+        # Compare expected result with test unit
         self.assertEqual(self.cm[:-130], txWire[:-130])
 
-        # Test against Bitshares backened
-        bitshares = BitShares()
-        self.cm = bitshares.rpc.get_transaction_hex(tx.json())
-        self.assertEqual(self.cm[:-130], txWire[:-130])
+        # Compare expected result with online result
+        self.assertEqual(live[:-130], txWire[:-130])
 
     def test_call_update(self):
         self.op = operations.Call_order_update(**{
