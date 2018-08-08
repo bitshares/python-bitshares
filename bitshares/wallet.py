@@ -2,7 +2,7 @@ import logging
 import os
 from graphenebase import bip38
 from bitsharesbase.account import PrivateKey
-from .storage import SqliteEncryptedKeyStore, InRamPlainKeyStore
+from .storage import get_default_key_store, InRamPlainKeyStore
 from .instance import BlockchainInstance
 from .account import Account
 from .exceptions import (
@@ -57,7 +57,9 @@ class Wallet():
         else:
             self.store = kwargs.get(
                 "key_store",
-                SqliteEncryptedKeyStore(config=self.blockchain.config)
+                get_default_key_store(
+                    config=self.blockchain.config,
+                )
             )
 
     @property

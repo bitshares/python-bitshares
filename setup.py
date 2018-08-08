@@ -27,7 +27,6 @@ setup(
     keywords=['bitshares', 'library', 'api', 'rpc'],
     packages=[
         "bitshares",
-        "bitshares.storage",
         "bitsharesapi",
         "bitsharesbase"
     ],

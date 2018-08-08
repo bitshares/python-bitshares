@@ -220,12 +220,9 @@ class TransactionBuilder(dict):
                 return []
             r = []
             for authority in account[perm]["key_auths"]:
-                try:
-                    wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
-                        authority[0])
-                    r.append([wif, authority[1]])
-                except Exception:
-                    pass
+                wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
+                    authority[0])
+                r.append([wif, authority[1]])
 
             if sum([x[1] for x in r]) < required_treshold:
                 # go one level deeper
@@ -240,7 +237,7 @@ class TransactionBuilder(dict):
         if account not in self.signing_accounts:
             # is the account an instance of public key?
             if isinstance(account, PublicKey):
-                self.wifs.add(
+                self.appendWif(
                     self.blockchain.wallet.getPrivateKeyForPublicKey(
                         str(account)
                     )
@@ -255,7 +252,7 @@ class TransactionBuilder(dict):
                 if not keys and permission != "owner":
                     keys.extend(fetchkeys(account, "owner", required_treshold=required_treshold))
                 for x in keys:
-                    self.wifs.add(x[0])
+                    self.appendWif(x[0])
 
             self.signing_accounts.append(account)
 

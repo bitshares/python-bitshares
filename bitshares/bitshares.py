@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from bitsharesapi.bitsharesnoderpc import BitSharesNodeRPC
 from bitsharesbase.account import PublicKey
 from bitsharesbase import operations
-from .storage import SqliteConfigurationStore
+from .storage import get_default_config_store
 from .instance import set_shared_blockchain_instance, shared_blockchain_instance
 from .asset import Asset
 from .account import Account
@@ -138,7 +138,7 @@ class BitShares(object):
         # Store self.config for access through other Classes
         self.config = kwargs.get(
             "config_store",
-            SqliteConfigurationStore()
+            get_default_config_store()
         )
 
         if not self.offline:
