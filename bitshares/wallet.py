@@ -11,7 +11,8 @@ from .exceptions import (
     WalletExists,
     WalletLocked,
     NoWalletException,
-    OfflineHasNoRPCException
+    OfflineHasNoRPCException,
+    KeyAlreadyInStoreException
 )
 
 
@@ -88,7 +89,7 @@ class Wallet():
         elif not isinstance(loadkeys, list):
             loadkeys = [loadkeys]
         for wif in loadkeys:
-            pub = str(PrivateKey(str(wif)).pubkey)
+            pub = format(PrivateKey(str(wif)).pubkey, self.prefix)
             self.store.add(str(wif), pub)
 
     def unlock(self, pwd):
@@ -138,7 +139,12 @@ class Wallet():
     def addPrivateKey(self, wif):
         """ Add a private key to the wallet database
         """
-        pub = str(PrivateKey(str(wif)).pubkey)
+        try:
+            pub = format(PrivateKey(str(wif)).pubkey, self.prefix)
+        except:
+            raise InvalidWifError("Invalid Key format!")
+        if pub in self.store:
+            raise KeyAlreadyInStoreException("Key already in the store")
         self.store.add(str(wif), pub)
 
     def getPrivateKeyForPublicKey(self, pub):
@@ -194,7 +200,7 @@ class Wallet():
     def getAccountFromPrivateKey(self, wif):
         """ Obtain account name from private key
         """
-        pub = str(PrivateKey(wif).pubkey)
+        pub = format(PrivateKey(wif).pubkey, self.prefix)
         return self.getAccountFromPublicKey(pub)
 
     def getAccountsFromPublicKey(self, pub):

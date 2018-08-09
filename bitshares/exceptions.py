@@ -140,3 +140,8 @@ class WrongMemoKey(Exception):
     """
     pass
 
+
+class KeyAlreadyInStoreException(Exception):
+    """ The key is already stored in the store
+    """
+    pass
