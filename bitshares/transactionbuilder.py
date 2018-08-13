@@ -229,9 +229,11 @@ class TransactionBuilder(dict):
                     # Try obtain the private key from wallet
                     wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
                         authority[0])
-                    r.append([wif, authority[1]])
                 except Exception:
-                    pass
+                    continue
+
+                if wif:
+                    r.append([wif, authority[1]])
 
                 # Test if we reached threshold already
                 if sum([x[1] for x in r]) >= required_treshold:
@@ -410,7 +412,7 @@ class TransactionBuilder(dict):
             if self.blockchain.blocking:
                 ret = self.blockchain.rpc.broadcast_transaction_synchronous(
                     ret, api="network_broadcast")
-                ret.update(**ret.get("trx"))
+                ret.update(**ret.get("trx", {}))
             else:
                 self.blockchain.rpc.broadcast_transaction(
                     ret, api="network_broadcast")

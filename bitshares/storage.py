@@ -14,13 +14,13 @@ SqliteConfigurationStore.setdefault("node", "wss://node.bitshares.eu")
 
 
 def get_default_config_store(*args, **kwargs):
-    if not "appname" in kwargs:
+    if "appname" not in kwargs:
         kwargs["appname"] = "bitshares"
     return SqliteConfigurationStore(*args, **kwargs)
 
 
 def get_default_key_store(*args, config, **kwargs):
-    if not "appname" in kwargs:
+    if "appname" not in kwargs:
         kwargs["appname"] = "bitshares"
     return SqliteEncryptedKeyStore(
         config=config, **kwargs

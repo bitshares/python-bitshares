@@ -152,6 +152,8 @@ class Wallet():
 
             :param str pub: Public Key
         """
+        if pub not in self.store:
+            raise KeyNotFound
         return self.store.getPrivateKeyForPublicKey(pub)
 
     def removePrivateKeyFromPublicKey(self, pub):
@@ -175,7 +177,7 @@ class Wallet():
             key = self.getPrivateKeyForPublicKey(authority[0])
             if key:
                 return key
-        return False
+        raise KeyNotFound
 
     def getMemoKeyForAccount(self, name):
         """ Obtain owner Memo Key for an account from the wallet database

@@ -14,17 +14,6 @@ class Signed_Transaction(GrapheneSigned_Transaction):
         :param str expiration: expiration date
         :param Array operations:  array of operations
     """
-    def __init__(self, *args, **kwargs):
-        super(Signed_Transaction, self).__init__(*args, **kwargs)
-
-    def sign(self, wifkeys, chain="BTS"):
-        return super(Signed_Transaction, self).sign(wifkeys, chain)
-
-    def verify(self, pubkeys=[], chain="BTS"):
-        return super(Signed_Transaction, self).verify(pubkeys, chain)
-
-    def getOperationKlass(self):
-        return Operation
-
-    def getKnownChains(self):
-        return known_chains
+    known_chains = known_chains
+    default_prefix = "BTS"
+    operation_klass = Operation
