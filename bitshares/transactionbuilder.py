@@ -265,13 +265,13 @@ class TransactionBuilder(dict):
                 )
             # ... or should we rather obtain the keys from an account name
             else:
-                account = Account(account, blockchain_instance=self.blockchain)
-                required_treshold = account[permission]["weight_threshold"]
-                keys = fetchkeys(account, permission, required_treshold=required_treshold)
+                accountObj = Account(account, blockchain_instance=self.blockchain)
+                required_treshold = accountObj[permission]["weight_threshold"]
+                keys = fetchkeys(accountObj, permission, required_treshold=required_treshold)
                 # If we couldn't find an active key, let's try overwrite it
                 # with an owner key
                 if not keys and permission != "owner":
-                    keys.extend(fetchkeys(account, "owner", required_treshold=required_treshold))
+                    keys.extend(fetchkeys(accountObj, "owner", required_treshold=required_treshold))
                 for x in keys:
                     self.wifs.add(x[0])
 
