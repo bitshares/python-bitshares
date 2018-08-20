@@ -229,7 +229,12 @@ class TransactionBuilder(dict):
                     # Try obtain the private key from wallet
                     wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
                         authority[0])
-                    r.append([wif, authority[1]])
+                    if wif:
+                        r.append([wif, authority[1]])
+                        # If we found a key for account, we add it
+                        # to signing_accounts to be sure we do not resign
+                        # another operation with the same account/wif
+                        self.signing_accounts.append(account)
                 except Exception:
                     pass
 
