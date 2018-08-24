@@ -26,7 +26,7 @@ class Memo(object):
 
             from bitshares.memo import Memo
             m = Memo("bitshareseu", "wallet.xeroc")
-            m.bitshares.wallet.unlock("secret")
+            m.blockchain.wallet.unlock("secret")
             enc = (m.encrypt("foobar"))
             print(enc)
             >> {'nonce': '17329630356955254641', 'message': '8563e2bb2976e0217806d642901a2855'}
@@ -39,7 +39,7 @@ class Memo(object):
 
             from bitshares.memo import Memo
             m = Memo()
-            m.bitshares.wallet.unlock("secret")
+            m.blockchain.wallet.unlock("secret")
             print(memo.decrypt(op_data["memo"]))
 
         if ``op_data`` being the payload of a transfer operation.
