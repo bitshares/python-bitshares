@@ -1,4 +1,5 @@
 from .account import Account
+from .asset import Asset
 from bitsharesbase.objects import Operation
 from bitsharesbase.account import PrivateKey, PublicKey
 from bitsharesbase.signedtransactions import Signed_Transaction
@@ -216,23 +217,45 @@ class TransactionBuilder(dict):
 
         # Let's define a helper function for recursion
         def fetchkeys(account, perm, level=0, required_treshold=1):
+
+            # Do not travel recursion more than 2 levels
             if level > 2:
                 return []
+
             r = []
+            # Let's go through all *keys* of the account
             for authority in account[perm]["key_auths"]:
                 try:
+                    # Try obtain the private key from wallet
                     wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
                         authority[0])
-                    r.append([wif, authority[1]])
+                    if wif:
+                        r.append([wif, authority[1]])
+                        # If we found a key for account, we add it
+                        # to signing_accounts to be sure we do not resign
+                        # another operation with the same account/wif
+                        self.signing_accounts.append(account)
                 except Exception:
                     pass
 
+                # Test if we reached threshold already
+                if sum([x[1] for x in r]) >= required_treshold:
+                    break
+
+            # Let's see if we still need to go through accounts
             if sum([x[1] for x in r]) < required_treshold:
                 # go one level deeper
                 for authority in account[perm]["account_auths"]:
+                    # Let's see if we can find keys for an account in
+                    # account_auths
+                    # This is recursive with a limit at level 2 (see above)
                     auth_account = Account(
                         authority[0], blockchain_instance=self.blockchain)
                     r.extend(fetchkeys(auth_account, perm, level + 1, required_treshold))
+
+                    # Test if we reached threshold already and break
+                    if sum([x[1] for x in r]) >= required_treshold:
+                        break
 
             return r
 
@@ -247,13 +270,13 @@ class TransactionBuilder(dict):
                 )
             # ... or should we rather obtain the keys from an account name
             else:
-                account = Account(account, blockchain_instance=self.blockchain)
-                required_treshold = account[permission]["weight_threshold"]
-                keys = fetchkeys(account, permission, required_treshold=required_treshold)
+                accountObj = Account(account, blockchain_instance=self.blockchain)
+                required_treshold = accountObj[permission]["weight_threshold"]
+                keys = fetchkeys(accountObj, permission, required_treshold=required_treshold)
                 # If we couldn't find an active key, let's try overwrite it
                 # with an owner key
                 if not keys and permission != "owner":
-                    keys.extend(fetchkeys(account, "owner", required_treshold=required_treshold))
+                    keys.extend(fetchkeys(accountObj, "owner", required_treshold=required_treshold))
                 for x in keys:
                     self.wifs.add(x[0])
 
@@ -274,6 +297,8 @@ class TransactionBuilder(dict):
         """
         from .amount import Amount
         if isinstance(fee_asset, Amount):
+            self.fee_asset_id = fee_asset["id"]
+        elif isinstance(fee_asset, Asset):
             self.fee_asset_id = fee_asset["id"]
         elif fee_asset:
             self.fee_asset_id = fee_asset

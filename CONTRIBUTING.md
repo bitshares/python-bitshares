@@ -105,9 +105,9 @@ everyone is a beginner at first
 
 Your patch should follow the same conventions & pass the same code
 quality checks as the rest of the project.
-[Codeclimate](https://codeclimate.com/github/xeroc/python-bitshares)
+[Codeclimate](https://codeclimate.com/github/bitshares/python-bitshares)
 will give you feedback in this regard. You can check & fix codeclimate's
-feedback by running it locally using [Codeclimate's CLI](https://codeclimate.com/github/xeroc/python-bitshares), via
+feedback by running it locally using [Codeclimate's CLI](https://codeclimate.com/github/bitshares/python-bitshares), via
 `codeclimate analyze`.
 
 ### 7. Make a Pull Request

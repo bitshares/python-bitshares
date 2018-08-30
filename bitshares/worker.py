@@ -23,6 +23,7 @@ class Worker(BlockchainObject):
         if isinstance(self["work_end_date"], str):
             self["work_end_date"] = formatTimeString(self["work_end_date"])
             self["work_begin_date"] = formatTimeString(self["work_begin_date"])
+        self["daily_pay"] = int(self["daily_pay"])
 
     def refresh(self):
         worker = self.blockchain.rpc.get_object(self.identifier)

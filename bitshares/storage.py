@@ -357,6 +357,14 @@ class Configuration(DataDir):
         cursor.execute(*query)
         connection.commit()
 
+    def wipe(self):
+        """ Delete all configuration from the configuration store
+        """
+        query = ("DELETE FROM %s " % (self.__tablename__) +
+                 "WHERE key<>?",
+                 (MasterPassword.config_key,))
+        self.sql_execute(query)
+
     def __iter__(self):
         return iter(self.items())
 

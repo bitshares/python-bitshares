@@ -68,8 +68,6 @@ class BlockchainObject(dict, BlockchainInstance):
         self,
         data,
         klass=None,
-        space_id=1,
-        object_id=None,
         lazy=False,
         use_cache=True,
         *args,
@@ -182,3 +180,13 @@ class BlockchainObject(dict, BlockchainInstance):
     def __repr__(self):
         return "<%s %s>" % (
             self.__class__.__name__, str(self.identifier))
+
+
+class Object(BlockchainObject):
+
+    def refresh(self):
+        dict.__init__(
+            self,
+            self.blockchain.rpc.get_object(self.identifier),
+            blockchain_instance=self.blockchain
+        )
