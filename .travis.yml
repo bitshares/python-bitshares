@@ -16,7 +16,7 @@ install:
 script:
   - tox
   - sed -i 's/filename="/filename=".\//g' coverage.xml
-  - sonar-scanner
+  - ( which sonar-scanner && sonar-scanner || true )
 after_success:
   - codecov
 
