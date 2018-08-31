@@ -3,17 +3,13 @@ from bitshares import BitShares, exceptions
 from bitshares.instance import set_shared_bitshares_instance
 from bitshares.account import Account
 from bitshares.committee import Committee
+from .fixtures import fixture_data
 
 
 class Testcases(unittest.TestCase):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.bts = BitShares(
-            nobroadcast=True,
-        )
-        set_shared_bitshares_instance(self.bts)
+    def setUp(self):
+        fixture_data()
 
     def test_Committee(self):
         with self.assertRaises(
@@ -21,8 +17,8 @@ class Testcases(unittest.TestCase):
         ):
             Committee("FOObarNonExisting")
 
-        c = Committee("init0")
-        self.assertEqual(c["id"], "1.5.0")
+        c = Committee("xeroc")
+        self.assertEqual(c["id"], "1.5.27")
         self.assertIsInstance(c.account, Account)
 
         with self.assertRaises(

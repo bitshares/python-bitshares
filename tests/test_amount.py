@@ -13,7 +13,6 @@ class Testcases(unittest.TestCase):
         self.asset = Asset("BTS")
         self.symbol = Asset("BTS")["symbol"]
         self.precision = Asset("BTS")["precision"]
-
         self.asset2 = Asset("EUR")
 
     def setUp(self):

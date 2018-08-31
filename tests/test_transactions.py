@@ -138,25 +138,22 @@ class Testcases(unittest.TestCase):
 
         fee = objects.Asset(amount=0, asset_id="1.3.0")
         amount = objects.Asset(amount=int(amount), asset_id=asset_id)
-        encrypted_memo = memo.encode_memo(
-            account.PrivateKey(wif),
-            account.PublicKey(pub, prefix=prefix),
-            nonce,
-            message
-        )
-        memoStruct = {
-            "from": pub,
-            "to": pub,
-            "nonce": nonce,
-            "message": encrypted_memo,
-        }
-        memoObj = objects.Memo(**memoStruct)
         self.op = operations.Transfer(**{
             "fee": fee,
             "from": from_account_id,
             "to": to_account_id,
             "amount": amount,
-            "memo": memoObj,
+            "memo": {
+                "from": pub,
+                "to": pub,
+                "nonce": nonce,
+                "message": memo.encode_memo(
+                    account.PrivateKey(wif),
+                    account.PublicKey(pub, prefix=prefix),
+                    nonce,
+                    message
+                ),
+            },
             "prefix": prefix
         })
         self.cm = ("f68585abf4dce7c804570100000000000000000000000140420"

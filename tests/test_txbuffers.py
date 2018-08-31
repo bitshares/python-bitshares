@@ -1,28 +1,16 @@
 import unittest
-from bitshares import BitShares
 from bitsharesbase import operations
-from bitshares.instance import set_shared_bitshares_instance
-
-wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+from .fixtures import fixture_data, bitshares
 
 
 class Testcases(unittest.TestCase):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.bts = BitShares(
-            "wss://node.testnet.bitshares.eu",
-            nobroadcast=True,
-            keys={"active": wif}
-        )
-        set_shared_bitshares_instance(self.bts)
-        self.bts.set_default_account("init0")
+    def setUp(self):
+        fixture_data()
 
     def test_add_one_proposal_one_op(self):
-        bts = self.bts
-        tx1 = bts.new_tx()
-        proposal1 = bts.new_proposal(tx1, proposer="init0")
+        tx1 = bitshares.new_tx()
+        proposal1 = bitshares.new_proposal(tx1, proposer="init0")
         op = operations.Transfer(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "from": "1.2.0",
@@ -39,9 +27,8 @@ class Testcases(unittest.TestCase):
         self.assertEqual(ps["proposed_ops"][0]["op"][0], 0)
 
     def test_add_one_proposal_two_ops(self):
-        bts = self.bts
-        tx1 = bts.new_tx()
-        proposal1 = bts.new_proposal(tx1, proposer="init0")
+        tx1 = bitshares.new_tx()
+        proposal1 = bitshares.new_proposal(tx1, proposer="init0")
         op = operations.Transfer(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "from": "1.2.0",
@@ -60,11 +47,10 @@ class Testcases(unittest.TestCase):
         self.assertEqual(ps["proposed_ops"][1]["op"][0], 0)
 
     def test_have_two_proposals(self):
-        bts = self.bts
-        tx1 = bts.new_tx()
+        tx1 = bitshares.new_tx()
 
         # Proposal 1
-        proposal1 = bts.new_proposal(tx1, proposer="init0")
+        proposal1 = bitshares.new_proposal(tx1, proposer="init0")
         op = operations.Transfer(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "from": "1.2.0",
@@ -76,7 +62,7 @@ class Testcases(unittest.TestCase):
             proposal1.appendOps(op)
 
         # Proposal 1
-        proposal2 = bts.new_proposal(tx1, proposer="init0")
+        proposal2 = bitshares.new_proposal(tx1, proposer="init0")
         op = operations.Transfer(**{
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "from": "1.2.0",

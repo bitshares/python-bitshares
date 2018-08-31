@@ -92,25 +92,38 @@ class Wallet():
             pub = format(PrivateKey(str(wif)).pubkey, self.prefix)
             self.store.add(str(wif), pub)
 
+    def is_encrypted(self):
+        """ Is the key store encrypted?
+        """
+        return self.store.is_encrypted()
+
     def unlock(self, pwd):
         """ Unlock the wallet database
         """
-        return self.store.unlock(pwd)
+        if self.store.is_encrypted():
+            return self.store.unlock(pwd)
 
     def lock(self):
         """ Lock the wallet database
         """
-        return self.store.lock()
+        if self.store.is_encrypted():
+            return self.store.lock()
+        else:
+            return False
 
     def unlocked(self):
         """ Is the wallet database unlocked?
         """
-        return not self.store.locked()
+        if self.store.is_encrypted():
+            return not self.store.locked()
+        else:
+            return True
 
     def locked(self):
         """ Is the wallet database locked?
         """
-        return self.store.locked()
+        if self.store.is_encrypted():
+            return self.store.locked()
 
     def changePassphrase(self, new_pwd):
         """ Change the passphrase for the wallet database
@@ -143,18 +156,18 @@ class Wallet():
             pub = format(PrivateKey(str(wif)).pubkey, self.prefix)
         except:
             raise InvalidWifError("Invalid Key format!")
-        if pub in self.store:
+        if str(pub) in self.store:
             raise KeyAlreadyInStoreException("Key already in the store")
-        self.store.add(str(wif), pub)
+        self.store.add(str(wif), str(pub))
 
     def getPrivateKeyForPublicKey(self, pub):
         """ Obtain the private key for a given public key
 
             :param str pub: Public Key
         """
-        if pub not in self.store:
+        if str(pub) not in self.store:
             raise KeyNotFound
-        return self.store.getPrivateKeyForPublicKey(pub)
+        return self.store.getPrivateKeyForPublicKey(str(pub))
 
     def removePrivateKeyFromPublicKey(self, pub):
         """ Remove a key from the wallet database
@@ -208,7 +221,7 @@ class Wallet():
     def getAccountsFromPublicKey(self, pub):
         """ Obtain all accounts associated with a public key
         """
-        names = self.rpc.get_key_references([pub])
+        names = self.rpc.get_key_references([str(pub)])
         for name in names:
             for i in name:
                 yield i
@@ -219,7 +232,7 @@ class Wallet():
         # FIXME, this only returns the first associated key.
         # If the key is used by multiple accounts, this
         # will surely lead to undesired behavior
-        names = self.rpc.get_key_references([pub])[0]
+        names = self.rpc.get_key_references([str(pub)])[0]
         if not names:
             return None
         else:
@@ -229,24 +242,24 @@ class Wallet():
         """ Get the account data for a public key (all accounts found for this
             public key)
         """
-        for id in self.getAccountsFromPublicKey(pub):
+        for id in self.getAccountsFromPublicKey(str(pub)):
             try:
                 account = Account(id, blockchain_instance=self.blockchain)
             except:
                 continue
             yield {"name": account["name"],
                    "account": account,
-                   "type": self.getKeyType(account, pub),
-                   "pubkey": pub}
+                   "type": self.getKeyType(account, str(pub)),
+                   "pubkey": str(pub)}
 
     def getKeyType(self, account, pub):
         """ Get key type
         """
         for authority in ["owner", "active"]:
             for key in account[authority]["key_auths"]:
-                if pub == key[0]:
+                if str(pub) == key[0]:
                     return authority
-        if pub == account["options"]["memo_key"]:
+        if str(pub) == account["options"]["memo_key"]:
             return "memo"
         return None
 

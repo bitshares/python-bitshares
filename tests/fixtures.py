@@ -9,17 +9,27 @@ from bitshares.proposal import Proposals
 
 from bitsharesbase.operationids import operations
 
+# Configuration for unit tests
+config = storage.InRamConfigurationStore()
+config["node"] = "wss://node.bitshares.eu"
 
+# default wif key for testing
 wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+
+# bitshares instance
 bitshares = BitShares(
     keys=[wif],
     nobroadcast=True,
     num_retries=1,
-    config_store=storage.InRamConfigurationStore(),
+    config_store=config,
     key_store=storage.InRamPlainKeyStore()
 )
+
+# Set defaults
 bitshares.set_default_account("init0")
 set_shared_blockchain_instance(bitshares)
+
+# Ensure we are not going to transaction anythin on chain!
 assert bitshares.nobroadcast
 
 # Setup custom Cache
@@ -37,7 +47,8 @@ def add_to_object_cache(objects, key="id"):
 
 
 def fixture_data():
-    # Accounts.cache = dict()
+    # Clear tx buffer
+    bitshares.clear()
 
     with open(os.path.join(
         os.path.dirname(__file__),
