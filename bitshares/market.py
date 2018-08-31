@@ -114,7 +114,10 @@ class Market(BlockchainInstance, dict):
         """
         data = {}
         # Core Exchange rate
-        cer = self["quote"]["options"]["core_exchange_rate"]
+        if self["quote"]["id"] == '1.3.0':
+            cer = self["base"]["options"]["core_exchange_rate"]
+        else:
+            cer = self["quote"]["options"]["core_exchange_rate"]
         data["core_exchange_rate"] = Price(
             cer,
             blockchain_instance=self.blockchain
