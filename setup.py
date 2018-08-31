@@ -11,7 +11,7 @@ except LookupError:
     ascii = codecs.lookup('ascii')
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == 'mbcs'))
 
-VERSION = '0.1.19'
+VERSION = '0.1.22'
 
 setup(
     name='bitshares',
@@ -39,14 +39,7 @@ setup(
         'Intended Audience :: Financial and Insurance Industry',
         'Topic :: Office/Business :: Financial',
     ],
-    install_requires=[
-        "graphenelib>=0.6.3",
-        "websockets",
-        "appdirs",
-        "Events",
-        "scrypt",
-        "pycryptodome",  # for AES, installed through graphenelib already
-    ],
+    install_requires=open("requirements.txt").readlines(),
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     include_package_data=True,

@@ -1,3 +1,4 @@
+dist: trusty
 language: python
 sudo: false
 python:
@@ -14,5 +15,13 @@ install:
   - pip install tox-travis codecov
 script:
   - tox
+  - sed -i 's/filename="/filename=".\//g' coverage.xml
+  - ( which sonar-scanner && sonar-scanner || true )
 after_success:
   - codecov
+
+addons:
+  sonarcloud:
+    organization: bitshares
+    token:
+     secure: "dSFPBeC5Gr9oiU0weJY3rJXfc68uo2zvfRMcYRSQdqruAtrNqqmJCew0rANDtJPLkKxfIzbJSkokKCvt3f1SXbIOnbuAv/MN2TKDZkqZyve3AdMgYifepHwzK14KWO79ga7gaBKa6CxayZbOkX0BWciOO+5QFlBtmYdov3JpxboymZH9jJKdRs2C3mrIfGQG48u1qaFNaFFRKCvlCY0pXM7MbxFf1C+EADJC1CeR5yHQ2Zd3K6dIh+JpiZ9b1DbxjwWeRC7fOQ9KFV6I8I+GPPjKsS50/96m7SPlnriogYKx4DXRD85by2HfRUUv2bsDXzz4kLo2KR3c358lyhhh3qZBmJS/fJEq+s9Tmqcxb4ssMmht6tpQKnc6NWN4Z/wK0+nyBqFZryZnzO863HRu6GM1d6Mp7q976z1u5UWgPi2D5Y2ulZNfan4T+NVZViTM/XD8Mj9tOpml1A1LbDt3lgHulV9vUD1Hd/TzWh546ydN3hCnGbeuSDY2N5GKNptOAG48sXWPgGc8y8X0yBY+0c3oo0JaMIP1e7IIXEcmq2LI/gF8C0feTKMbBFQSG8kAHHJhOLrV5o9aUFyWK1YT4AADRZrUKXlRaL6rnA0tXDxuGpwYkaB6zbA/c2l2pxsysO5REpbIgn1o6emo5XJ9flXMszwmDqvoio0XaB4JcJY="
