@@ -130,19 +130,17 @@ class Testcases(unittest.TestCase):
             nonce,
             message
         )
-        memoStruct = {
-            "from": pub,
-            "to": pub,
-            "nonce": nonce,
-            "message": encrypted_memo,
-        }
-        memoObj = objects.Memo(**memoStruct)
         self.op = operations.Transfer(**{
             "fee": fee,
             "from": from_account_id,
             "to": to_account_id,
             "amount": amount,
-            "memo": memoObj,
+            "memo": {
+                "from": pub,
+                "to": pub,
+                "nonce": nonce,
+                "message": encrypted_memo,
+            },
             "prefix": prefix
         })
         self.cm = ("f68585abf4dce7c804570100000000000000000000000140420"
