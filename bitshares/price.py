@@ -564,7 +564,7 @@ class FilledOrder(Price):
         elif isinstance(order, dict):
             # filled orders from account history
             if "op" in order:
-                order = order["op"]
+                order = order["op"][1]
             base_asset = kwargs.get("base_asset", order["receives"]["asset_id"])
             super(FilledOrder, self).__init__(
                 order,
