@@ -108,12 +108,9 @@ class Permission(GrapheneObject):
 
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
-
-            # Sort keys (FIXME: ideally, the sorting is part of Public
-            # Key and not located here)
             kwargs["key_auths"] = sorted(
                 kwargs["key_auths"],
-                key=lambda x: repr(PublicKey(x[0], prefix=prefix).address),
+                key=lambda x: PublicKey(x[0], prefix=prefix),
                 reverse=False,
             )
             accountAuths = Map([
