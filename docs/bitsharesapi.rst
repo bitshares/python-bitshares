@@ -7,6 +7,7 @@ Submodules
 .. toctree::
 
    bitsharesapi.bitsharesnoderpc
+   bitsharesapi.bitsharesnoderpc2
    bitsharesapi.exceptions
    bitsharesapi.websocket
 

@@ -1,3 +1,6 @@
+from graphenestorage.exceptions import WrongMasterPasswordException
+
+
 class WalletExists(Exception):
     """ A wallet has already been created and requires a password to be
         unlocked by means of :func:`bitshares.wallet.unlock`.
@@ -84,12 +87,6 @@ class WitnessDoesNotExistsException(Exception):
     pass
 
 
-class WrongMasterPasswordException(Exception):
-    """ The password provided could not properly unlock the wallet
-    """
-    pass
-
-
 class CommitteeMemberDoesNotExistsException(Exception):
     """ Committee Member does not exist
     """
@@ -143,3 +140,8 @@ class WrongMemoKey(Exception):
     """
     pass
 
+
+class KeyAlreadyInStoreException(Exception):
+    """ The key is already stored in the store
+    """
+    pass

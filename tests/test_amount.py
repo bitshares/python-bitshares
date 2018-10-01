@@ -3,31 +3,26 @@ from bitshares import BitShares
 from bitshares.amount import Amount
 from bitshares.asset import Asset
 from bitshares.instance import set_shared_bitshares_instance, SharedInstance
-
-
-url = "wss://node.testnet.bitshares.eu"
+from .fixtures import fixture_data, bitshares
 
 
 class Testcases(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.asset = Asset("BTS")
+        self.symbol = Asset("BTS")["symbol"]
+        self.precision = Asset("BTS")["precision"]
+        self.asset2 = Asset("EUR")
 
-        self.bts = BitShares(url, nobroadcast=True)
-        set_shared_bitshares_instance(self.bts)
-        self.asset = Asset("1.3.0")
-        self.symbol = self.asset["symbol"]
-        self.precision = self.asset["precision"]
-        self.asset2 = Asset("1.3.1")
+    def setUp(self):
+        fixture_data()
 
     def dotest(self, ret, amount, symbol):
         self.assertEqual(float(ret), float(amount))
         self.assertEqual(ret["symbol"], symbol)
         self.assertIsInstance(ret["asset"], dict)
         self.assertIsInstance(ret["amount"], float)
-
-    def test_url(self):
-        self.assertEqual(self.bts.rpc.url, url)
 
     def test_init(self):
         # String init

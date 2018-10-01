@@ -1,6 +1,13 @@
 bitshares package
 =================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    bitshares.storage
+
 Submodules
 ----------
 
@@ -25,7 +32,6 @@ Submodules
    bitshares.notify
    bitshares.price
    bitshares.proposal
-   bitshares.storage
    bitshares.transactionbuilder
    bitshares.utils
    bitshares.vesting

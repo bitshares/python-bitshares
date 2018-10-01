@@ -229,14 +229,15 @@ class TransactionBuilder(dict):
                     # Try obtain the private key from wallet
                     wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
                         authority[0])
-                    if wif:
-                        r.append([wif, authority[1]])
-                        # If we found a key for account, we add it
-                        # to signing_accounts to be sure we do not resign
-                        # another operation with the same account/wif
-                        self.signing_accounts.append(account)
-                except Exception:
-                    pass
+                except Exception as e:
+                    continue
+
+                if wif:
+                    r.append([wif, authority[1]])
+                    # If we found a key for account, we add it
+                    # to signing_accounts to be sure we do not resign
+                    # another operation with the same account/wif
+                    self.signing_accounts.append(account)
 
                 # Test if we reached threshold already
                 if sum([x[1] for x in r]) >= required_treshold:
@@ -263,7 +264,7 @@ class TransactionBuilder(dict):
         if account not in self.signing_accounts:
             # is the account an instance of public key?
             if isinstance(account, PublicKey):
-                self.wifs.add(
+                self.appendWif(
                     self.blockchain.wallet.getPrivateKeyForPublicKey(
                         str(account)
                     )
@@ -278,7 +279,7 @@ class TransactionBuilder(dict):
                 if not keys and permission != "owner":
                     keys.extend(fetchkeys(accountObj, "owner", required_treshold=required_treshold))
                 for x in keys:
-                    self.wifs.add(x[0])
+                    self.appendWif(x[0])
 
             self.signing_accounts.append(account)
 
@@ -415,7 +416,7 @@ class TransactionBuilder(dict):
             if self.blockchain.blocking:
                 ret = self.blockchain.rpc.broadcast_transaction_synchronous(
                     ret, api="network_broadcast")
-                ret.update(**ret.get("trx"))
+                ret.update(**ret.get("trx", {}))
             else:
                 self.blockchain.rpc.broadcast_transaction(
                     ret, api="network_broadcast")
