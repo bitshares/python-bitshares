@@ -28,11 +28,17 @@ class Vesting(BlockchainObject):
         from .amount import Amount
         if self["policy"][0] == 1:
             p = self["policy"][1]
-            ratio = (
-                (float(p["coin_seconds_earned"]) /
-                    float(self["balance"]["amount"])) /
+            if (
+                float(self["balance"]["amount"]) and
                 float(p["vesting_seconds"])
-            ) if float(p["vesting_seconds"]) > 0.0 else 1
+            ):
+                ratio = (
+                    (float(p["coin_seconds_earned"]) /
+                        float(self["balance"]["amount"])) /
+                    float(p["vesting_seconds"])
+                ) if float(p["vesting_seconds"]) > 0.0 else 1
+            else:
+                ratio = 0
             return Amount(
                 self["balance"],
                 blockchain_instance=self.blockchain
