@@ -393,7 +393,7 @@ class Market(BlockchainInstance, dict):
                     * If an order on the market exists that sells USD for cheaper, you will end up with more than 10 USD
         """
         if not expiration:
-            expiration = self.blockchain.config["order-expiration"]
+            expiration = self.blockchain.config["order-expiration"] or 60 * 60 * 24 * 365
         if not account:
             if "default_account" in self.blockchain.config:
                 account = self.blockchain.config["default_account"]
