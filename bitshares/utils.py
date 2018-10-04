@@ -21,7 +21,7 @@ def formatTimeString(t):
     return datetime.strptime(t, timeFormat)
 
 
-def formatTimeFromNow(secs=0):
+def formatTimeFromNow(secs=None):
     """ Properly Format Time that is `x` seconds in the future
 
         :param int secs: Seconds to go in the future (`x>0`) or the
@@ -31,7 +31,7 @@ def formatTimeFromNow(secs=0):
 
     """
     return datetime.utcfromtimestamp(
-        time.time() + int(secs)).strftime(timeFormat)
+        time.time() + int(secs or 0)).strftime(timeFormat)
 
 
 def parse_time(block_time):
