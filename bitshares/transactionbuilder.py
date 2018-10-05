@@ -326,7 +326,7 @@ class TransactionBuilder(dict):
         ops = transactions.addRequiredFees(self.blockchain.rpc, ops,
                                            asset_id=self.fee_asset_id)
         expiration = transactions.formatTimeFromNow(
-            self.expiration or self.blockchain.expiration
+            self.expiration or self.blockchain.expiration or 30  # defaults to 30 seconds
         )
         ref_block_num, ref_block_prefix = transactions.getBlockParams(
             self.blockchain.rpc)
