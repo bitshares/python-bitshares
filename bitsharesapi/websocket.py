@@ -154,7 +154,7 @@ class BitSharesWebsocket(Events):
     def cancel_subscriptions(self):
         self.cancel_all_subscriptions()
 
-    def on_open(self, ws):
+    def on_open(self, ws=None):
         """ This method will be called once the websocket connection is
             established. It will
 
