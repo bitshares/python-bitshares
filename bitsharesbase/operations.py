@@ -593,4 +593,21 @@ class Committee_member_create(GrapheneObject):
             ]))
 
 
+class Custom(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+                self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('payer', ObjectId(kwargs["payer"], "account")),
+                ('required_auths',
+                    Array([ObjectId(o, "account") for o in kwargs["required_auths"]])),
+                ('id', Uint16(kwargs["id"])),
+                ('data', Bytes(kwargs["data"])),
+            ]))
+
+
 fill_classmaps()
