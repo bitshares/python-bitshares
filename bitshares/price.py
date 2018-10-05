@@ -570,7 +570,12 @@ class FilledOrder(Price):
                 order,
                 base_asset=base_asset,
             )
+
+            # To be on the save side, store the entire order object in this
+            # dict as well
             self.update(order)
+
+            # Post-Process some additional stuff
             if "time" in order:
                 self["time"] = formatTimeString(order["time"])
             if "account_id" in order:
