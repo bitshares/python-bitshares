@@ -1,7 +1,9 @@
 from .instance import BlockchainInstance
 from .asset import Asset
 from .amount import Amount
-from bitsharesbase.operations import Operation, Asset as LLAsset
+from bitsharesbase.operations import (
+    Operation
+)
 
 
 class OperationsFee(list):
@@ -19,12 +21,13 @@ class OperationsFee(list):
         BlockchainInstance.__init__(self, **kwargs)
         asset = Asset(
             asset,
-            blockchain_instance=self.bitshares)
+            blockchain_instance=self.blockchain)
 
         if isinstance(ops[0], (object, dict)):
             ops = [Operation(i) for i in ops]
 
-        fees = self.bitshares.rpc.get_required_fees([i.json() for i in ops], asset["id"])
+        fees = self.blockchain.rpc.get_required_fees(
+            [i.json() for i in ops], asset["id"])
         ret = []
         for i, d in enumerate(ops):
             if isinstance(fees[i], list):
@@ -32,21 +35,21 @@ class OperationsFee(list):
                 ret.append([Amount(dict(
                     amount=fees[i][0]["amount"],
                     asset_id=fees[i][0]["asset_id"]),
-                    blockchain_instance=self.bitshares
+                    blockchain_instance=self.blockchain
                 )])
                 for j, _ in enumerate(ops[i].op.data["proposed_ops"].data):
                     ret[-1].append(
                         Amount(dict(
                             amount=fees[i][1][j]["amount"],
                             asset_id=fees[i][1][j]["asset_id"]),
-                            blockchain_instance=self.bitshares
+                            blockchain_instance=self.blockchain
                         ))
             else:
                 # Operation is a regular operation
                 ret.append(Amount(dict(
                     amount=fees[i]["amount"],
                     asset_id=fees[i]["asset_id"]),
-                    blockchain_instance=self.bitshares
+                    blockchain_instance=self.blockchain
                 ))
         list.__init__(self, ret)
 
