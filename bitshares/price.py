@@ -218,6 +218,8 @@ class Price(dict, BlockchainInstance):
         tmp = self["quote"]
         self["quote"] = self["base"]
         self["base"] = tmp
+        if "for_sale" in self and self["for_sale"]:
+            self["for_sale"] = Amount(self["for_sale"]['amount'] * self["price"], self["base"]["symbol"])
         return self
 
     def json(self):
@@ -564,13 +566,18 @@ class FilledOrder(Price):
         elif isinstance(order, dict):
             # filled orders from account history
             if "op" in order:
-                order = order["op"]
+                order = order["op"][1]
             base_asset = kwargs.get("base_asset", order["receives"]["asset_id"])
             super(FilledOrder, self).__init__(
                 order,
                 base_asset=base_asset,
             )
+
+            # To be on the save side, store the entire order object in this
+            # dict as well
             self.update(order)
+
+            # Post-Process some additional stuff
             if "time" in order:
                 self["time"] = formatTimeString(order["time"])
             if "account_id" in order:

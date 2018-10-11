@@ -5,19 +5,13 @@ from bitshares.blockchain import Blockchain
 from bitshares.block import Block
 from bitshares.instance import set_shared_bitshares_instance
 from bitshares.utils import parse_time
+from .fixtures import fixture_data
 
 
 class Testcases(unittest.TestCase):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.bts = BitShares(
-            "wss://node.testnet.bitshares.eu",
-            nobroadcast=True,
-        )
-        self.bts.set_default_account("init0")
-        set_shared_bitshares_instance(self.bts)
+    def setUp(self):
+        fixture_data()
         self.chain = Blockchain(mode="head")
 
     def test_is_irv(self):

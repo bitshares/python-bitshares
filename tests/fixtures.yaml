@@ -1,0 +1,143 @@
+accounts:
+
+ - name: init0
+   id: '1.2.100'
+   registrar: '1.2.0'
+   lifetime_referrer: '1.2.0'
+   top_n_control_flags: 0
+   blacklisting_accounts: []
+   referrer: '1.2.0'
+   whitelisted_accounts: []
+   owner:
+     address_auths: []
+     key_auths:
+     - - BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+       - 1
+     account_auths: []
+     weight_threshold: 1
+   active:
+     address_auths: []
+     key_auths:
+     - - BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+       - 1
+     - - BTS5i8bEmtnN4fP4jAsBe17z9CCuQcHLkRyTuRZXYZeN2kVCL1sXa
+       - 1
+     account_auths: []
+     weight_threshold: 1
+   referrer_rewards_percentage: 0
+   membership_expiration_date: 1969-12-31T23:59:59
+   statistics: '2.6.1888'
+   network_fee_percentage: 2000
+   options:
+     extensions: []
+     voting_account: '1.2.5'
+     votes: []
+     num_committee: 0
+     memo_key: BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+     num_witness: 0
+   whitelisting_accounts: []
+   lifetime_referrer_fee_percentage: 8000
+   blacklisted_accounts: []
+   owner_special_authority:
+   - 0
+   - {}
+   active_special_authority:
+   - 0
+   - {}
+
+ - name: init1
+   id: '1.2.101'
+   registrar: '1.2.0'
+   lifetime_referrer: '1.2.0'
+   top_n_control_flags: 0
+   blacklisting_accounts: []
+   referrer: '1.2.0'
+   whitelisted_accounts: []
+   owner:
+     address_auths: []
+     key_auths:
+     - - BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+       - 1
+     account_auths: []
+     weight_threshold: 1
+   active:
+     address_auths: []
+     key_auths:
+     - - BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+       - 1
+     account_auths: []
+     weight_threshold: 1
+   referrer_rewards_percentage: 0
+   membership_expiration_date: 1969-12-31T23:59:59
+   statistics: '2.6.1888'
+   network_fee_percentage: 2000
+   options:
+     extensions: []
+     voting_account: '1.2.5'
+     votes: []
+     num_committee: 0
+     memo_key: BTS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+     num_witness: 0
+   whitelisting_accounts: []
+   lifetime_referrer_fee_percentage: 8000
+   blacklisted_accounts: []
+   owner_special_authority:
+   - 0
+   - {}
+   active_special_authority:
+   - 0
+   - {}
+
+assets:
+ - dynamic_asset_data_id: '2.3.121'
+   precision: 4
+   symbol: USD
+   bitasset_data_id: '2.4.21'
+   id: '1.3.121'
+   options:
+     issuer_permissions: 511
+     flags: 129
+     extensions: []
+     core_exchange_rate:
+       base:
+         amount: 221
+         asset_id: '1.3.121'
+       quote:
+         amount: 11564
+         asset_id: '1.3.0'
+     whitelist_authorities: []
+     whitelist_markets: []
+     max_market_fee: '1000000000000000'
+     market_fee_percent: 10
+     blacklist_markets: []
+     blacklist_authorities: []
+     max_supply: '1000000000000000'
+     description: ! '{"main":"1 United States dollar","market":""}'
+   issuer: '1.2.0'
+
+ - dynamic_asset_data_id: '2.3.120'
+   precision: 4
+   symbol: EUR
+   bitasset_data_id: '2.4.20'
+   id: '1.3.120'
+   options:
+     issuer_permissions: 511
+     flags: 128
+     extensions: []
+     core_exchange_rate:
+       base:
+         amount: 1229
+         asset_id: '1.3.120'
+       quote:
+         amount: 74364
+         asset_id: '1.3.0'
+     whitelist_authorities: []
+     whitelist_markets: []
+     max_market_fee: '1000000000000000'
+     market_fee_percent: 0
+     blacklist_markets: []
+     blacklist_authorities: []
+     max_supply: '1000000000000000'
+     description: 1 euro
+   issuer: '1.2.0'
+

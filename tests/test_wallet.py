@@ -1,27 +1,73 @@
 import unittest
-import mock
-from pprint import pprint
-from bitshares import BitShares
-from bitshares.account import Account
-from bitshares.amount import Amount
-from bitshares.asset import Asset
-from bitshares.instance import set_shared_bitshares_instance
-from bitsharesbase.operationids import getOperationNameForId
-
-wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+from bitshares import storage
+from bitshares.wallet import Wallet
+from bitshares.exceptions import KeyNotFound
+from bitsharesbase.account import PrivateKey
+from .fixtures import fixture_data
 
 
 class Testcases(unittest.TestCase):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def setUp(self):
+        fixture_data()
 
-        self.bts = BitShares(
-            nobroadcast=True,
-            # We want to bundle many operations into a single transaction
-            bundle=True,
-            # Overwrite wallet to use this list of wifs only
-            wif=[wif]
+    def test_init(self):
+        config = storage.InRamConfigurationStore()
+        key_store = storage.InRamPlainKeyStore(config=config)
+        wallet = Wallet(key_store=key_store)
+        # InRamStore does not come with a default key
+        self.assertFalse(wallet.created())
+
+        self.assertTrue(bool(wallet.rpc))
+        self.assertEqual(wallet.prefix, "BTS")
+        wif1 = PrivateKey()
+        wif2 = PrivateKey()
+        wallet.setKeys([
+            wif1, wif2
+        ])
+        self.assertIn(
+            str(wif1.pubkey),
+            wallet.store.getPublicKeys()
         )
-        self.bts.set_default_account("init0")
-        set_shared_bitshares_instance(self.bts)
+        self.assertIn(
+            str(wif2.pubkey),
+            wallet.store.getPublicKeys()
+        )
+        self.assertEqual(
+            wallet.getPrivateKeyForPublicKey(
+                wif1.pubkey
+            ),
+            str(wif1)
+        )
+        self.assertEqual(
+            wallet.getPrivateKeyForPublicKey(
+                wif2.pubkey
+            ),
+            str(wif2)
+        )
+        # wallet.unlock("")
+        # wallet.lock()
+        # is unlocked because InRamKeyStore and not encrypted
+        self.assertFalse(wallet.store.is_encrypted())
+        self.assertFalse(wallet.is_encrypted())
+        self.assertTrue(wallet.unlocked())
+        self.assertFalse(wallet.locked())
+
+        wif3 = PrivateKey()
+        wallet.addPrivateKey(wif3)
+        self.assertIn(
+            str(wif3.pubkey),
+            wallet.store.getPublicKeys()
+        )
+        self.assertEqual(
+            wallet.getPrivateKeyForPublicKey(
+                wif3.pubkey
+            ),
+            str(wif3)
+        )
+
+        wallet.removePrivateKeyFromPublicKey(wif3.pubkey)
+        with self.assertRaises(KeyNotFound):
+            wallet.getPrivateKeyForPublicKey(
+                wif3.pubkey
+            )

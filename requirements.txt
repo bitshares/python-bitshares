@@ -1,4 +1,4 @@
-graphenelib<=0.6.6
+graphenelib>=1.0.0
 websockets
 appdirs
 Events

@@ -11,9 +11,24 @@ from graphenebase.types import (
 from graphenebase.objects import GrapheneObject, isArgsThisClass
 from .objecttypes import object_type
 from .account import PublicKey
-from graphenebase.objects import Operation as GPHOperation
+from graphenebase.objects import Operation as GrapheneOperation
 from .operationids import operations
 default_prefix = "BTS"
+
+
+class Operation(GrapheneOperation):
+    """ Need to overwrite a few attributes to load proper operations from
+        bitshares
+    """
+    module = "bitsharesbase.operations"
+    operations = operations
+
+
+class ObjectId(GPHObjectId):
+    """ Need to overwrite a few attributes to load proper object_types from
+        bitshares
+    """
+    object_types = object_type
 
 
 def AssetId(asset):
@@ -22,49 +37,6 @@ def AssetId(asset):
 
 def AccountId(asset):
     return ObjectId(asset, "account")
-
-
-class ObjectId(GPHObjectId):
-    """ Encodes object/protocol ids
-    """
-    def __init__(self, object_str, type_verify=None):
-        if len(object_str.split(".")) == 3:
-            space, type, id = object_str.split(".")
-            self.space = int(space)
-            self.type = int(type)
-            self.instance = Id(int(id))
-            self.Id = object_str
-            if type_verify:
-                assert object_type[type_verify] == int(type),\
-                    "Object id does not match object type! " +\
-                    "Excpected %d, got %d" %\
-                    (object_type[type_verify], int(type))
-        else:
-            raise Exception("Object id is invalid")
-
-
-class Operation(GPHOperation):
-    def __init__(self, *args, **kwargs):
-        super(Operation, self).__init__(*args, **kwargs)
-
-    def _getklass(self, name):
-        module = __import__("bitsharesbase.operations", fromlist=["operations"])
-        class_ = getattr(module, name)
-        return class_
-
-    def operations(self):
-        return operations
-
-    def getOperationNameForId(self, i):
-        """ Convert an operation id into the corresponding string
-        """
-        for key in operations:
-            if int(operations[key]) is int(i):
-                return key
-        return "Unknown Operation ID %d" % i
-
-    def json(self):
-        return json.loads(str(self))
 
 
 class Asset(GrapheneObject):
@@ -136,12 +108,9 @@ class Permission(GrapheneObject):
 
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
-
-            # Sort keys (FIXME: ideally, the sorting is part of Public
-            # Key and not located here)
             kwargs["key_auths"] = sorted(
                 kwargs["key_auths"],
-                key=lambda x: repr(PublicKey(x[0], prefix=prefix).address),
+                key=lambda x: PublicKey(x[0], prefix=prefix),
                 reverse=False,
             )
             accountAuths = Map([

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from bitsharesapi.bitsharesnoderpc import BitSharesNodeRPC
 from bitsharesbase.account import PublicKey
 from bitsharesbase import operations
+from .storage import get_default_config_store
 from .instance import set_shared_blockchain_instance, shared_blockchain_instance
 from .asset import Asset
 from .account import Account
@@ -13,7 +14,6 @@ from .witness import Witness
 from .committee import Committee
 from .vesting import Vesting
 from .worker import Worker
-from .storage import configStorage as config
 from .exceptions import (
     AccountExistsException,
 )
@@ -135,8 +135,11 @@ class BitShares(object):
             kwargs.get("proposal_expiration", 60 * 60 * 24))
         self.proposal_review = int(kwargs.get("proposal_review", 0))
 
-        # Store config for access through other Classes
-        self.config = config
+        # Store self.config for access through other Classes
+        self.config = kwargs.get(
+            "config_store",
+            get_default_config_store()
+        )
 
         if not self.offline:
             self.connect(node=node,
@@ -147,7 +150,10 @@ class BitShares(object):
         # txbuffers/propbuffer are initialized and cleared
         self.clear()
 
-        self.wallet = Wallet(blockchain_instance=self, **kwargs)
+        self.wallet = Wallet(
+            blockchain_instance=self,
+            **kwargs
+        )
 
     # -------------------------------------------------------------------------
     # Basic Calls
@@ -160,16 +166,16 @@ class BitShares(object):
         """ Connect to BitShares network (internal use only)
         """
         if not node:
-            if "node" in config:
-                node = config["node"]
+            if "node" in self.config:
+                node = self.config["node"]
             else:
                 raise ValueError("A BitShares node needs to be provided!")
 
-        if not rpcuser and "rpcuser" in config:
-            rpcuser = config["rpcuser"]
+        if not rpcuser and "rpcuser" in self.config:
+            rpcuser = self.config["rpcuser"]
 
-        if not rpcpassword and "rpcpassword" in config:
-            rpcpassword = config["rpcpassword"]
+        if not rpcpassword and "rpcpassword" in self.config:
+            rpcpassword = self.config["rpcpassword"]
 
         self.rpc = BitSharesNodeRPC(node, rpcuser, rpcpassword, **kwargs)
 
@@ -184,7 +190,7 @@ class BitShares(object):
         """ Set the default account to be used
         """
         Account(account)
-        config["default_account"] = account
+        self.config["default_account"] = account
 
     def set_blocking(self, block=True):
         """ This sets a flag that forces the broadcast to block until the
@@ -405,8 +411,8 @@ class BitShares(object):
             proposal_review = self.proposal_review
 
         if not proposer:
-            if "default_account" in config:
-                proposer = config["default_account"]
+            if "default_account" in self.config:
+                proposer = self.config["default_account"]
 
         # Else, we create a new object
         proposal = ProposalBuilder(
@@ -458,8 +464,8 @@ class BitShares(object):
         """
         from .memo import Memo
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
 
@@ -551,8 +557,8 @@ class BitShares(object):
                 the blockchain
 
         """
-        if not registrar and config["default_account"]:
-            registrar = config["default_account"]
+        if not registrar and self.config["default_account"]:
+            registrar = self.config["default_account"]
         if not registrar:
             raise ValueError(
                 "Not registrar account given. Define it with " +
@@ -659,8 +665,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -710,8 +716,8 @@ class BitShares(object):
         """
         from copy import deepcopy
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
 
@@ -774,8 +780,8 @@ class BitShares(object):
                 by signatures to be able to interact
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
 
@@ -852,8 +858,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
 
@@ -880,8 +886,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -918,8 +924,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -957,8 +963,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -995,8 +1001,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -1039,8 +1045,8 @@ class BitShares(object):
         """
         from .proposal import Proposal
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -1089,8 +1095,8 @@ class BitShares(object):
         """
         from .proposal import Proposal
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -1122,8 +1128,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -1155,8 +1161,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -1195,8 +1201,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -1222,8 +1228,8 @@ class BitShares(object):
                 ``1.7.xxxx``
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, full=False, blockchain_instance=self)
@@ -1253,8 +1259,8 @@ class BitShares(object):
 
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -1308,8 +1314,8 @@ class BitShares(object):
         assert cer is None or isinstance(cer, Price), \
             "cer needs to be instance of `bitshares.price.Price`!"
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -1368,8 +1374,8 @@ class BitShares(object):
         assert isinstance(cer, Price), \
             "cer needs to be instance of `bitshares.price.Price`!"
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -1427,8 +1433,8 @@ class BitShares(object):
         """
         assert isinstance(amount, Amount)
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -1481,8 +1487,8 @@ class BitShares(object):
         if not begin:
             begin = datetime.utcnow() + timedelta(seconds=30)
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -1521,8 +1527,8 @@ class BitShares(object):
         """
         assert isinstance(amount, float)
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         amount = Amount(amount, "1.3.0", blockchain_instance=self)
@@ -1550,8 +1556,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
@@ -1581,8 +1587,8 @@ class BitShares(object):
                 to (defaults to ``default_account``)
         """
         if not account:
-            if "default_account" in config:
-                account = config["default_account"]
+            if "default_account" in self.config:
+                account = self.config["default_account"]
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)

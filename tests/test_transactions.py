@@ -1,3 +1,9 @@
+import random
+import unittest
+
+from pprint import pprint
+from binascii import hexlify
+
 from bitshares import BitShares
 from bitsharesbase import (
     transactions,
@@ -9,20 +15,20 @@ from bitsharesbase import (
 from bitsharesbase.objects import Operation
 from bitsharesbase.signedtransactions import Signed_Transaction
 from bitsharesbase.account import PrivateKey
-import random
-import unittest
-from pprint import pprint
-from binascii import hexlify
+
+from .fixtures import fixture_data, bitshares, wif
 
 
 prefix = "BTS"
-wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
 ref_block_num = 34294
 ref_block_prefix = 3707022213
 expiration = "2016-04-06T08:29:27"
 
 
 class Testcases(unittest.TestCase):
+
+    def setUp(self):
+        fixture_data()
 
     def doit(self, printWire=False):
         ops = [Operation(self.op)]
@@ -33,16 +39,23 @@ class Testcases(unittest.TestCase):
         tx = tx.sign([wif], chain=prefix)
         tx.verify([PrivateKey(wif).pubkey], prefix)
         txWire = hexlify(bytes(tx)).decode("ascii")
+
         if printWire:
             print()
             print(txWire)
             print()
-        self.assertEqual(self.cm[:-130], txWire[:-130])
 
         # Test against Bitshares backened
-        bitshares = BitShares()
-        self.cm = bitshares.rpc.get_transaction_hex(tx.json())
+        live = bitshares.rpc.get_transaction_hex(tx.json())
+
+        # Compare expected result with online backend
+        self.assertEqual(live[:-130], self.cm[:-130])
+
+        # Compare expected result with test unit
         self.assertEqual(self.cm[:-130], txWire[:-130])
+
+        # Compare expected result with online result
+        self.assertEqual(live[:-130], txWire[:-130])
 
     def test_call_update(self):
         self.op = operations.Call_order_update(**{
@@ -124,25 +137,22 @@ class Testcases(unittest.TestCase):
 
         fee = objects.Asset(amount=0, asset_id="1.3.0")
         amount = objects.Asset(amount=int(amount), asset_id=asset_id)
-        encrypted_memo = memo.encode_memo(
-            account.PrivateKey(wif),
-            account.PublicKey(pub, prefix=prefix),
-            nonce,
-            message
-        )
-        memoStruct = {
-            "from": pub,
-            "to": pub,
-            "nonce": nonce,
-            "message": encrypted_memo,
-        }
-        memoObj = objects.Memo(**memoStruct)
         self.op = operations.Transfer(**{
             "fee": fee,
             "from": from_account_id,
             "to": to_account_id,
             "amount": amount,
-            "memo": memoObj,
+            "memo": {
+                "from": pub,
+                "to": pub,
+                "nonce": nonce,
+                "message": memo.encode_memo(
+                    account.PrivateKey(wif),
+                    account.PublicKey(pub, prefix=prefix),
+                    nonce,
+                    message
+                ),
+            },
             "prefix": prefix
         })
         self.cm = ("f68585abf4dce7c804570100000000000000000000000140420"
@@ -655,15 +665,35 @@ class Testcases(unittest.TestCase):
                    "8d31567ef7066d105bcd75c215f8d919673ea57c32")
         self.doit()
 
-    def compareConstructedTX(self):
-        self.maxDiff = None
-        self.op = operations.Committee_member_create(**{
+    def test_custom(self):
+        self.op = operations.Custom(**{
             "fee": {
                 "amount": 0,
                 "asset_id": "1.3.0"
             },
-            "committee_member_account": "1.2.0",
-            "url": "foobar"
+            "payer": "1.2.0",
+            "required_auths": ["1.2.100", "1.2.101"],
+            "id": "35235",
+            "data": hexlify(b"Foobar").decode("ascii")
+        })
+        self.cm = ("f68585abf4dce7c80457012300000000000000000000026465"
+                   "a38906466f6f6261720001207c94df60dc9fddb63391b60925"
+                   "889547d5c1c5aad4bb2e45a215345c3a088974253c9434de38"
+                   "453802bc5a6e8de3a6bb4e4f603a6ae3e5f8fc83b234a671ee"
+                   "85")
+        self.doit()
+
+    def compareConstructedTX(self):
+        self.maxDiff = None
+        self.op = operations.Custom(**{
+            "fee": {
+                "amount": 0,
+                "asset_id": "1.3.0"
+            },
+            "payer": "1.2.0",
+            "required_auths": ["1.2.100", "1.2.101"],
+            "id": "35235",
+            "data": hexlify(b"Foobar").decode("ascii")
         })
         ops = [Operation(self.op)]
         tx = Signed_Transaction(
@@ -679,9 +709,9 @@ class Testcases(unittest.TestCase):
         pprint(tx.json())
         print("=" * 80)
 
-        from grapheneapi.grapheneapi import GrapheneAPI
-        rpc = GrapheneAPI("localhost", 8092)
-        self.cm = rpc.serialize_transaction(tx.json())
+        # Test against Bitshares backened
+        self.cm = bitshares.rpc.get_transaction_hex(tx.json())
+
         print("soll: %s" % self.cm[:-130])
         print("ist:  %s" % txWire[:-130])
         print(txWire[:-130] == self.cm[:-130])
