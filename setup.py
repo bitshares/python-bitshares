@@ -11,19 +11,20 @@ except LookupError:
     ascii = codecs.lookup('ascii')
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == 'mbcs'))
 
-VERSION = '0.1.22'
+VERSION = '0.2.0rc1'
+URL = "https://github.com/bitshares/python-bitshares"
 
 setup(
     name='bitshares',
     version=VERSION,
     description='Python library for bitshares',
     long_description=open('README.md').read(),
-    download_url='https://github.com/bitshares/python-bitshares/tarball/' + VERSION,
+    download_url='{}/tarball/{}'.format(VERSION, URL),
     author='Fabian Schuh',
     author_email='Fabian@chainsquad.com',
     maintainer='Fabian Schuh',
     maintainer_email='Fabian@chainsquad.com',
-    url='http://www.github.com/bitshares/python-bitshares',
+    url=URL,
     keywords=['bitshares', 'library', 'api', 'rpc'],
     packages=[
         "bitshares",
