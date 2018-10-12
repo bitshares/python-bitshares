@@ -150,10 +150,11 @@ class BitShares(object):
         # txbuffers/propbuffer are initialized and cleared
         self.clear()
 
-        self.wallet = Wallet(
-            blockchain_instance=self,
-            **kwargs
-        )
+        self.wallet = kwargs.get(
+            "wallet",
+            Wallet(
+                blockchain_instance=self,
+                **kwargs))
 
     # -------------------------------------------------------------------------
     # Basic Calls
