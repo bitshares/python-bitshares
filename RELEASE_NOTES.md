@@ -5,33 +5,34 @@ Storage:
 --------
 
 * internal storage now makes use of pygraphene 1.0.0 framework
-* `bitshares.storage` now comes with the prebuilt inRam and SQLite
-  stores from pygraphene
-* `BitShares()` can be provided with a custom config store using key
-  word `config_store=` and `wallet=` (wallet instance)
-* `Wallet()` (internally used by `BitShares()`) can be provided with a
-  custom config store using key word `key_store=`
+* `bitshares.storage` now comes with the prebuilt inRam and SQLite stores from pygraphene
+* `BitShares()` can be provided with a custom config store using key word `config_store=` and `wallet=` (wallet instance)
+* `Wallet()` (internally used by `BitShares()`) can be provided with a custom config store using key word `key_store=`
 * Interfaces for stores are defined in pygraphene
 * The Interface for the wallet is defined in `wallet.py`
 * Instead of using
 
-     from bitshares.storage import configStorage as config
+  ```
+  from bitshares.storage import configStorage as config
+  ```
 
   use
 
-    BitShares().config
+  ```
+  BitShares().config
+  ```
 
   or
 
-    from bitshares.storage import get_default_config_store
-    config = get_default_config_store()
-    
+  ```
+  from bitshares.storage import get_default_config_store
+  config = get_default_config_store()
+  ```
 
 Testing:
 --------
 
-* pybitshares now contains a framework (fixtures) to simplify access to
-  data provided by the blockchain/database
+* pybitshares now contains a framework (fixtures) to simplify access to data provided by the blockchain/database
 * Major improvements to coverage
 
 Features:
