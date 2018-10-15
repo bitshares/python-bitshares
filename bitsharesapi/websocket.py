@@ -154,7 +154,7 @@ class BitSharesWebsocket(Events):
     def cancel_subscriptions(self):
         self.cancel_all_subscriptions()
 
-    def on_open(self, ws=None):
+    def on_open(self, *args, **kwargs):
         """ This method will be called once the websocket connection is
             established. It will
 
@@ -233,7 +233,7 @@ class BitSharesWebsocket(Events):
             # Treat account updates separately
             self.on_account(notice)
 
-    def on_message(self, ws, reply, *args):
+    def on_message(self, reply, *args, **kwargs):
         """ This method is called by the websocket connection on every
             message that is received. If we receive a ``notice``, we
             hand over post-processing and signalling of events to
@@ -278,17 +278,17 @@ class BitSharesWebsocket(Events):
                     log.critical("Error in {}: {}\n\n{}".format(
                         callbackname, str(e), traceback.format_exc()))
 
-    def on_error(self, ws, error):
+    def on_error(self, error, *args, **kwargs):
         """ Called on websocket errors
         """
         log.exception(error)
 
-    def on_close(self, ws):
+    def on_close(self, *args, **kwargs):
         """ Called when websocket connection is closed
         """
         log.debug('Closing WebSocket connection with {}'.format(self.url))
 
-    def run_forever(self):
+    def run_forever(self, *args, **kwargs):
         """ This method is used to run the websocket app continuously.
             It will execute callbacks as defined and try to stay
             connected with the provided APIs
@@ -328,7 +328,7 @@ class BitSharesWebsocket(Events):
             except Exception as e:
                 log.critical("{}\n\n{}".format(str(e), traceback.format_exc()))
 
-    def close(self):
+    def close(self, *args, **kwargs):
         """ Closes the websocket connection and waits for the ping thread to close
         """
         self.run_event.set()
