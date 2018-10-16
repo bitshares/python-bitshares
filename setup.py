@@ -11,7 +11,7 @@ except LookupError:
     ascii = codecs.lookup('ascii')
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == 'mbcs'))
 
-VERSION = '0.2.0rc2'
+VERSION = '0.2.0'
 URL = "https://github.com/bitshares/python-bitshares"
 
 setup(
