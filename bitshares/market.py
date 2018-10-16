@@ -285,6 +285,8 @@ class Market(BlockchainInstance, dict):
                     formatTime(start),
                     continuous_limit)
 
+            if len(orders) == 0:
+                return
             for order in orders:
                 cnt += 1
                 yield FilledOrder(
