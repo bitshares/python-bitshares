@@ -57,8 +57,12 @@ class Account(BlockchainObject):
         self.cache(account["name"])
 
         if self.full:
-            account = self.blockchain.rpc.get_full_accounts(
-                [account["id"]], False)[0][1]
+            accounts = self.blockchain.rpc.get_full_accounts(
+                [account["id"]], False)
+            if accounts and isinstance(accounts, list):
+                account = accounts[0][1]
+            else:
+                raise AccountDoesNotExistsException(self.identifier)
             super(Account, self).__init__(
                 account["account"],
                 blockchain_instance=self.blockchain
