@@ -340,3 +340,35 @@ class AccountCreateExtensions(Extension):
                 raise NotImplementedError("Extension {} is unknown".format(key))
 
         super().__init__(a)
+
+
+class CallOrderExtension(Extension):
+    def __init__(self, *args, **kwargs):
+
+        class Options_type(GrapheneObject):
+            def __init__(self, **kwargs):
+                if "target_collateral_ratio" in kwargs and kwargs["target_collateral_ratio"]:
+                    target_collateral_ratio = Optional(Uint16(**kwargs["target_collateral_ratio"]))
+                else:
+                    target_collateral_ratio = Optional(None)
+                super().__init__(OrderedDict([
+                    ("target_collateral_ratio", target_collateral_ratio)
+                ]))
+
+        self.json = dict()
+        a = []
+        sorted_options = [
+            "options_type",
+        ]
+        sorting = sorted(kwargs.items(), key=lambda x: sorted_options.index(x[0]))
+        for key, value in sorting:
+            self.json.update({key: value})
+            if key == "options_type":
+                a.append(Static_variant(
+                    Options_type({key: value}),
+                    sorted_options.index(key))
+                )
+            else:
+                raise NotImplementedError("Extension {} is unknown".format(key))
+
+        super().__init__(a)
