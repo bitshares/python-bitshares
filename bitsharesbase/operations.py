@@ -23,7 +23,8 @@ from .objects import (
     ObjectId,
     Worker_initializer,
     SpecialAuthority,
-    AccountCreateExtensions
+    AccountCreateExtensions,
+    CallOrderExtension
 )
 
 default_prefix = "BTS"
@@ -304,7 +305,7 @@ class Call_order_update(GrapheneObject):
                 ('funding_account', ObjectId(kwargs["funding_account"], "account")),
                 ('delta_collateral', Asset(kwargs["delta_collateral"])),
                 ('delta_debt', Asset(kwargs["delta_debt"])),
-                ('extensions', Set([])),
+                ('extensions', CallOrderExtension(kwargs["extensions"])),
             ]))
 
 
