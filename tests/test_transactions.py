@@ -697,7 +697,7 @@ class Testcases(unittest.TestCase):
             }
         })
         self.cm = ("f68585abf4dce7c8045701036400000000000000001d00e1f5"
-                   "05000000000010270000000000001600000120767cf8d8402b"
+                   "05000000000010270000000000001601003930000120767cf8d8402b"
                    "cffa3fbaf774feb128c5a34c7a25b21d64c2285a99bf254c66"
                    "57158b0eeb2fb674b0aed6a31b0ec9e20b903d6b15b6bcb1cd"
                    "9dd6ac22b8c5456b")
@@ -741,5 +741,5 @@ class Testcases(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    t = Testcases()
+    m = Testcases()
     t.compareConstructedTX()

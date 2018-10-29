@@ -265,17 +265,21 @@ class Extension(Array):
     def __init__(self, *args, **kwargs):
         self.json = dict()
         a = []
-        sorting = sorted(kwargs.items(), key=lambda x: sorted_options.index(x[0]))
-        for key, value in sorting:
+        for key, value in kwargs.items():
             self.json.update({key: value})
-            for option, klass in self.sorted_options.items():
-                if key.lower() == option.lower():
+        for arg in args:
+            if isinstance(arg, dict):
+                self.json.update(arg)
+
+        for index, extension in enumerate(self.sorted_options):
+            name = extension[0]
+            klass = extension[1]
+            for key, value in self.json.items():
+                if key.lower() == name.lower():
                     a.append(Static_variant(
-                        klass({key: value}),
-                        sorted_options.index(key))
-                    )
-            else:
-                raise NotImplementedError("Extension {} is unknown".format(key))
+                        klass(value),
+                        index
+                    ))
         super().__init__(a)
 
     def __str__(self):
@@ -288,51 +292,44 @@ class Extension(Array):
 class AccountCreateExtensions(Extension):
 
     class Null_ext(GrapheneObject):
-        def __init__(self, kwargs):
+        def __init__(self, *args, **kwargs):
             super().__init__(OrderedDict([]))
 
     class Owner_special_authority(SpecialAuthority):
-        def __init__(self, kwargs):
-            super().__init__(kwargs)
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
 
     class Active_special_authority(SpecialAuthority):
-        def __init__(self, kwargs):
-            super().__init__(kwargs)
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
 
     class Buyback_options(GrapheneObject):
-        def __init__(self, kwargs):
-            if isArgsThisClass(self, args):
-                    self.data = args[0].data
-            else:
-                if len(args) == 1 and len(kwargs) == 0:
-                    kwargs = args[0]
-                super().__init__(OrderedDict([
-                    ('asset_to_buy', ObjectId(kwargs["asset_to_buy"], "asset")),
-                    ('asset_to_buy_issuer', ObjectId(kwargs["asset_to_buy_issuer"], "account")),
-                    ('markets', Array([
-                        ObjectId(x, "asset") for x in kwargs["markets"]
-                    ])),
-                ]))
+        def __init__(self, *args, **kwargs):
+            kwargs.update(args[0])
+            super().__init__(OrderedDict([
+                ('asset_to_buy', ObjectId(kwargs["asset_to_buy"], "asset")),
+                ('asset_to_buy_issuer', ObjectId(kwargs["asset_to_buy_issuer"], "account")),
+                ('markets', Array([
+                    ObjectId(x, "asset") for x in kwargs["markets"]
+                ])),
+            ]))
 
-    sorted_options = {
-        "null_ext": Null_ext,
-        "owner_special_authority": Owner_special_authority,
-        "active_special_authority": Active_special_authority,
-        "buyback_options": Buyback_options,
-    }
+    sorted_options = [
+        ("null_ext", Null_ext),
+        ("owner_special_authority", Owner_special_authority),
+        ("active_special_authority", Active_special_authority),
+        ("buyback_options", Buyback_options)
+    ]
 
 
 class CallOrderExtension(Extension):
-    class Options_type(GrapheneObject):
-        def __init__(self, **kwargs):
-            if "target_collateral_ratio" in kwargs and kwargs["target_collateral_ratio"]:
-                target_collateral_ratio = Optional(Uint16(**kwargs["target_collateral_ratio"]))
-            else:
-                target_collateral_ratio = Optional(None)
-            super().__init__(OrderedDict([
-                ("target_collateral_ratio", target_collateral_ratio)
-            ]))
 
-    sorted_options = {
-        "options_type": Options_type
-    }
+    def targetCollateralRatio(value):
+        if value:
+            return Uint16(value)
+        else:
+            return None
+
+    sorted_options = [
+        ("target_collateral_ratio", targetCollateralRatio)
+    ]
