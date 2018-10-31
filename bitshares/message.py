@@ -7,6 +7,7 @@ from bitsharesbase.account import PublicKey
 from .instance import BlockchainInstance
 from .account import Account
 from .exceptions import (
+    SignerAccountMismatch,
     InvalidMessageSignature,
     AccountDoesNotExistsException,
     InvalidMemoKeyException,
@@ -96,7 +97,7 @@ class Message(BlockchainInstance):
             **locals()
         )
 
-    def verify(self, **kwargs):
+    def verify(self, account=None, **kwargs):
         """ Verify a message with an account's memo key
 
             :param str account: (optional) the account that owns the bet
@@ -104,7 +105,14 @@ class Message(BlockchainInstance):
 
             :returns: True if the message is verified successfully
             :raises InvalidMessageSignature if the signature is not ok
+            :raises SignerAccountMismatch if the signer account does not match provided account
         """
+        if not account:
+            if "default_account" in self.blockchain.config:
+                account = self.blockchain.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+
         # Split message into its parts
         parts = re.split("|".join(MESSAGE_SPLIT), self.message)
         parts = [x for x in parts if x.strip()]
@@ -128,7 +136,7 @@ class Message(BlockchainInstance):
         assert "timestamp" in meta, \
             "No 'timestamp' could be found in meta data"
 
-        account_name = meta.get("account").strip()
+        signer_account_name = meta.get("account").strip()
         memo_key = meta["memokey"].strip()
 
         try:
@@ -140,22 +148,22 @@ class Message(BlockchainInstance):
 
         # Load account from blockchain
         try:
-            account = Account(
-                account_name,
+            signer_account = Account(
+                signer_account_name,
                 blockchain_instance=self.blockchain)
         except AccountDoesNotExistsException:
             raise AccountDoesNotExistsException(
                 "Could not find account {}. Are you connected to the right chain?".format(
-                    account_name
+                    signer_account_name
                 ))
 
         # Test if memo key is the same as on the blockchain
-        if not account["options"]["memo_key"] == memo_key:
+        if not signer_account["options"]["memo_key"] == memo_key:
             raise WrongMemoKey(
                 "Memo Key of account {} on the Blockchain ".format(
-                    account["name"]) +
+                    signer_account["name"]) +
                 "differs from memo key in the message: {} != {}".format(
-                    account["options"]["memo_key"], memo_key
+                    signer_account["options"]["memo_key"], memo_key
                 )
             )
 
@@ -169,5 +177,8 @@ class Message(BlockchainInstance):
         pk = PublicKey(hexlify(pubkey).decode("ascii"))
         if format(pk, self.blockchain.prefix) != memo_key:
             raise InvalidMessageSignature
+
+        if account != signer_account_name:
+            raise SignerAccountMismatch
 
         return True
