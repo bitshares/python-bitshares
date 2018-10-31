@@ -66,7 +66,7 @@ class Testcases(unittest.TestCase):
             'delta_collateral': {'amount': 100000000,
                                  'asset_id': '1.3.0'},
             'funding_account': '1.2.29',
-            'extensions': []
+            'extensions': {}
         })
         self.cm = ("f68585abf4dce7c8045701036400000000000000001d00e1f"
                    "50500000000001027000000000000160000011f2627efb5c5"
@@ -683,17 +683,39 @@ class Testcases(unittest.TestCase):
                    "85")
         self.doit()
 
+    def test_target_collateral_ratio(self):
+        self.op = operations.Call_order_update(**{
+            'fee': {'amount': 100,
+                    'asset_id': '1.3.0'},
+            'delta_debt': {'amount': 10000,
+                           'asset_id': '1.3.22'},
+            'delta_collateral': {'amount': 100000000,
+                                 'asset_id': '1.3.0'},
+            'funding_account': '1.2.29',
+            'extensions': {
+                "target_collateral_ratio": 12345,
+            }
+        })
+        self.cm = ("f68585abf4dce7c8045701036400000000000000001d00e1f5"
+                   "05000000000010270000000000001601003930000120767cf8d8402b"
+                   "cffa3fbaf774feb128c5a34c7a25b21d64c2285a99bf254c66"
+                   "57158b0eeb2fb674b0aed6a31b0ec9e20b903d6b15b6bcb1cd"
+                   "9dd6ac22b8c5456b")
+        self.doit()
+
     def compareConstructedTX(self):
         self.maxDiff = None
-        self.op = operations.Custom(**{
-            "fee": {
-                "amount": 0,
-                "asset_id": "1.3.0"
-            },
-            "payer": "1.2.0",
-            "required_auths": ["1.2.100", "1.2.101"],
-            "id": "35235",
-            "data": hexlify(b"Foobar").decode("ascii")
+        self.op = operations.Call_order_update(**{
+            'fee': {'amount': 100,
+                    'asset_id': '1.3.0'},
+            'delta_debt': {'amount': 10000,
+                           'asset_id': '1.3.22'},
+            'delta_collateral': {'amount': 100000000,
+                                 'asset_id': '1.3.0'},
+            'funding_account': '1.2.29',
+            'extensions': {
+                "target_collateral_ratio": 12345,
+            }
         })
         ops = [Operation(self.op)]
         tx = Signed_Transaction(
@@ -719,5 +741,5 @@ class Testcases(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    t = Testcases()
+    m = Testcases()
     t.compareConstructedTX()

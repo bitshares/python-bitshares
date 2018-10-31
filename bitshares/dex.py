@@ -149,13 +149,19 @@ class Dex(BlockchainInstance):
         })
         return self.blockchain.finalizeOp(op, account["name"], "active")
 
-    def adjust_debt(self, delta, new_collateral_ratio=None, account=None):
+    def adjust_debt(self, delta, new_collateral_ratio=None, account=None, target_collateral_ratio=None):
         """ Adjust the amount of debt for an asset
 
-            :param Amount delta: Delta amount of the debt (-10 means reduce debt by 10, +10 means borrow another 10)
-            :param float new_collateral_ratio: collateral ratio to maintain (optional, by default tries to maintain old ratio)
+            :param Amount delta: Delta amount of the debt (-10 means reduce
+                debt by 10, +10 means borrow another 10)
+                :param float new_collateral_ratio: collateral ratio to maintain
+                (optional, by default tries to maintain old ratio)
+            :param float target_collateral_ratio: Tag the call order so that in
+                case of margin call, only enough debt is covered to get back to
+                this ratio
             :raises ValueError: if symbol is not a bitasset
-            :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
+            :raises ValueError: if collateral ratio is smaller than maintenance
+                collateral ratio
             :raises ValueError: if required amounts of collateral are not available
         """
         if not account:
@@ -178,14 +184,11 @@ class Dex(BlockchainInstance):
 
         # Check minimum collateral ratio
         backing_asset_id = bitasset["options"]["short_backing_asset"]
-        # maintenance_col_ratio = bitasset["current_feed"]["maintenance_collateral_ratio"] / 1000
         current_debts = self.list_debt_positions(account)
         if not new_collateral_ratio and symbol not in current_debts:
-            new_collateral_ratio = maintenance_col_ratio
+            new_collateral_ratio = bitasset["current_feed"]["maintenance_collateral_ratio"] / 1000
         elif not new_collateral_ratio and symbol in current_debts:
             new_collateral_ratio = current_debts[symbol]["ratio"]
-        # if maintenance_col_ratio > new_collateral_ratio:
-        #     raise ValueError("Collateral Ratio has to be higher than %5.2f" % maintenance_col_ratio)
 
         # Derive Amount of Collateral
         collateral_asset = Asset(
@@ -212,7 +215,7 @@ class Dex(BlockchainInstance):
             raise ValueError("Not enough funds available. Need %f %s, but only %f %s are available" %
                              (fundsNeeded, collateral_asset["symbol"], fundsHave, collateral_asset["symbol"]))
 
-        op = operations.Call_order_update(**{
+        payload = {
             'fee': {'amount': 0, 'asset_id': '1.3.0'},
             'delta_debt': {
                 'amount': int(float(delta) * 10 ** asset["precision"]),
@@ -221,15 +224,25 @@ class Dex(BlockchainInstance):
                 'amount': int(float(amount_of_collateral) * 10 ** collateral_asset["precision"]),
                 'asset_id': collateral_asset["id"]},
             'funding_account': account["id"],
-            'extensions': []
-        })
+            'extensions': {}
+        }
+        # Extension
+        if target_collateral_ratio:
+            payload["extensions"].update(dict(
+                target_collateral_ratio=int(target_collateral_ratio * 100)
+            ))
+
+        op = operations.Call_order_update(**payload)
         return self.blockchain.finalizeOp(op, account["name"], "active")
 
-    def adjust_collateral_ratio(self, symbol, target_collateral_ratio, account=None):
+    def adjust_collateral_ratio(self, symbol, new_collateral_ratio, account=None, target_collateral_ratio=None):
         """ Adjust the collataral ratio of a debt position
 
             :param Asset amount: Amount to borrow (denoted in 'asset')
-            :param float target_collateral_ratio: desired collateral ratio
+            :param float new_collateral_ratio: desired collateral ratio
+            :param float target_collateral_ratio: Tag the call order so that in
+                case of margin call, only enough debt is covered to get back to
+                this ratio
             :raises ValueError: if symbol is not a bitasset
             :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
             :raises ValueError: if required amounts of collateral are not available
@@ -243,17 +256,20 @@ class Dex(BlockchainInstance):
         current_debts = self.list_debt_positions(account)
         if symbol not in current_debts:
             raise ValueError("No Call position available to adjust! Please borrow first!")
-        return self.adjust_debt(Amount(0, symbol), target_collateral_ratio, account)
+        return self.adjust_debt(Amount(0, symbol), new_collateral_ratio, account, target_collateral_ratio=target_collateral_ratio)
 
-    def borrow(self, amount, collateral_ratio=None, account=None):
+    def borrow(self, amount, collateral_ratio=None, account=None, target_collateral_ratio=None):
         """ Borrow bitassets/smartcoins from the network by putting up
             collateral in a CFD at a given collateral ratio.
 
             :param float amount: Amount to borrow (denoted in 'asset')
             :param float collateral_ratio: Collateral ratio to borrow at
+            :param float target_collateral_ratio: Tag the call order so that in
+                case of margin call, only enough debt is covered to get back to
+                this ratio
             :raises ValueError: if symbol is not a bitasset
             :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
             :raises ValueError: if required amounts of collateral are not available
 
         """
-        return self.adjust_debt(amount, collateral_ratio, account)
+        return self.adjust_debt(amount, collateral_ratio, account, target_collateral_ratio=target_collateral_ratio)
