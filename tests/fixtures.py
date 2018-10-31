@@ -13,12 +13,16 @@ from bitsharesbase.operationids import operations
 config = storage.InRamConfigurationStore()
 config["node"] = "wss://node.bitshares.eu"
 
-# default wif key for testing
-wif = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+# default wifs key for testing
+wifs = [
+    "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3",
+    "5KCBDTcyDqzsqehcb52tW5nU6pXife6V2rX9Yf7c3saYSzbDZ5W"
+]
+wif = wifs[0]
 
 # bitshares instance
 bitshares = BitShares(
-    keys=[wif],
+    keys=wifs,
     nobroadcast=True,
     num_retries=1,
     config_store=config,

@@ -44,10 +44,10 @@ timestamp={meta[timestamp]}
 """
 
 
-class Message():
+class Message(BlockchainInstance):
 
-    def __init__(self, message, **kwargs):
-        BlockchainInstance.__init__(self, **kwargs)
+    def __init__(self, message, *args, **kwargs):
+        BlockchainInstance.__init__(self, *args, **kwargs)
         self.message = message
 
     def sign(self, account=None, **kwargs):
