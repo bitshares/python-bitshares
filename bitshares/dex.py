@@ -215,14 +215,7 @@ class Dex(BlockchainInstance):
             raise ValueError("Not enough funds available. Need %f %s, but only %f %s are available" %
                              (fundsNeeded, collateral_asset["symbol"], fundsHave, collateral_asset["symbol"]))
 
-        # Extension
-        extensions = dict()
-        if target_collateral_ratio:
-            extensions.update(dict(
-                target_collateral_ratio=int(target_collateral_ratio * 1000)
-            ))
-
-        op = operations.Call_order_update(**{
+        payload = {
             'fee': {'amount': 0, 'asset_id': '1.3.0'},
             'delta_debt': {
                 'amount': int(float(delta) * 10 ** asset["precision"]),
@@ -231,8 +224,15 @@ class Dex(BlockchainInstance):
                 'amount': int(float(amount_of_collateral) * 10 ** collateral_asset["precision"]),
                 'asset_id': collateral_asset["id"]},
             'funding_account': account["id"],
-            'extensions': extensions
-        })
+            'extensions': {}
+        }
+        # Extension
+        if target_collateral_ratio:
+            payload["extensions"].update(dict(
+                target_collateral_ratio=int(target_collateral_ratio * 1000)
+            ))
+
+        op = operations.Call_order_update(**payload)
         return self.blockchain.finalizeOp(op, account["name"], "active")
 
     def adjust_collateral_ratio(self, symbol, new_collateral_ratio, account=None, target_collateral_ratio=None):
