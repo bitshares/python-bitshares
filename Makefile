@@ -35,9 +35,13 @@ git:
 check:
 	python3 setup.py check
 
-dist:
-	python3 setup.py sdist upload -r pypi
-	python3 setup.py bdist_wheel upload
+dist2:
+	python setup.py sdist bdist_wheel
+	python3 setup.py bdist_wheel
+	twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+	#twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+	#python3 setup.py sdist upload -r pypi
+	#python3 setup.py bdist_wheel upload
 
 docs:
 	sphinx-apidoc -d 6 -e -f -o docs . *.py tests
