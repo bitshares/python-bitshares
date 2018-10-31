@@ -142,12 +142,14 @@ class Wallet():
     def create(self, pwd):
         """ Alias for newWallet()
         """
-        pass
+        self.newWallet(pwd)
 
     def newWallet(self, pwd):
         """ Create a new wallet database
         """
-        pass
+        if self.created():
+            raise WalletExists("You already have created a wallet!")
+        self.store.unlock(pwd)
 
     def addPrivateKey(self, wif):
         """ Add a private key to the wallet database
