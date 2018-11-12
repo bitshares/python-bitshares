@@ -209,9 +209,10 @@ class Wallet():
         """
         account = self.rpc.get_account(name)
         for authority in account["active"]["key_auths"]:
-            key = self.getPrivateKeyForPublicKey(authority[0])
-            if key:
-                return key
+            try:
+                return self.getPrivateKeyForPublicKey(authority[0])
+            except:
+                pass
         return False
 
     def getAccountFromPrivateKey(self, wif):
