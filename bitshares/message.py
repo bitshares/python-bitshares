@@ -132,7 +132,7 @@ class Message(BlockchainInstance):
         memo_key = meta["memokey"].strip()
 
         try:
-            PublicKey(memo_key)
+            PublicKey(memo_key, prefix=self.blockchain.prefix)
         except Exception:
             raise InvalidMemoKeyException(
                 "The memo key in the message is invalid"
