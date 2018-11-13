@@ -15,7 +15,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class ProposalBuilder:
+class ProposalBuilder(BlockchainInstance):
     """ Proposal Builder allows us to construct an independent Proposal
         that may later be added to an instance ot TransactionBuilder
 
@@ -126,7 +126,7 @@ class ProposalBuilder:
         return Operation(ops)
 
 
-class TransactionBuilder(dict):
+class TransactionBuilder(dict, BlockchainInstance):
     """ This class simplifies the creation of transactions by adding
         operations and signers.
     """
@@ -139,7 +139,7 @@ class TransactionBuilder(dict):
         BlockchainInstance.__init__(self, **kwargs)
         self.clear()
         if tx and isinstance(tx, dict):
-            super(TransactionBuilder, self).__init__(tx)
+            dict.__init__(self, tx)
             # Load operations
             self.ops = tx["operations"]
             self._require_reconstruction = False
@@ -336,7 +336,7 @@ class TransactionBuilder(dict):
             expiration=expiration,
             operations=ops
         )
-        super(TransactionBuilder, self).update(self.tx.json())
+        dict.update(self, self.tx.json())
         self._unset_require_reconstruction()
 
     def sign(self):
@@ -435,7 +435,7 @@ class TransactionBuilder(dict):
         self.signing_accounts = []
         # This makes sure that _is_constructed will return False afterwards
         self["expiration"] = None
-        super(TransactionBuilder, self).__init__({})
+        dict.__init__(self, {})
 
     def addSigningInformation(self, account, permission):
         """ This is a private method that adds side information to a
