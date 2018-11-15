@@ -358,6 +358,7 @@ class Market(BlockchainInstance, dict):
         account = Account(account, full=True, blockchain_instance=self.blockchain)
 
         r = []
+        account.refresh()
         orders = account["limit_orders"]
         for o in orders:
             if ((
