@@ -48,7 +48,7 @@ class Message(BlockchainInstance):
 
     def __init__(self, message, *args, **kwargs):
         BlockchainInstance.__init__(self, *args, **kwargs)
-        self.message = message
+        self.message = message.replace("\r\n", "\n")
         self.signed_by_account = None
         self.signed_by_name = None
         self.meta = None
