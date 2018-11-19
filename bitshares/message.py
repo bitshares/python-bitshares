@@ -49,6 +49,8 @@ class Message(BlockchainInstance):
     def __init__(self, message, *args, **kwargs):
         BlockchainInstance.__init__(self, *args, **kwargs)
         self.message = message
+        self.signed_by_account = None
+        self.signed_by_name = None
 
     def sign(self, account=None, **kwargs):
         """ Sign a message with an account's memo key
@@ -90,6 +92,9 @@ class Message(BlockchainInstance):
             enc_message,
             wif
         )).decode("ascii")
+
+        self.signed_by_account = account
+        self.signed_by_name = account["name"]
 
         return SIGNED_MESSAGE_ENCAPSULATED.format(
             MESSAGE_SPLIT=MESSAGE_SPLIT,
@@ -169,5 +174,8 @@ class Message(BlockchainInstance):
         pk = PublicKey(hexlify(pubkey).decode("ascii"))
         if format(pk, self.blockchain.prefix) != memo_key:
             raise InvalidMessageSignature
+
+        self.signed_by_account = account
+        self.signed_by_name = account["name"]
 
         return True
