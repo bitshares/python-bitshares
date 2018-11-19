@@ -51,6 +51,8 @@ class Message(BlockchainInstance):
         self.message = message
         self.signed_by_account = None
         self.signed_by_name = None
+        self.meta = None
+        self.plain_message = None
 
     def sign(self, account=None, **kwargs):
         """ Sign a message with an account's memo key
@@ -95,6 +97,8 @@ class Message(BlockchainInstance):
 
         self.signed_by_account = account
         self.signed_by_name = account["name"]
+        self.meta = meta
+        self.plain_message = message
 
         return SIGNED_MESSAGE_ENCAPSULATED.format(
             MESSAGE_SPLIT=MESSAGE_SPLIT,
@@ -177,5 +181,7 @@ class Message(BlockchainInstance):
 
         self.signed_by_account = account
         self.signed_by_name = account["name"]
+        self.meta = meta
+        self.plain_message = message
 
         return True
