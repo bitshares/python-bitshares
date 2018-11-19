@@ -177,7 +177,7 @@ class Message(BlockchainInstance):
         # Verify pubky
         pk = PublicKey(hexlify(pubkey).decode("ascii"))
         if format(pk, self.blockchain.prefix) != memo_key:
-            raise InvalidMessageSignature
+            raise InvalidMessageSignature("The signature doesn't match the memo key")
 
         self.signed_by_account = account
         self.signed_by_name = account["name"]
