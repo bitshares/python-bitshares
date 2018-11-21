@@ -175,7 +175,7 @@ class Message(BlockchainInstance):
         pubkey = verify_message(enc_message, unhexlify(signature))
 
         # Verify pubky
-        pk = PublicKey(hexlify(pubkey).decode("ascii"))
+        pk = PublicKey(hexlify(pubkey).decode("ascii"), prefix=self.blockchain.prefix)
         if format(pk, self.blockchain.prefix) != memo_key:
             raise InvalidMessageSignature("The signature doesn't match the memo key")
 
