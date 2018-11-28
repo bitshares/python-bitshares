@@ -63,8 +63,8 @@ def _pad(s, BS):
 
 
 def _unpad(s, BS):
-    count = int(struct.unpack('B', bytes(s[-1], 'ascii'))[0])
-    if bytes(s[-count::], 'ascii') == count * struct.pack('B', count):
+    count = s[-1]
+    if s[-count::] == count * struct.pack('B', count):
         return s[:-count]
     return s
 
@@ -116,6 +116,7 @@ def decode_memo(priv, pub, nonce, message):
     " TODO, verify checksum "
     message = cleartext[4:]
     try:
-        return _unpad(message.decode('utf8'), 16)
+        message = _unpad(message, 16)
     except Exception as e:
         raise ValueError(message)
+    return message.decode('utf8')

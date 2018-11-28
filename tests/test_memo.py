@@ -87,8 +87,8 @@ class Testcases(unittest.TestCase):
     def test_padding(self):
         for l in range(0, 255):
             s = bytes(l * chr(l), 'utf-8')
-            padded = _pad(s, 16).decode('utf-8')
-            self.assertEqual(s.decode('utf-8'), _unpad(padded, 16))
+            padded = _pad(s, 16)
+            self.assertEqual(s, _unpad(padded, 16))
 
     def test_decrypt(self):
         for memo in test_cases:
