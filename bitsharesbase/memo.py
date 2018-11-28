@@ -87,10 +87,7 @@ def encode_memo(priv, pub, nonce, message):
     checksum = hashlib.sha256(raw).digest()
     raw = (checksum[0:4] + raw)
     " Padding "
-    BS = 16
-    " FIXME: this adds 16 bytes even if not required "
-    if len(raw) % BS:
-        raw = _pad(raw, BS)
+    raw = _pad(raw, 16)
     " Encryption "
     return hexlify(aes.encrypt(raw)).decode('ascii')
 
