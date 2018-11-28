@@ -110,10 +110,15 @@ def decode_memo(priv, pub, nonce, message):
     " Encryption "
     raw = bytes(message, 'ascii')
     cleartext = aes.decrypt(unhexlify(raw))
-    " TODO, verify checksum "
+    " Checksum "
+    checksum = cleartext[0:4]
     message = cleartext[4:]
     try:
         message = _unpad(message, 16)
     except Exception as e:
         raise ValueError(message)
+    " Verify checksum "
+    check = hashlib.sha256(message).digest()[0:4]
+    if check != checksum:
+        raise ValueError("checksum verification failure")
     return message.decode('utf8')
