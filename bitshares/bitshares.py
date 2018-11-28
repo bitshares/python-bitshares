@@ -1612,3 +1612,32 @@ class BitShares(object):
             "new_listing": l,
         })
         return self.finalizeOp(op, account, "active", **kwargs)
+
+    def bid_collateral(
+        self,
+        additional_collateral,
+        debt_covered,
+        account=None,
+        **kwargs
+    ):
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+
+        if not isinstance(additional_collateral, (Amount)):
+            raise ValueError('additional_collateral must be of type Amount')
+
+        if not isinstance(debt_covered, (Amount)):
+            raise ValueError('debt_covered must be of type Amount')
+
+        op = operations.Bid_collateral(**{
+            "fee": {"amount": 0, "asset_id": "1.3.0"},
+            "bidder": account["id"],
+            "additional_collateral": additional_collateral.json(),
+            "debt_covered": debt_covered.json(),
+            "extensions": []
+        })
+        return self.finalizeOp(op, account, "active", **kwargs)
