@@ -48,14 +48,14 @@ class Testcases(unittest.TestCase):
         # Test against Bitshares backened
         live = bitshares.rpc.get_transaction_hex(tx.json())
 
-        # Compare expected result with online backend
-        self.assertEqual(live[:-130], self.cm[:-130])
-
         # Compare expected result with test unit
         self.assertEqual(self.cm[:-130], txWire[:-130])
 
         # Compare expected result with online result
         self.assertEqual(live[:-130], txWire[:-130])
+
+        # Compare expected result with online backend
+        self.assertEqual(live[:-130], self.cm[:-130])
 
     def test_call_update(self):
         self.op = operations.Call_order_update(**{
@@ -701,6 +701,30 @@ class Testcases(unittest.TestCase):
                    "cffa3fbaf774feb128c5a34c7a25b21d64c2285a99bf254c66"
                    "57158b0eeb2fb674b0aed6a31b0ec9e20b903d6b15b6bcb1cd"
                    "9dd6ac22b8c5456b")
+        self.doit()
+
+    def test_bid_collateral(self):
+        self.op = operations.Bid_collateral(**{
+            "fee": {
+                "amount": 0,
+                "asset_id": "1.3.0"
+                },
+            "bidder": "1.2.123",
+            "additional_collateral": {
+                "amount": 1123456,
+                "asset_id": "1.3.0"
+                },
+            "debt_covered": {
+                "amount": 12345,
+                "asset_id": "1.3.121"
+                },
+            "extensions": []
+            })
+        self.cm = ("f68585abf4dce7c80457012d0000000000000000007b802411"
+                   "00000000000039300000000000007900000120739c87a9198b"
+                   "4522cb3020dabeb7ea2fde4ffb8dee4f31c53b94d96747077c"
+                   "bf08db69a66234b15de171e7be2bb872400712e3ccaaa41ad6"
+                   "94d8756c329b2b49")
         self.doit()
 
     def compareConstructedTX(self):

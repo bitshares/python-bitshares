@@ -611,4 +611,16 @@ class Custom(GrapheneObject):
             ]))
 
 
+class Bid_collateral(GrapheneObject):
+    def detail(self, *args, **kwargs):
+        # New pygraphene interface!
+        return OrderedDict([
+            ('fee', Asset(kwargs["fee"])),
+            ('bidder', ObjectId(kwargs["bidder"], "account")),
+            ('additional_collateral', Asset(kwargs["additional_collateral"])),
+            ('debt_covered', Asset(kwargs["debt_covered"])),
+            ('extensions', Set([])),
+        ])
+
+
 fill_classmaps()
