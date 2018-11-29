@@ -117,6 +117,12 @@ class InvalidMessageSignature(Exception):
     pass
 
 
+class SignerAccountMismatch(Exception):
+    """ The signer account doesn't match provided account
+    """
+    pass
+
+
 class KeyNotFound(Exception):
     """ Key not found
     """
