@@ -63,8 +63,8 @@ def _pad(s, BS):
 
 
 def _unpad(s, BS):
-    count = int(struct.unpack('B', bytes(s[-1], 'ascii'))[0])
-    if bytes(s[-count::], 'ascii') == count * struct.pack('B', count):
+    count = s[-1]
+    if s[-count::] == count * struct.pack('B', count):
         return s[:-count]
     return s
 
@@ -87,10 +87,7 @@ def encode_memo(priv, pub, nonce, message):
     checksum = hashlib.sha256(raw).digest()
     raw = (checksum[0:4] + raw)
     " Padding "
-    BS = 16
-    " FIXME: this adds 16 bytes even if not required "
-    if len(raw) % BS:
-        raw = _pad(raw, BS)
+    raw = _pad(raw, 16)
     " Encryption "
     return hexlify(aes.encrypt(raw)).decode('ascii')
 
@@ -113,9 +110,15 @@ def decode_memo(priv, pub, nonce, message):
     " Encryption "
     raw = bytes(message, 'ascii')
     cleartext = aes.decrypt(unhexlify(raw))
-    " TODO, verify checksum "
+    " Checksum "
+    checksum = cleartext[0:4]
     message = cleartext[4:]
     try:
-        return _unpad(message.decode('utf8'), 16)
+        message = _unpad(message, 16)
     except Exception as e:
         raise ValueError(message)
+    " Verify checksum "
+    check = hashlib.sha256(message).digest()[0:4]
+    if check != checksum:
+        raise ValueError("checksum verification failure")
+    return message.decode('utf8')
