@@ -67,7 +67,7 @@ class Transfer(GrapheneObject):
     def __init__(self, *args, **kwargs):
         # Allow for overwrite of prefix
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -93,7 +93,7 @@ class Transfer(GrapheneObject):
 class Asset_publish_feed(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -192,7 +192,7 @@ class Asset_issue(GrapheneObject):
 class Op_wrapper(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -204,7 +204,7 @@ class Op_wrapper(GrapheneObject):
 class Proposal_create(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -217,7 +217,7 @@ class Proposal_create(GrapheneObject):
                 ('fee_paying_account', ObjectId(kwargs["fee_paying_account"], "account")),
                 ('expiration_time', PointInTime(kwargs["expiration_time"])),
                 ('proposed_ops',
-                    Array([Op_wrapper(o) for o in kwargs["proposed_ops"]])),
+                 Array([Op_wrapper(o) for o in kwargs["proposed_ops"]])),
                 ('review_period_seconds', review),
                 ('extensions', Set([])),
             ]))
@@ -226,7 +226,7 @@ class Proposal_create(GrapheneObject):
 class Proposal_update(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -245,17 +245,17 @@ class Proposal_update(GrapheneObject):
                 ('fee_paying_account', ObjectId(kwargs["fee_paying_account"], "account")),
                 ('proposal', ObjectId(kwargs["proposal"], "proposal")),
                 ('active_approvals_to_add',
-                    Array([ObjectId(o, "account") for o in kwargs["active_approvals_to_add"]])),
+                 Array([ObjectId(o, "account") for o in kwargs["active_approvals_to_add"]])),
                 ('active_approvals_to_remove',
-                    Array([ObjectId(o, "account") for o in kwargs["active_approvals_to_remove"]])),
+                 Array([ObjectId(o, "account") for o in kwargs["active_approvals_to_remove"]])),
                 ('owner_approvals_to_add',
-                    Array([ObjectId(o, "account") for o in kwargs["owner_approvals_to_add"]])),
+                 Array([ObjectId(o, "account") for o in kwargs["owner_approvals_to_add"]])),
                 ('owner_approvals_to_remove',
-                    Array([ObjectId(o, "account") for o in kwargs["owner_approvals_to_remove"]])),
+                 Array([ObjectId(o, "account") for o in kwargs["owner_approvals_to_remove"]])),
                 ('key_approvals_to_add',
-                    Array([PublicKey(o) for o in kwargs["key_approvals_to_add"]])),
+                 Array([PublicKey(o) for o in kwargs["key_approvals_to_add"]])),
                 ('key_approvals_to_remove',
-                    Array([PublicKey(o) for o in kwargs["key_approvals_to_remove"]])),
+                 Array([PublicKey(o) for o in kwargs["key_approvals_to_remove"]])),
                 ('extensions', Set([])),
             ]))
 
@@ -263,7 +263,7 @@ class Proposal_update(GrapheneObject):
 class Limit_order_create(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -281,7 +281,7 @@ class Limit_order_create(GrapheneObject):
 class Limit_order_cancel(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -296,7 +296,7 @@ class Limit_order_cancel(GrapheneObject):
 class Call_order_update(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -312,7 +312,7 @@ class Call_order_update(GrapheneObject):
 class Asset_fund_fee_pool(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -328,7 +328,7 @@ class Asset_fund_fee_pool(GrapheneObject):
 class Override_transfer(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -352,7 +352,7 @@ class Account_create(GrapheneObject):
     def __init__(self, *args, **kwargs):
         # Allow for overwrite of prefix
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -375,7 +375,7 @@ class Account_update(GrapheneObject):
     def __init__(self, *args, **kwargs):
         # Allow for overwrite of prefix
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -407,14 +407,14 @@ class Account_update(GrapheneObject):
 
 
 class Account_whitelist(GrapheneObject):
-    no_listing = 0              # < No opinion is specified about this account
-    white_listed = 1            # < This account is whitelisted, but not blacklisted
-    black_listed = 2            # < This account is blacklisted, but not whitelisted
+    no_listing = 0  # < No opinion is specified about this account
+    white_listed = 1  # < This account is whitelisted, but not blacklisted
+    black_listed = 2  # < This account is blacklisted, but not whitelisted
     white_and_black_listed = 3  # < This account is both whitelisted and blacklisted
 
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -431,7 +431,7 @@ class Account_whitelist(GrapheneObject):
 class Vesting_balance_withdraw(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -447,7 +447,7 @@ class Vesting_balance_withdraw(GrapheneObject):
 class Account_upgrade(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -503,7 +503,7 @@ class Asset_update_feed_producers(GrapheneObject):
                 ('issuer', ObjectId(kwargs["issuer"], "account")),
                 ('asset_to_update', ObjectId(kwargs["asset_to_update"], "asset")),
                 ('new_feed_producers',
-                    Array([ObjectId(o, "account") for o in kwargs["new_feed_producers"]])),
+                 Array([ObjectId(o, "account") for o in kwargs["new_feed_producers"]])),
                 ('extensions', Set([])),
             ]))
 
@@ -565,7 +565,7 @@ class Bid_collateral(GrapheneObject):
 class Withdraw_permission_create(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -580,10 +580,77 @@ class Withdraw_permission_create(GrapheneObject):
             ]))
 
 
+class Withdraw_permission_delete(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('withdraw_from_account', ObjectId(kwargs["withdraw_from_account"], "account")),
+                ('authorized_account', ObjectId(kwargs["authorized_account"], "account")),
+                ('withdrawal_permission', ObjectId(kwargs["withdrawal_permission"])),
+            ]))
+
+
+class Withdraw_permission_claim(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            if "memo" in kwargs and kwargs["memo"]:
+                if isinstance(kwargs["memo"], dict):
+                    kwargs["memo"]["prefix"] = prefix
+                    memo = Optional(Memo(**kwargs["memo"]))
+                else:
+                    memo = Optional(Memo(kwargs["memo"]))
+            else:
+                memo = Optional(None)
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('withdraw_from_account', ObjectId(kwargs["withdraw_from_account"], "account")),
+                ('authorized_account', ObjectId(kwargs["authorized_account"], "account")),
+                ('withdrawal_permission', ObjectId(kwargs["withdrawal_permission"])),
+                ('amount_to_withdraw', Asset(kwargs["amount_to_withdraw"])),
+                ('memo', memo),
+            ]))
+
+
+class Withdraw_permission_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            if "memo" in kwargs and kwargs["memo"]:
+                if isinstance(kwargs["memo"], dict):
+                    kwargs["memo"]["prefix"] = prefix
+                    memo = Optional(Memo(**kwargs["memo"]))
+                else:
+                    memo = Optional(Memo(kwargs["memo"]))
+            else:
+                memo = Optional(None)
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('withdraw_from_account', ObjectId(kwargs["withdraw_from_account"], "account")),
+                ('authorized_account', ObjectId(kwargs["authorized_account"], "account")),
+                ('permission_to_update', ObjectId(kwargs["permission_to_update"])),
+                ('withdrawal_limit', Asset(kwargs["withdrawal_limit"])),
+                ('withdrawal_period_sec', Uint32(kwargs["withdrawal_period_sec"])),
+                ('periods_until_expiration', Uint32(kwargs["periods_until_expiration"])),
+                ('period_start_time', PointInTime(kwargs["period_start_time"])),
+            ]))
+
+
 class Committee_member_create(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -597,7 +664,7 @@ class Committee_member_create(GrapheneObject):
 class Custom(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
-                self.data = args[0].data
+            self.data = args[0].data
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
@@ -605,7 +672,7 @@ class Custom(GrapheneObject):
                 ('fee', Asset(kwargs["fee"])),
                 ('payer', ObjectId(kwargs["payer"], "account")),
                 ('required_auths',
-                    Array([ObjectId(o, "account") for o in kwargs["required_auths"]])),
+                 Array([ObjectId(o, "account") for o in kwargs["required_auths"]])),
                 ('id', Uint16(kwargs["id"])),
                 ('data', Bytes(kwargs["data"])),
             ]))
