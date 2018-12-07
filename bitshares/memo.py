@@ -99,7 +99,7 @@ class Memo(object):
     def decrypt(self, memo):
         """ Decrypt a memo
 
-            :param str memo: encrypted memo message
+            :param dict memo: encrypted memo message
             :returns: encrypted memo
             :rtype: str
         """
