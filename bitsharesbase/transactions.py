@@ -28,18 +28,17 @@ def addRequiredFees(ws, ops, asset_id="1.3.0"):
         if isinstance(fees[i], list):
             # Operation is a proposal
             ops[i].op.data["fee"] = Asset(
-                amount=fees[i][0]["amount"],
-                asset_id=fees[i][0]["asset_id"]
+                amount=fees[i][0]["amount"], asset_id=fees[i][0]["asset_id"]
             )
             for j, _ in enumerate(ops[i].op.data["proposed_ops"].data):
-                ops[i].op.data["proposed_ops"].data[j].data["op"].op.data["fee"] = (
-                    Asset(
-                        amount=fees[i][1][j]["amount"],
-                        asset_id=fees[i][1][j]["asset_id"]))
+                ops[i].op.data["proposed_ops"].data[j].data["op"].op.data[
+                    "fee"
+                ] = Asset(
+                    amount=fees[i][1][j]["amount"], asset_id=fees[i][1][j]["asset_id"]
+                )
         else:
             # Operation is a regular operation
             ops[i].op.data["fee"] = Asset(
-                amount=fees[i]["amount"],
-                asset_id=fees[i]["asset_id"]
+                amount=fees[i]["amount"], asset_id=fees[i]["asset_id"]
             )
     return ops

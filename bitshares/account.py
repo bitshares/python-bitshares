@@ -47,34 +47,29 @@ class Account(BlockchainObject):
         """ Refresh/Obtain an account's data from the API server
         """
         import re
+
         if re.match("^1\.2\.[0-9]*$", self.identifier):
             account = self.blockchain.rpc.get_objects([self.identifier])[0]
         else:
-            account = self.blockchain.rpc.lookup_account_names(
-                [self.identifier])[0]
+            account = self.blockchain.rpc.lookup_account_names([self.identifier])[0]
         if not account:
             raise AccountDoesNotExistsException(self.identifier)
         self.cache(account["name"])
 
         if self.full:
-            accounts = self.blockchain.rpc.get_full_accounts(
-                [account["id"]], False)
+            accounts = self.blockchain.rpc.get_full_accounts([account["id"]], False)
             if accounts and isinstance(accounts, list):
                 account = accounts[0][1]
             else:
                 raise AccountDoesNotExistsException(self.identifier)
             super(Account, self).__init__(
-                account["account"],
-                blockchain_instance=self.blockchain
+                account["account"], blockchain_instance=self.blockchain
             )
             for k, v in account.items():
                 if k != "account":
                     self[k] = v
         else:
-            super(Account, self).__init__(
-                account,
-                blockchain_instance=self.blockchain
-            )
+            super(Account, self).__init__(account, blockchain_instance=self.blockchain)
 
     @property
     def name(self):
@@ -92,10 +87,12 @@ class Account(BlockchainObject):
             :class:`bitshares.amount.Amount`.
         """
         from .amount import Amount
+
         balances = self.blockchain.rpc.get_account_balances(self["id"], [])
         return [
             Amount(b, blockchain_instance=self.blockchain)
-            for b in balances if int(b["amount"]) > 0
+            for b in balances
+            if int(b["amount"]) > 0
         ]
 
     def balance(self, symbol):
@@ -103,6 +100,7 @@ class Account(BlockchainObject):
             :class:`bitshares.amount.Amount`.
         """
         from .amount import Amount
+
         if isinstance(symbol, dict) and "symbol" in symbol:
             symbol = symbol["symbol"]
         balances = self.balances
@@ -123,6 +121,7 @@ class Account(BlockchainObject):
         """
         self.ensure_full()
         from .dex import Dex
+
         dex = Dex(blockchain_instance=self.blockchain)
         return dex.list_debt_positions(self)
 
@@ -131,28 +130,24 @@ class Account(BlockchainObject):
         """ Returns open Orders
         """
         from .price import Order
+
         self.ensure_full()
         return [
-            Order(o, blockchain_instance=self.blockchain)
-            for o in self["limit_orders"]
+            Order(o, blockchain_instance=self.blockchain) for o in self["limit_orders"]
         ]
 
     @property
     def is_fully_loaded(self):
         """ Is this instance fully loaded / e.g. all data available?
         """
-        return (self.full and "votes" in self)
+        return self.full and "votes" in self
 
     def ensure_full(self):
         if not self.is_fully_loaded:
             self.full = True
             self.refresh()
 
-    def history(
-        self, first=0,
-        last=0, limit=-1,
-        only_ops=[], exclude_ops=[]
-    ):
+    def history(self, first=0, last=0, limit=-1, only_ops=[], exclude_ops=[]):
         """ Returns a generator for individual account transactions. The
             latest operation will be first. This call can be used in a
             ``for`` loop.
@@ -175,6 +170,7 @@ class Account(BlockchainObject):
                 Example: ['transfer', 'fill_order']
         """
         from bitsharesbase.operations import getOperationNameForId
+
         _limit = 100
         cnt = 0
 
@@ -188,16 +184,12 @@ class Account(BlockchainObject):
                 "1.11.{}".format(last),
                 _limit,
                 "1.11.{}".format(first - 1),
-                api="history"
+                api="history",
             )
             for i in txs:
-                if exclude_ops and getOperationNameForId(
-                    i["op"][0]
-                ) in exclude_ops:
+                if exclude_ops and getOperationNameForId(i["op"][0]) in exclude_ops:
                     continue
-                if not only_ops or getOperationNameForId(
-                    i["op"][0]
-                ) in only_ops:
+                if not only_ops or getOperationNameForId(i["op"][0]) in only_ops:
                     cnt += 1
                     yield i
                     if limit >= 0 and cnt >= limit:
@@ -256,9 +248,9 @@ class AccountUpdate(dict, BlockchainInstance):
             super(AccountUpdate, self).__init__(data)
         else:
             account = Account(data, blockchain_instance=self.blockchain)
-            update = self.blockchain.rpc.get_objects([
-                "2.6.%s" % (account["id"].split(".")[2])
-            ])[0]
+            update = self.blockchain.rpc.get_objects(
+                ["2.6.%s" % (account["id"].split(".")[2])]
+            )[0]
             super(AccountUpdate, self).__init__(update)
 
     @property

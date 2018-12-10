@@ -11,6 +11,7 @@ class Vesting(BlockchainObject):
             accesing a RPC
 
     """
+
     type_id = 13
 
     def refresh(self):
@@ -26,23 +27,22 @@ class Vesting(BlockchainObject):
     @property
     def claimable(self):
         from .amount import Amount
+
         if self["policy"][0] == 1:
             p = self["policy"][1]
             ratio = (
-                (float(p["coin_seconds_earned"]) /
-                    float(self["balance"]["amount"])) /
-                float(p["vesting_seconds"])
-            ) if float(p["vesting_seconds"]) > 0.0 else 1
-            return Amount(
-                self["balance"],
-                blockchain_instance=self.blockchain
-            ) * ratio
+                (
+                    (float(p["coin_seconds_earned"]) / float(self["balance"]["amount"]))
+                    / float(p["vesting_seconds"])
+                )
+                if float(p["vesting_seconds"]) > 0.0
+                else 1
+            )
+            return Amount(self["balance"], blockchain_instance=self.blockchain) * ratio
         else:
             raise NotImplementedError("This policy isn't implemented yet")
 
     def claim(self, amount=None):
         return self.blockchain.vesting_balance_withdraw(
-            self["id"],
-            amount=amount,
-            account=self["owner"]
+            self["id"], amount=amount, account=self["owner"]
         )

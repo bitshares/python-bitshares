@@ -1,10 +1,11 @@
 import bitshares as bts
 
 
-class BlockchainInstance():
+class BlockchainInstance:
     """ This is a class that allows compatibility with previous
         naming conventions
     """
+
     def __init__(self, *args, **kwargs):
         if "bitshares_instance" in kwargs and kwargs["bitshares_instance"]:
             self.blockchain = kwargs["bitshares_instance"]
@@ -26,9 +27,10 @@ class BlockchainInstance():
         return self.blockchain
 
 
-class SharedInstance():
+class SharedInstance:
     """ This class merely offers a singelton for the Blockchain Instance
     """
+
     instance = None
     config = {}
 
@@ -59,6 +61,7 @@ def clear_cache():
     """ Clear Caches
     """
     from .blockchainobject import BlockchainObject
+
     BlockchainObject.clear_cache()
 
 

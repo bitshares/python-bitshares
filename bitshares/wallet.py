@@ -12,14 +12,14 @@ from .exceptions import (
     WalletLocked,
     NoWalletException,
     OfflineHasNoRPCException,
-    KeyAlreadyInStoreException
+    KeyAlreadyInStoreException,
 )
 
 
 log = logging.getLogger(__name__)
 
 
-class Wallet():
+class Wallet:
     """ The wallet is meant to maintain access to private keys for
         your accounts. It either uses manually provided private keys
         or uses a SQLite database managed by storage.py.
@@ -45,6 +45,7 @@ class Wallet():
           any account. This mode is only used for *foreign*
           signatures!
     """
+
     def __init__(self, *args, **kwargs):
         BlockchainInstance.__init__(self, *args, **kwargs)
 
@@ -57,10 +58,7 @@ class Wallet():
             self.setKeys(kwargs["keys"])
         else:
             self.store = kwargs.get(
-                "key_store",
-                get_default_key_store(
-                    config=self.blockchain.config,
-                )
+                "key_store", get_default_key_store(config=self.blockchain.config)
             )
 
     @property
@@ -70,7 +68,7 @@ class Wallet():
         else:
             # If not connected, load prefix from config
             prefix = self.blockchain.config["prefix"]
-        return prefix or "BTS"   # default prefix is BTS
+        return prefix or "BTS"  # default prefix is BTS
 
     @property
     def rpc(self):
@@ -82,8 +80,7 @@ class Wallet():
         """ This method is strictly only for in memory keys that are
             passed to Wallet/BitShares with the ``keys`` argument
         """
-        log.debug(
-            "Force setting of private keys. Not using the wallet database!")
+        log.debug("Force setting of private keys. Not using the wallet database!")
         if isinstance(loadkeys, dict):
             loadkeys = list(loadkeys.values())
         elif not isinstance(loadkeys, list):
@@ -198,8 +195,7 @@ class Wallet():
         """ Obtain owner Memo Key for an account from the wallet database
         """
         account = self.rpc.get_account(name)
-        key = self.getPrivateKeyForPublicKey(
-            account["options"]["memo_key"])
+        key = self.getPrivateKeyForPublicKey(account["options"]["memo_key"])
         if key:
             return key
         return False
@@ -250,10 +246,12 @@ class Wallet():
                 account = Account(id, blockchain_instance=self.blockchain)
             except:
                 continue
-            yield {"name": account["name"],
-                   "account": account,
-                   "type": self.getKeyType(account, str(pub)),
-                   "pubkey": str(pub)}
+            yield {
+                "name": account["name"],
+                "account": account,
+                "type": self.getKeyType(account, str(pub)),
+                "pubkey": str(pub),
+            }
 
     def getKeyType(self, account, pub):
         """ Get key type
@@ -273,7 +271,7 @@ class Wallet():
         accounts = []
         for pubkey in pubkeys:
             # Filter those keys not for our network
-            if pubkey[:len(self.prefix)] == self.prefix:
+            if pubkey[: len(self.prefix)] == self.prefix:
                 accounts.extend(self.getAllAccounts(pubkey))
         return accounts
 

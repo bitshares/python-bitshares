@@ -3,7 +3,7 @@ from graphenebase.account import (
     BrainKey as GPHBrainKey,
     Address as GPHAddress,
     PublicKey as GPHPublicKey,
-    PrivateKey as GPHPrivateKey
+    PrivateKey as GPHPrivateKey,
 )
 
 import sys
@@ -26,12 +26,12 @@ class PasswordKey(GPHPasswordKey):
         """ Derive private key from the brain key and the current sequence
             number
         """
-        if sys.version > '3':
-            a = bytes(self.account + self.role + self.password, 'utf8')
+        if sys.version > "3":
+            a = bytes(self.account + self.role + self.password, "utf8")
         else:
-            a = bytes(self.account + self.role + self.password).encode('utf8')
+            a = bytes(self.account + self.role + self.password).encode("utf8")
         s = hashlib.sha256(a).digest()
-        return PrivateKey(hexlify(s).decode('ascii'))
+        return PrivateKey(hexlify(s).decode("ascii"))
 
 
 class BrainKey(GPHBrainKey):
@@ -62,20 +62,20 @@ class BrainKey(GPHBrainKey):
             number
         """
         encoded = "%s %d" % (self.brainkey, self.sequence)
-        if sys.version > '3':
-            a = bytes(encoded, 'ascii')
+        if sys.version > "3":
+            a = bytes(encoded, "ascii")
         else:
-            a = bytes(encoded).encode('ascii')
+            a = bytes(encoded).encode("ascii")
         s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
-        return PrivateKey(hexlify(s).decode('ascii'))
+        return PrivateKey(hexlify(s).decode("ascii"))
 
     def get_blind_private(self):
         """ Derive private key from the brain key (and no sequence number)
         """
-        if sys.version > '3':
-            a = bytes(self.brainkey, 'ascii')
+        if sys.version > "3":
+            a = bytes(self.brainkey, "ascii")
         else:
-            a = bytes(self.brainkey).encode('ascii')
+            a = bytes(self.brainkey).encode("ascii")
         return PrivateKey(hashlib.sha256(a).hexdigest())
 
 
@@ -93,6 +93,7 @@ class Address(GPHAddress):
            Address("BTSFN9r6VYzBK8EKtMewfNbfiGCr56pHDBFi")
 
     """
+
     def __init__(self, *args, **kwargs):
         if "prefix" not in kwargs:
             kwargs["prefix"] = "BTS"  # make prefix BTS
@@ -116,6 +117,7 @@ class PublicKey(GPHPublicKey):
                       PublicKey("xxxxx").unCompressed()
 
     """
+
     def __init__(self, *args, **kwargs):
         if "prefix" not in kwargs:
             kwargs["prefix"] = "BTS"  # make prefix BTS
@@ -145,6 +147,7 @@ class PrivateKey(GPHPrivateKey):
             Instance of ``Address`` using uncompressed key.
 
     """
+
     def __init__(self, *args, **kwargs):
         if "prefix" not in kwargs:
             kwargs["prefix"] = "BTS"  # make prefix BTS

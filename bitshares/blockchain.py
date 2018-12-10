@@ -17,6 +17,7 @@ class Blockchain(object):
 
         This class let's you deal with blockchain related data and methods.
     """
+
     def __init__(
         self,
         blockchain_instance=None,
@@ -28,7 +29,7 @@ class Blockchain(object):
         BlockchainInstance.__init__(self, *args, **kwargs)
 
         if mode == "irreversible":
-            self.mode = 'last_irreversible_block_num'
+            self.mode = "last_irreversible_block_num"
         elif mode == "head":
             self.mode = "head_block_number"
         else:
@@ -40,7 +41,7 @@ class Blockchain(object):
             self.max_block_wait_repetition = 3
 
     def is_irreversible_mode(self):
-        return self.mode == 'last_irreversible_block_num'
+        return self.mode == "last_irreversible_block_num"
 
     def info(self):
         """ This call returns the *dynamic global properties*
@@ -85,10 +86,7 @@ class Blockchain(object):
             .. note:: The block number returned depends on the ``mode`` used
                       when instanciating from this class.
         """
-        return Block(
-            self.get_current_block_num(),
-            blockchain_instance=self.blockchain
-        )
+        return Block(self.get_current_block_num(), blockchain_instance=self.blockchain)
 
     def block_time(self, block_num):
         """ Returns a datetime of the block with the given block
@@ -96,10 +94,7 @@ class Blockchain(object):
 
             :param int block_num: Block number
         """
-        return Block(
-            block_num,
-            blockchain_instance=self.blockchain
-        ).time()
+        return Block(block_num, blockchain_instance=self.blockchain).time()
 
     def block_timestamp(self, block_num):
         """ Returns the timestamp of the block with the given block
@@ -107,10 +102,9 @@ class Blockchain(object):
 
             :param int block_num: Block number
         """
-        return int(Block(
-            block_num,
-            blockchain_instance=self.blockchain
-        ).time().timestamp())
+        return int(
+            Block(block_num, blockchain_instance=self.blockchain).time().timestamp()
+        )
 
     def blocks(self, start=None, stop=None):
         """ Yields blocks starting from ``start``.
@@ -164,8 +158,7 @@ class Blockchain(object):
                 wait, positive int
         """
         if not blocks_waiting_for:
-            blocks_waiting_for = max(
-                1, block_number - self.get_current_block_num())
+            blocks_waiting_for = max(1, block_number - self.get_current_block_num())
 
         repetition = 0
         # can't return the block before the chain has reached it (support
@@ -173,10 +166,7 @@ class Blockchain(object):
         while self.get_current_block_num() < block_number:
             repetition += 1
             time.sleep(self.block_interval)
-            if (
-                repetition >
-                blocks_waiting_for * self.max_block_wait_repetition
-            ):
+            if repetition > blocks_waiting_for * self.max_block_wait_repetition:
                 raise Exception("Wait time for new block exceeded, aborting")
         # block has to be returned properly
         block = self.blockchain.rpc.get_block(block_number)
@@ -212,7 +202,7 @@ class Blockchain(object):
                     yield {
                         "block_num": block["block_num"],
                         "op": op,
-                        "timestamp": block["timestamp"]
+                        "timestamp": block["timestamp"],
                     }
 
     def stream(self, opNames=[], *args, **kwargs):
@@ -261,16 +251,12 @@ class Blockchain(object):
         for block in self.blocks():
             counter += 1
             for tx in block["transactions"]:
-                if (
-                    sorted(tx["signatures"]) ==
-                    sorted(transaction["signatures"])
-                ):
+                if sorted(tx["signatures"]) == sorted(transaction["signatures"]):
                     return tx
             if counter > limit:
-                raise Exception(
-                    "The operation has not been added after 10 blocks!")
+                raise Exception("The operation has not been added after 10 blocks!")
 
-    def get_all_accounts(self, start='', stop='', steps=1e3, **kwargs):
+    def get_all_accounts(self, start="", stop="", steps=1e3, **kwargs):
         """ Yields account names between start and stop.
 
             :param str start: Start at this account name

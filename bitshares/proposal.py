@@ -4,6 +4,7 @@ from .exceptions import ProposalDoesNotExistException
 from .blockchainobject import BlockchainObject, ObjectCache
 from .utils import parse_time
 import logging
+
 log = logging.getLogger(__name__)
 
 
@@ -14,6 +15,7 @@ class Proposal(BlockchainObject):
         :param bitshares blockchain_instance: BitShares() instance to use when accesing a RPC
 
     """
+
     type_id = 10
 
     def refresh(self):
@@ -45,6 +47,7 @@ class Proposal(BlockchainObject):
     @property
     def is_in_review(self):
         from datetime import datetime, timezone
+
         now = datetime.utcnow().replace(tzinfo=timezone.utc)
         return now > self.review_period
 
@@ -55,6 +58,7 @@ class Proposals(list):
         :param str account: Account name
         :param bitshares blockchain_instance: BitShares() instance to use when accesing a RPC
     """
+
     cache = ObjectCache()
 
     def __init__(self, account, **kwargs):
@@ -68,8 +72,5 @@ class Proposals(list):
             Proposals.cache[account["id"]] = proposals
 
         super(Proposals, self).__init__(
-            [
-                Proposal(x, blockchain_instance=self.blockchain)
-                for x in proposals
-            ]
+            [Proposal(x, blockchain_instance=self.blockchain) for x in proposals]
         )

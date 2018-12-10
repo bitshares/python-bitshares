@@ -1,7 +1,4 @@
-from graphenebase.bip38 import (
-    encrypt as GPHencrypt,
-    decrypt as GPHdecrypt
-)
+from graphenebase.bip38 import encrypt as GPHencrypt, decrypt as GPHdecrypt
 
 
 def encrypt(privkey, passphrase):

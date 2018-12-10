@@ -41,7 +41,5 @@ def force_flag(perms, flags):
 def test_permissions(perms, flags):
     for p in flags:
         if not asset_permissions[p] & perms:
-            raise Exception(
-                "Permissions prevent you from changing %s!" % p
-            )
+            raise Exception("Permissions prevent you from changing %s!" % p)
     return True

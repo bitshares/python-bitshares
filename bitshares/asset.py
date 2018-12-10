@@ -5,7 +5,7 @@ from bitsharesbase.asset_permissions import (
     asset_permissions,
     force_flag,
     test_permissions,
-    todict
+    todict,
 )
 from .exceptions import AssetDoesNotExistsException
 from .blockchainobject import BlockchainObject
@@ -26,6 +26,7 @@ class Asset(BlockchainObject):
                   load on the API server. Instances of this class can be
                   refreshed with ``Asset.refresh()``.
     """
+
     type_id = 3
 
     def __init__(self, *args, **kwargs):
@@ -42,13 +43,14 @@ class Asset(BlockchainObject):
         if self.full:
             if "bitasset_data_id" in asset:
                 self["bitasset_data"] = self.blockchain.rpc.get_object(
-                    asset["bitasset_data_id"])
+                    asset["bitasset_data_id"]
+                )
             self["dynamic_asset_data"] = self.blockchain.rpc.get_object(
-                asset["dynamic_asset_data_id"])
+                asset["dynamic_asset_data_id"]
+            )
 
         # Permissions and flags
-        self["permissions"] = todict(asset["options"].get(
-            "issuer_permissions"))
+        self["permissions"] = todict(asset["options"].get("issuer_permissions"))
         self["flags"] = todict(asset["options"].get("flags"))
         try:
             self["description"] = json.loads(asset["options"]["description"])
@@ -59,11 +61,7 @@ class Asset(BlockchainObject):
     def is_fully_loaded(self):
         """ Is this instance fully loaded / e.g. all data available?
         """
-        return (
-            self.full and
-            "bitasset_data_id" in self and
-            "bitasset_data" in self
-        )
+        return self.full and "bitasset_data_id" in self and "bitasset_data" in self
 
     @property
     def symbol(self):
@@ -77,7 +75,7 @@ class Asset(BlockchainObject):
     def is_bitasset(self):
         """ Is the asset a :doc:`mpa`?
         """
-        return ("bitasset_data_id" in self)
+        return "bitasset_data_id" in self
 
     @property
     def permissions(self):
@@ -103,33 +101,31 @@ class Asset(BlockchainObject):
     @property
     def max_market_fee(self):
         from .amount import Amount
-        return Amount({
-            "amount": self["options"]["max_market_fee"],
-            "asset_id": self["id"]
-        })
+
+        return Amount(
+            {"amount": self["options"]["max_market_fee"], "asset_id": self["id"]}
+        )
 
     @property
     def feeds(self):
         from .price import PriceFeed
+
         self.ensure_full()
         if not self.is_bitasset:
             return
         r = []
         for feed in self["bitasset_data"]["feeds"]:
-            r.append(PriceFeed(
-                feed,
-                blockchain_instance=self.blockchain
-            ))
+            r.append(PriceFeed(feed, blockchain_instance=self.blockchain))
         return r
 
     @property
     def feed(self):
         from .price import PriceFeed
+
         assert self.is_bitasset
         self.ensure_full()
         return PriceFeed(
-            self["bitasset_data"]["current_feed"],
-            blockchain_instance=self.blockchain
+            self["bitasset_data"]["current_feed"], blockchain_instance=self.blockchain
         )
 
     @property
@@ -139,6 +135,7 @@ class Asset(BlockchainObject):
     def get_call_orders(self, limit=100):
         from .price import Price
         from .amount import Amount
+
         assert limit <= 100
         assert self.is_bitasset
         self.ensure_full()
@@ -146,44 +143,41 @@ class Asset(BlockchainObject):
         bitasset = self["bitasset_data"]
         settlement_price = Price(
             bitasset["current_feed"]["settlement_price"],
-            blockchain_instance=self.blockchain
+            blockchain_instance=self.blockchain,
         )
         ret = self.blockchain.rpc.get_call_orders(self["id"], limit)
         for call in ret[:limit]:
-            call_price = Price(
-                call["call_price"],
-                blockchain_instance=self.blockchain
-            )
+            call_price = Price(call["call_price"], blockchain_instance=self.blockchain)
             collateral_amount = Amount(
                 {
                     "amount": call["collateral"],
-                    "asset_id": call["call_price"]["base"]["asset_id"]
+                    "asset_id": call["call_price"]["base"]["asset_id"],
                 },
-                blockchain_instance=self.blockchain
+                blockchain_instance=self.blockchain,
             )
             debt_amount = Amount(
                 {
                     "amount": call["debt"],
                     "asset_id": call["call_price"]["quote"]["asset_id"],
                 },
-                blockchain_instance=self.blockchain
+                blockchain_instance=self.blockchain,
             )
-            r.append({
-                "account": Account(
-                    call["borrower"],
-                    lazy=True,
-                    blockchain_instance=self.blockchain
-                ),
-                "collateral": collateral_amount,
-                "debt": debt_amount,
-                "call_price": call_price,
-                "settlement_price": settlement_price,
-                "ratio": (
-                    float(collateral_amount) /
-                    float(debt_amount) *
-                    float(settlement_price)
-                )
-            })
+            r.append(
+                {
+                    "account": Account(
+                        call["borrower"], lazy=True, blockchain_instance=self.blockchain
+                    ),
+                    "collateral": collateral_amount,
+                    "debt": debt_amount,
+                    "call_price": call_price,
+                    "settlement_price": settlement_price,
+                    "ratio": (
+                        float(collateral_amount)
+                        / float(debt_amount)
+                        * float(settlement_price)
+                    ),
+                }
+            )
         return r
 
     @property
@@ -193,23 +187,23 @@ class Asset(BlockchainObject):
     def get_settle_orders(self, limit=100):
         from .amount import Amount
         from .utils import formatTimeString
+
         assert limit <= 100
         assert self.is_bitasset
         r = list()
         ret = self.blockchain.rpc.get_settle_orders(self["id"], limit)
         for settle in ret[:limit]:
-            r.append({
-                "account": Account(
-                    settle["owner"],
-                    lazy=True,
-                    blockchain_instance=self.blockchain
-                ),
-                "amount": Amount(
-                    settle["balance"],
-                    blockchain_instance=self.blockchain
-                ),
-                "date": formatTimeString(settle["settlement_date"])
-            })
+            r.append(
+                {
+                    "account": Account(
+                        settle["owner"], lazy=True, blockchain_instance=self.blockchain
+                    ),
+                    "amount": Amount(
+                        settle["balance"], blockchain_instance=self.blockchain
+                    ),
+                    "date": formatTimeString(settle["settlement_date"]),
+                }
+            )
         return r
 
     def halt(self):
@@ -217,29 +211,30 @@ class Asset(BlockchainObject):
         """
         nullaccount = Account(
             "null-account",  # We set the null-account
-            blockchain_instance=self.blockchain
+            blockchain_instance=self.blockchain,
         )
-        flags = {"white_list": True,
-                 "transfer_restricted": True,
-                 }
+        flags = {"white_list": True, "transfer_restricted": True}
         options = self["options"]
         test_permissions(options["issuer_permissions"], flags)
         flags_int = force_flag(options["flags"], flags)
-        options.update({
-            "flags": flags_int,
-            "whitelist_authorities": [nullaccount["id"]],
-            "blacklist_authorities": [],
-            "whitelist_markets": [self["id"]],
-            "blacklist_markets": [],
-        })
-        op = operations.Asset_update(**{
-            "fee": {"amount": 0,
-                    "asset_id": "1.3.0"},
-            "issuer": self["issuer"],
-            "asset_to_update": self["id"],
-            "new_options": options,
-            "extensions": []
-        })
+        options.update(
+            {
+                "flags": flags_int,
+                "whitelist_authorities": [nullaccount["id"]],
+                "blacklist_authorities": [],
+                "whitelist_markets": [self["id"]],
+                "blacklist_markets": [],
+            }
+        )
+        op = operations.Asset_update(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": self["issuer"],
+                "asset_to_update": self["id"],
+                "new_options": options,
+                "extensions": [],
+            }
+        )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def release(
@@ -261,35 +256,32 @@ class Asset(BlockchainObject):
             :param list blacklist_markets: List of assets to prevent
                 trading with
         """
-        flags = {"white_list": False,
-                 "transfer_restricted": False,
-                 }
+        flags = {"white_list": False, "transfer_restricted": False}
         options = self["options"]
         test_permissions(options["issuer_permissions"], flags)
         flags_int = force_flag(options["flags"], flags)
-        options.update({
-            "flags": flags_int,
-            "whitelist_authorities": [
-                Account(a)["id"] for a in whitelist_authorities
-            ],
-            "blacklist_authorities": [
-                Account(a)["id"] for a in blacklist_authorities
-            ],
-            "whitelist_markets": [
-                Asset(a)["id"] for a in whitelist_markets
-            ],
-            "blacklist_markets": [
-                Asset(a)["id"] for a in blacklist_markets
-            ],
-        })
-        op = operations.Asset_update(**{
-            "fee": {"amount": 0,
-                    "asset_id": "1.3.0"},
-            "issuer": self["issuer"],
-            "asset_to_update": self["id"],
-            "new_options": options,
-            "extensions": []
-        })
+        options.update(
+            {
+                "flags": flags_int,
+                "whitelist_authorities": [
+                    Account(a)["id"] for a in whitelist_authorities
+                ],
+                "blacklist_authorities": [
+                    Account(a)["id"] for a in blacklist_authorities
+                ],
+                "whitelist_markets": [Asset(a)["id"] for a in whitelist_markets],
+                "blacklist_markets": [Asset(a)["id"] for a in blacklist_markets],
+            }
+        )
+        op = operations.Asset_update(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": self["issuer"],
+                "asset_to_update": self["id"],
+                "new_options": options,
+                "extensions": [],
+            }
+        )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def setoptions(self, flags):
@@ -309,20 +301,21 @@ class Asset(BlockchainObject):
 
             :param dict flag: dictionary of flags and boolean
         """
-        assert set(flags.keys()).issubset(
-            asset_permissions.keys()), "unknown flag"
+        assert set(flags.keys()).issubset(asset_permissions.keys()), "unknown flag"
 
         options = self["options"]
         test_permissions(options["issuer_permissions"], flags)
         flags_int = force_flag(options["flags"], flags)
         options.update({"flags": flags_int})
-        op = operations.Asset_update(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "issuer": self["issuer"],
-            "asset_to_update": self["id"],
-            "new_options": options,
-            "extensions": []
-        })
+        op = operations.Asset_update(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": self["issuer"],
+                "asset_to_update": self["id"],
+                "new_options": options,
+                "extensions": [],
+            }
+        )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def enableflag(self, flag):
@@ -354,14 +347,16 @@ class Asset(BlockchainObject):
         if not (options["flags"] & asset_permissions["override_authority"]):
             raise Exception("Insufficient Permissions/flags for seizure!")
 
-        op = operations.Override_transfer(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "issuer": self["issuer"],
-            "from": from_account["id"],
-            "to": to_account["id"],
-            "amount": amount.json(),
-            "extensions": []
-        })
+        op = operations.Override_transfer(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": self["issuer"],
+                "from": from_account["id"],
+                "to": to_account["id"],
+                "amount": amount.json(),
+                "extensions": [],
+            }
+        )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def add_authorities(self, type, authorities=[]):
@@ -375,20 +370,22 @@ class Asset(BlockchainObject):
 
         options = self["options"]
         if type == "whitelist":
-            options["whitelist_authorities"].extend([
-                Account(a)["id"] for a in authorities
-            ])
+            options["whitelist_authorities"].extend(
+                [Account(a)["id"] for a in authorities]
+            )
         if type == "blacklist":
-            options["blacklist_authorities"].extend([
-                Account(a)["id"] for a in authorities
-            ])
-        op = operations.Asset_update(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "issuer": self["issuer"],
-            "asset_to_update": self["id"],
-            "new_options": options,
-            "extensions": []
-        })
+            options["blacklist_authorities"].extend(
+                [Account(a)["id"] for a in authorities]
+            )
+        op = operations.Asset_update(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": self["issuer"],
+                "asset_to_update": self["id"],
+                "new_options": options,
+                "extensions": [],
+            }
+        )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def remove_authorities(self, type, authorities=[]):
@@ -403,21 +400,19 @@ class Asset(BlockchainObject):
         options = self["options"]
         if type == "whitelist":
             for a in authorities:
-                options["whitelist_authorities"].remove(
-                    Account(a)["id"]
-                )
+                options["whitelist_authorities"].remove(Account(a)["id"])
         if type == "blacklist":
             for a in authorities:
-                options["blacklist_authorities"].remove(
-                    Account(a)["id"]
-                )
-        op = operations.Asset_update(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "issuer": self["issuer"],
-            "asset_to_update": self["id"],
-            "new_options": options,
-            "extensions": []
-        })
+                options["blacklist_authorities"].remove(Account(a)["id"])
+        op = operations.Asset_update(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": self["issuer"],
+                "asset_to_update": self["id"],
+                "new_options": options,
+                "extensions": [],
+            }
+        )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def add_markets(self, type, authorities=[], force_enable=True):
@@ -432,36 +427,27 @@ class Asset(BlockchainObject):
 
         options = self["options"]
         if force_enable:
-            test_permissions(
-                options["issuer_permissions"],
-                {"white_list": True}
-            )
-            flags_int = force_flag(
-                options["flags"],
-                {"white_list": True}
-            )
+            test_permissions(options["issuer_permissions"], {"white_list": True})
+            flags_int = force_flag(options["flags"], {"white_list": True})
             options.update({"flags": flags_int})
         else:
             assert test_permissions(
-                options["flags"],
-                ["white_list"]
+                options["flags"], ["white_list"]
             ), "whitelist feature not enabled"
 
         if type == "whitelist":
-            options["whitelist_markets"].extend([
-                Asset(a)["id"] for a in authorities
-            ])
+            options["whitelist_markets"].extend([Asset(a)["id"] for a in authorities])
         if type == "blacklist":
-            options["blacklist_markets"].extend([
-                Asset(a)["id"] for a in authorities
-            ])
-        op = operations.Asset_update(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "issuer": self["issuer"],
-            "asset_to_update": self["id"],
-            "new_options": options,
-            "extensions": []
-        })
+            options["blacklist_markets"].extend([Asset(a)["id"] for a in authorities])
+        op = operations.Asset_update(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": self["issuer"],
+                "asset_to_update": self["id"],
+                "new_options": options,
+                "extensions": [],
+            }
+        )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def remove_markets(self, type, authorities=[]):
@@ -476,21 +462,19 @@ class Asset(BlockchainObject):
         options = self["options"]
         if type == "whitelist":
             for a in authorities:
-                options["whitelist_markets"].remove(
-                    Asset(a)["id"]
-                )
+                options["whitelist_markets"].remove(Asset(a)["id"])
         if type == "blacklist":
             for a in authorities:
-                options["blacklist_markets"].remove(
-                    Asset(a)["id"]
-                )
-        op = operations.Asset_update(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "issuer": self["issuer"],
-            "asset_to_update": self["id"],
-            "new_options": options,
-            "extensions": []
-        })
+                options["blacklist_markets"].remove(Asset(a)["id"])
+        op = operations.Asset_update(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": self["issuer"],
+                "asset_to_update": self["id"],
+                "new_options": options,
+                "extensions": [],
+            }
+        )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def set_market_fee(self, percentage_fee, max_market_fee):
@@ -505,18 +489,22 @@ class Asset(BlockchainObject):
         options = self["options"]
         test_permissions(options["issuer_permissions"], flags)
         flags_int = force_flag(options["flags"], flags)
-        options.update({
-            "flags": flags_int,
-            "market_fee_percent": percentage_fee * 100,
-            "max_market_fee": int(max_market_fee),
-        })
-        op = operations.Asset_update(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "issuer": self["issuer"],
-            "asset_to_update": self["id"],
-            "new_options": options,
-            "extensions": []
-        })
+        options.update(
+            {
+                "flags": flags_int,
+                "market_fee_percent": percentage_fee * 100,
+                "max_market_fee": int(max_market_fee),
+            }
+        )
+        op = operations.Asset_update(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": self["issuer"],
+                "asset_to_update": self["id"],
+                "new_options": options,
+                "extensions": [],
+            }
+        )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def update_feed_producers(self, producers):
@@ -525,25 +513,21 @@ class Asset(BlockchainObject):
             :param list producers: List of accounts that are allowed to produce
                  a feed
         """
-        assert self.is_bitasset, \
-            "Asset needs to be a bitasset/market pegged asset"
-        op = operations.Asset_update_feed_producers(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "issuer": self["issuer"],
-            "asset_to_update": self["id"],
-            "new_feed_producers": [
-                Account(a)["id"] for a in producers
-            ],
-            "extensions": []
-        })
+        assert self.is_bitasset, "Asset needs to be a bitasset/market pegged asset"
+        op = operations.Asset_update_feed_producers(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": self["issuer"],
+                "asset_to_update": self["id"],
+                "new_feed_producers": [Account(a)["id"] for a in producers],
+                "extensions": [],
+            }
+        )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def update_cer(self, cer, account=None, **kwargs):
         """ Update the Core Exchange Rate (CER) of an asset
         """
         return self.blockchain.update_cer(
-            self["symbol"],
-            cer,
-            account=account,
-            **kwargs
+            self["symbol"], cer, account=account, **kwargs
         )

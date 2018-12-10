@@ -1,8 +1,7 @@
 from .bitshares import BitShares
 
 __all__ = [
-    "bitshares"
-    "aes",
+    "bitshares" "aes",
     "account",
     "amount",
     "asset",
@@ -17,5 +16,5 @@ __all__ = [
     "committee",
     "vesting",
     "proposal",
-    "message"
+    "message",
 ]

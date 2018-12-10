@@ -26,6 +26,7 @@ class Block(BlockchainObject):
                   refreshed with ``Account.refresh()``.
 
     """
+
     def refresh(self):
         """ Even though blocks never change, you freshly obtain its contents
             from an API with this method
@@ -38,7 +39,7 @@ class Block(BlockchainObject):
     def time(self):
         """ Return a datatime instance for the timestamp of this block
         """
-        return parse_time(self['timestamp'])
+        return parse_time(self["timestamp"])
 
 
 class BlockHeader(BlockchainObject):
@@ -49,12 +50,9 @@ class BlockHeader(BlockchainObject):
         block = self.blockchain.rpc.get_block_header(self.identifier)
         if not block:
             raise BlockDoesNotExistsException
-        super(BlockHeader, self).__init__(
-            block,
-            blockchain_instance=self.blockchain
-        )
+        super(BlockHeader, self).__init__(block, blockchain_instance=self.blockchain)
 
     def time(self):
         """ Return a datatime instance for the timestamp of this block
         """
-        return parse_time(self['timestamp'])
+        return parse_time(self["timestamp"])

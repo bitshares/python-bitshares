@@ -8,10 +8,11 @@ from .exceptions import (
     InsufficientAuthorityError,
     MissingKeyError,
     InvalidWifError,
-    WalletLocked
+    WalletLocked,
 )
 from .instance import BlockchainInstance
 import logging
+
 log = logging.getLogger(__name__)
 
 
@@ -28,6 +29,7 @@ class ProposalBuilder(BlockchainInstance):
             your own instance of transaction builder (optional)
         :param instance blockchain_instance: Blockchain instance
     """
+
     def __init__(
         self,
         proposer,
@@ -106,22 +108,16 @@ class ProposalBuilder(BlockchainInstance):
         if not self.ops:
             return
         ops = [operations.Op_wrapper(op=o) for o in list(self.ops)]
-        proposer = Account(
-            self.proposer,
-            blockchain_instance=self.blockchain
-        )
+        proposer = Account(self.proposer, blockchain_instance=self.blockchain)
         data = {
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "fee_paying_account": proposer["id"],
-            "expiration_time": transactions.formatTimeFromNow(
-                self.proposal_expiration),
+            "expiration_time": transactions.formatTimeFromNow(self.proposal_expiration),
             "proposed_ops": [o.json() for o in ops],
-            "extensions": []
+            "extensions": [],
         }
         if self.proposal_review:
-            data.update({
-                "review_period_seconds": self.proposal_review
-            })
+            data.update({"review_period_seconds": self.proposal_review})
         ops = operations.Proposal_create(**data)
         return Operation(ops)
 
@@ -130,12 +126,8 @@ class TransactionBuilder(dict, BlockchainInstance):
     """ This class simplifies the creation of transactions by adding
         operations and signers.
     """
-    def __init__(
-        self,
-        tx={},
-        proposer=None,
-        **kwargs
-    ):
+
+    def __init__(self, tx={}, proposer=None, **kwargs):
         BlockchainInstance.__init__(self, **kwargs)
         self.clear()
         if tx and isinstance(tx, dict):
@@ -227,8 +219,7 @@ class TransactionBuilder(dict, BlockchainInstance):
             for authority in account[perm]["key_auths"]:
                 try:
                     # Try obtain the private key from wallet
-                    wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
-                        authority[0])
+                    wif = self.blockchain.wallet.getPrivateKeyForPublicKey(authority[0])
                 except Exception as e:
                     continue
 
@@ -251,8 +242,11 @@ class TransactionBuilder(dict, BlockchainInstance):
                     # account_auths
                     # This is recursive with a limit at level 2 (see above)
                     auth_account = Account(
-                        authority[0], blockchain_instance=self.blockchain)
-                    r.extend(fetchkeys(auth_account, perm, level + 1, required_treshold))
+                        authority[0], blockchain_instance=self.blockchain
+                    )
+                    r.extend(
+                        fetchkeys(auth_account, perm, level + 1, required_treshold)
+                    )
 
                     # Test if we reached threshold already and break
                     if sum([x[1] for x in r]) >= required_treshold:
@@ -265,19 +259,23 @@ class TransactionBuilder(dict, BlockchainInstance):
             # is the account an instance of public key?
             if isinstance(account, PublicKey):
                 self.appendWif(
-                    self.blockchain.wallet.getPrivateKeyForPublicKey(
-                        str(account)
-                    )
+                    self.blockchain.wallet.getPrivateKeyForPublicKey(str(account))
                 )
             # ... or should we rather obtain the keys from an account name
             else:
                 accountObj = Account(account, blockchain_instance=self.blockchain)
                 required_treshold = accountObj[permission]["weight_threshold"]
-                keys = fetchkeys(accountObj, permission, required_treshold=required_treshold)
+                keys = fetchkeys(
+                    accountObj, permission, required_treshold=required_treshold
+                )
                 # If we couldn't find an active key, let's try overwrite it
                 # with an owner key
                 if not keys and permission != "owner":
-                    keys.extend(fetchkeys(accountObj, "owner", required_treshold=required_treshold))
+                    keys.extend(
+                        fetchkeys(
+                            accountObj, "owner", required_treshold=required_treshold
+                        )
+                    )
                 for x in keys:
                     self.appendWif(x[0])
 
@@ -297,6 +295,7 @@ class TransactionBuilder(dict, BlockchainInstance):
         """ Set asset to fee
         """
         from .amount import Amount
+
         if isinstance(fee_asset, Amount):
             self.fee_asset_id = fee_asset["id"]
         elif isinstance(fee_asset, Asset):
@@ -323,18 +322,22 @@ class TransactionBuilder(dict, BlockchainInstance):
                 ops.extend([Operation(op)])
 
         # We now wrap everything into an actual transaction
-        ops = transactions.addRequiredFees(self.blockchain.rpc, ops,
-                                           asset_id=self.fee_asset_id)
+        ops = transactions.addRequiredFees(
+            self.blockchain.rpc, ops, asset_id=self.fee_asset_id
+        )
         expiration = transactions.formatTimeFromNow(
-            self.expiration or self.blockchain.expiration or 30  # defaults to 30 seconds
+            self.expiration
+            or self.blockchain.expiration
+            or 30  # defaults to 30 seconds
         )
         ref_block_num, ref_block_prefix = transactions.getBlockParams(
-            self.blockchain.rpc)
+            self.blockchain.rpc
+        )
         self.tx = Signed_Transaction(
             ref_block_num=ref_block_num,
             ref_block_prefix=ref_block_prefix,
             expiration=expiration,
-            operations=ops
+            operations=ops,
         )
         dict.update(self, self.tx.json())
         self._unset_require_reconstruction()
@@ -357,8 +360,8 @@ class TransactionBuilder(dict, BlockchainInstance):
         # If we are doing a proposal, obtain the account from the proposer_id
         if self.blockchain.proposer:
             proposer = Account(
-                self.blockchain.proposer,
-                blockchain_instance=self.blockchain)
+                self.blockchain.proposer, blockchain_instance=self.blockchain
+            )
             self.wifs = set()
             self.signing_accounts = list()
             self.appendSigner(proposer["id"], "active")
@@ -366,8 +369,7 @@ class TransactionBuilder(dict, BlockchainInstance):
         # We need to set the default prefix, otherwise pubkeys are
         # presented wrongly!
         if self.blockchain.rpc:
-            operations.default_prefix = (
-                self.blockchain.rpc.chain_params["prefix"])
+            operations.default_prefix = self.blockchain.rpc.chain_params["prefix"]
         elif "blockchain" in self:
             operations.default_prefix = self["blockchain"]["prefix"]
 
@@ -415,11 +417,11 @@ class TransactionBuilder(dict, BlockchainInstance):
         try:
             if self.blockchain.blocking:
                 ret = self.blockchain.rpc.broadcast_transaction_synchronous(
-                    ret, api="network_broadcast")
+                    ret, api="network_broadcast"
+                )
                 ret.update(**ret.get("trx", {}))
             else:
-                self.blockchain.rpc.broadcast_transaction(
-                    ret, api="network_broadcast")
+                self.blockchain.rpc.broadcast_transaction(ret, api="network_broadcast")
         except Exception as e:
             raise e
         finally:
@@ -448,34 +450,27 @@ class TransactionBuilder(dict, BlockchainInstance):
         self["blockchain"] = self.blockchain.rpc.chain_params
 
         if isinstance(account, PublicKey):
-            self["missing_signatures"] = [
-                str(account)
-            ]
+            self["missing_signatures"] = [str(account)]
         else:
             accountObj = Account(account)
             authority = accountObj[permission]
             # We add a required_authorities to be able to identify
             # how to sign later. This is an array, because we
             # may later want to allow multiple operations per tx
-            self.update({"required_authorities": {
-                accountObj["name"]: authority
-            }})
+            self.update({"required_authorities": {accountObj["name"]: authority}})
             for account_auth in authority["account_auths"]:
                 account_auth_account = Account(account_auth[0])
-                self["required_authorities"].update({
-                    account_auth[0]: account_auth_account.get(permission)
-                })
+                self["required_authorities"].update(
+                    {account_auth[0]: account_auth_account.get(permission)}
+                )
 
             # Try to resolve required signatures for offline signing
-            self["missing_signatures"] = [
-                x[0] for x in authority["key_auths"]
-            ]
+            self["missing_signatures"] = [x[0] for x in authority["key_auths"]]
             # Add one recursion of keys from account_auths:
             for account_auth in authority["account_auths"]:
                 account_auth_account = Account(account_auth[0])
                 self["missing_signatures"].extend(
-                    [x[0]
-                     for x in account_auth_account[permission]["key_auths"]]
+                    [x[0] for x in account_auth_account[permission]["key_auths"]]
                 )
 
     def appendMissingSignatures(self):

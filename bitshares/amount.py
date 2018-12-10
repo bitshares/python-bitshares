@@ -50,6 +50,7 @@ class Amount(dict):
             Amount("1 USD") * 2
             Amount("15 GOLD") + Amount("0.5 GOLD")
     """
+
     def __init__(self, *args, **kwargs):
         self["asset"] = {}
 
@@ -68,18 +69,24 @@ class Amount(dict):
             self["amount"], self["symbol"] = args[0].split(" ")
             self["asset"] = Asset(self["symbol"], blockchain_instance=self.blockchain)
 
-        elif (len(args) == 1 and
-                isinstance(args[0], dict) and
-                "amount" in args[0] and
-                "asset_id" in args[0]):
-            self["asset"] = Asset(args[0]["asset_id"], blockchain_instance=self.blockchain)
+        elif (
+            len(args) == 1
+            and isinstance(args[0], dict)
+            and "amount" in args[0]
+            and "asset_id" in args[0]
+        ):
+            self["asset"] = Asset(
+                args[0]["asset_id"], blockchain_instance=self.blockchain
+            )
             self["symbol"] = self["asset"]["symbol"]
             self["amount"] = int(args[0]["amount"]) / 10 ** self["asset"]["precision"]
 
-        elif (len(args) == 1 and
-                isinstance(args[0], dict) and
-                "amount" in args[0] and
-                "asset" in args[0]):
+        elif (
+            len(args) == 1
+            and isinstance(args[0], dict)
+            and "amount" in args[0]
+            and "asset" in args[0]
+        ):
             self["asset"] = Asset(args[0]["asset"], blockchain_instance=self.blockchain)
             self["symbol"] = self["asset"]["symbol"]
             self["amount"] = int(args[0]["amount"]) / 10 ** self["asset"]["precision"]
@@ -121,7 +128,8 @@ class Amount(dict):
         return Amount(
             amount=self["amount"],
             asset=self["asset"].copy(),
-            blockchain_instance=self.blockchain)
+            blockchain_instance=self.blockchain,
+        )
 
     @property
     def amount(self):
@@ -147,16 +155,11 @@ class Amount(dict):
         return self["asset"]
 
     def json(self):
-        return {
-            "amount": int(self),
-            "asset_id": self["asset"]["id"]
-        }
+        return {"amount": int(self), "asset_id": self["asset"]["id"]}
 
     def __str__(self):
         return "{:,.{prec}f} {}".format(
-            self["amount"],
-            self["symbol"],
-            prec=self["asset"]["precision"]
+            self["amount"], self["symbol"], prec=self["asset"]["precision"]
         )
 
     def __float__(self):
@@ -201,6 +204,7 @@ class Amount(dict):
         a = self.copy()
         if isinstance(other, Amount):
             from .price import Price
+
             return Price(self, other)
         else:
             a["amount"] //= other
@@ -210,6 +214,7 @@ class Amount(dict):
         a = self.copy()
         if isinstance(other, Amount):
             from .price import Price
+
             return Price(self, other)
         else:
             a["amount"] /= other

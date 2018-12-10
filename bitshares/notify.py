@@ -5,6 +5,7 @@ from .instance import BlockchainInstance
 from .market import Market
 from .price import Order, FilledOrder, UpdateCallOrder
 from .account import AccountUpdate
+
 log = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -42,13 +43,7 @@ class Notify(Events):
 
     """
 
-    __events__ = [
-        'on_tx',
-        'on_object',
-        'on_block',
-        'on_account',
-        'on_market',
-    ]
+    __events__ = ["on_tx", "on_object", "on_block", "on_account", "on_market"]
 
     def __init__(
         self,
@@ -95,27 +90,23 @@ class Notify(Events):
             on_block=on_block,
             on_account=self.process_account,
             on_market=self.process_market,
-            keep_alive=keep_alive
+            keep_alive=keep_alive,
         )
 
     def get_market_ids(self, markets):
         # Markets
         market_ids = []
         for market_name in markets:
-            market = Market(
-                market_name,
-                blockchain_instance=self.blockchain
-            )
-            market_ids.append([
-                market["base"]["id"],
-                market["quote"]["id"],
-            ])
+            market = Market(market_name, blockchain_instance=self.blockchain)
+            market_ids.append([market["base"]["id"], market["quote"]["id"]])
         return market_ids
 
-    def reset_subscriptions(self,accounts=[],markets=[],objects=[]):
+    def reset_subscriptions(self, accounts=[], markets=[], objects=[]):
         """Change the subscriptions of a running Notify instance
         """
-        self.websocket.reset_subscriptions(accounts,self.get_market_ids(markets),objects)
+        self.websocket.reset_subscriptions(
+            accounts, self.get_market_ids(markets), objects
+        )
 
     def close(self):
         """Cleanly close the Notify instance
@@ -139,10 +130,7 @@ class Notify(Events):
             if isinstance(d, str):
                 # Single order has been placed
                 log.debug("Calling on_market with Order()")
-                self.on_market(Order(
-                    d,
-                    blockchain_instance=self.blockchain
-                ))
+                self.on_market(Order(d, blockchain_instance=self.blockchain))
                 continue
             elif isinstance(d, dict):
                 d = [d]
@@ -154,34 +142,26 @@ class Notify(Events):
                 for i in p:
                     if isinstance(i, dict):
                         if "pays" in i and "receives" in i:
-                            self.on_market(FilledOrder(
-                                i,
-                                blockchain_instance=self.blockchain
-                            ))
+                            self.on_market(
+                                FilledOrder(i, blockchain_instance=self.blockchain)
+                            )
                         elif "for_sale" in i and "sell_price" in i:
-                            self.on_market(Order(
-                                i,
-                                blockchain_instance=self.blockchain
-                            ))
+                            self.on_market(
+                                Order(i, blockchain_instance=self.blockchain)
+                            )
                         elif "collateral" in i and "call_price" in i:
-                            self.on_market(UpdateCallOrder(
-                                i,
-                                blockchain_instance=self.blockchain
-                            ))
+                            self.on_market(
+                                UpdateCallOrder(i, blockchain_instance=self.blockchain)
+                            )
                         else:
                             if i:
-                                log.error(
-                                    "Unknown market update type: %s" % i
-                                )
+                                log.error("Unknown market update type: %s" % i)
 
     def process_account(self, message):
         """ This is used for processing of account Updates. It will
             return instances of :class:bitshares.account.AccountUpdate`
         """
-        self.on_account(AccountUpdate(
-            message,
-            blockchain_instance=self.blockchain
-        ))
+        self.on_account(AccountUpdate(message, blockchain_instance=self.blockchain))
 
     def listen(self):
         """ This call initiates the listening/notification process. It

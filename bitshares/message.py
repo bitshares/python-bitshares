@@ -10,7 +10,7 @@ from .exceptions import (
     InvalidMessageSignature,
     AccountDoesNotExistsException,
     InvalidMemoKeyException,
-    WrongMemoKey
+    WrongMemoKey,
 )
 
 
@@ -20,7 +20,7 @@ MESSAGE_SPLIT = (
     "-----BEGIN BITSHARES SIGNED MESSAGE-----",
     "-----BEGIN META-----",
     "-----BEGIN SIGNATURE-----",
-    "-----END BITSHARES SIGNED MESSAGE-----"
+    "-----END BITSHARES SIGNED MESSAGE-----",
 )
 
 # This is the message that is actually signed
@@ -45,7 +45,6 @@ timestamp={meta[timestamp]}
 
 
 class Message(BlockchainInstance):
-
     def __init__(self, message, *args, **kwargs):
         BlockchainInstance.__init__(self, *args, **kwargs)
         self.message = message.replace("\r\n", "\n")
@@ -76,7 +75,8 @@ class Message(BlockchainInstance):
             timestamp=info["time"],
             block=info["head_block_number"],
             memokey=account["options"]["memo_key"],
-            account=account["name"])
+            account=account["name"],
+        )
 
         # wif key
         wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
@@ -90,10 +90,7 @@ class Message(BlockchainInstance):
         enc_message = SIGNED_MESSAGE_META.format(**locals())
 
         # signature
-        signature = hexlify(sign_message(
-            enc_message,
-            wif
-        )).decode("ascii")
+        signature = hexlify(sign_message(enc_message, wif)).decode("ascii")
 
         self.signed_by_account = account
         self.signed_by_name = account["name"]
@@ -101,8 +98,7 @@ class Message(BlockchainInstance):
         self.plain_message = message
 
         return SIGNED_MESSAGE_ENCAPSULATED.format(
-            MESSAGE_SPLIT=MESSAGE_SPLIT,
-            **locals()
+            MESSAGE_SPLIT=MESSAGE_SPLIT, **locals()
         )
 
     def verify(self, **kwargs):
@@ -124,7 +120,7 @@ class Message(BlockchainInstance):
         message = parts[0].strip()
         signature = parts[2].strip()
         # Parse the meta data
-        meta = dict(re.findall(r'(\S+)=(.*)', parts[1]))
+        meta = dict(re.findall(r"(\S+)=(.*)", parts[1]))
 
         log.info("Message is: {}".format(message))
         log.info("Meta is: {}".format(json.dumps(meta)))
@@ -134,8 +130,7 @@ class Message(BlockchainInstance):
         assert "account" in meta, "No 'account' could be found in meta data"
         assert "memokey" in meta, "No 'memokey' could be found in meta data"
         assert "block" in meta, "No 'block' could be found in meta data"
-        assert "timestamp" in meta, \
-            "No 'timestamp' could be found in meta data"
+        assert "timestamp" in meta, "No 'timestamp' could be found in meta data"
 
         account_name = meta.get("account").strip()
         memo_key = meta["memokey"].strip()
@@ -143,27 +138,23 @@ class Message(BlockchainInstance):
         try:
             PublicKey(memo_key, prefix=self.blockchain.prefix)
         except Exception:
-            raise InvalidMemoKeyException(
-                "The memo key in the message is invalid"
-            )
+            raise InvalidMemoKeyException("The memo key in the message is invalid")
 
         # Load account from blockchain
         try:
-            account = Account(
-                account_name,
-                blockchain_instance=self.blockchain)
+            account = Account(account_name, blockchain_instance=self.blockchain)
         except AccountDoesNotExistsException:
             raise AccountDoesNotExistsException(
                 "Could not find account {}. Are you connected to the right chain?".format(
                     account_name
-                ))
+                )
+            )
 
         # Test if memo key is the same as on the blockchain
         if not account["options"]["memo_key"] == memo_key:
             raise WrongMemoKey(
-                "Memo Key of account {} on the Blockchain ".format(
-                    account["name"]) +
-                "differs from memo key in the message: {} != {}".format(
+                "Memo Key of account {} on the Blockchain ".format(account["name"])
+                + "differs from memo key in the message: {} != {}".format(
                     account["options"]["memo_key"], memo_key
                 )
             )

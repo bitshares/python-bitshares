@@ -1,7 +1,6 @@
 from .instance import BlockchainInstance
 from datetime import datetime, timedelta
-from .utils import (
-    formatTimeFromNow, formatTime, formatTimeString, assets_from_string)
+from .utils import formatTimeFromNow, formatTime, formatTimeString, assets_from_string
 from .asset import Asset
 from .amount import Amount
 from .price import Price, Order, FilledOrder
@@ -68,16 +67,16 @@ class Market(BlockchainInstance, dict):
         if isinstance(other, str):
             quote_symbol, base_symbol = assets_from_string(other)
             return (
-                self["quote"]["symbol"] == quote_symbol and
-                self["base"]["symbol"] == base_symbol
+                self["quote"]["symbol"] == quote_symbol
+                and self["base"]["symbol"] == base_symbol
             ) or (
-                self["quote"]["symbol"] == base_symbol and
-                self["base"]["symbol"] == quote_symbol
+                self["quote"]["symbol"] == base_symbol
+                and self["base"]["symbol"] == quote_symbol
             )
         elif isinstance(other, Market):
             return (
-                self["quote"]["symbol"] == other["quote"]["symbol"] and
-                self["base"]["symbol"] == other["base"]["symbol"]
+                self["quote"]["symbol"] == other["quote"]["symbol"]
+                and self["base"]["symbol"] == other["base"]["symbol"]
             )
 
     def ticker(self):
@@ -114,14 +113,11 @@ class Market(BlockchainInstance, dict):
         """
         data = {}
         # Core Exchange rate
-        if self["quote"]["id"] == '1.3.0':
+        if self["quote"]["id"] == "1.3.0":
             cer = self["base"]["options"]["core_exchange_rate"]
         else:
             cer = self["quote"]["options"]["core_exchange_rate"]
-        data["core_exchange_rate"] = Price(
-            cer,
-            blockchain_instance=self.blockchain
-        )
+        data["core_exchange_rate"] = Price(cer, blockchain_instance=self.blockchain)
         if cer["base"]["asset_id"] == self["quote"]["id"]:
             data["core_exchange_rate"] = data["core_exchange_rate"].invert()
 
@@ -132,11 +128,12 @@ class Market(BlockchainInstance, dict):
             if backing_asset_id == self["base"]["id"]:
                 sp = bitasset["current_feed"]["settlement_price"]
                 data["quoteSettlement_price"] = Price(
-                    sp,
-                    blockchain_instance=self.blockchain
+                    sp, blockchain_instance=self.blockchain
                 )
                 if sp["base"]["asset_id"] == self["quote"]["id"]:
-                    data["quoteSettlement_price"] = data["quoteSettlement_price"].invert()
+                    data["quoteSettlement_price"] = data[
+                        "quoteSettlement_price"
+                    ].invert()
 
         elif "bitasset_data_id" in self["base"]:
             bitasset = self.blockchain.rpc.get_object(self["base"]["bitasset_data_id"])
@@ -144,32 +141,33 @@ class Market(BlockchainInstance, dict):
             if backing_asset_id == self["quote"]["id"]:
                 data["baseSettlement_price"] = Price(
                     bitasset["current_feed"]["settlement_price"],
-                    blockchain_instance=self.blockchain
+                    blockchain_instance=self.blockchain,
                 )
 
-        ticker = self.blockchain.rpc.get_ticker(
-            self["base"]["id"],
-            self["quote"]["id"],
+        ticker = self.blockchain.rpc.get_ticker(self["base"]["id"], self["quote"]["id"])
+        data["baseVolume"] = Amount(
+            ticker["base_volume"], self["base"], blockchain_instance=self.blockchain
         )
-        data["baseVolume"] = Amount(ticker["base_volume"], self["base"], blockchain_instance=self.blockchain)
-        data["quoteVolume"] = Amount(ticker["quote_volume"], self["quote"], blockchain_instance=self.blockchain)
+        data["quoteVolume"] = Amount(
+            ticker["quote_volume"], self["quote"], blockchain_instance=self.blockchain
+        )
         data["lowestAsk"] = Price(
             ticker["lowest_ask"],
             base=self["base"],
             quote=self["quote"],
-            blockchain_instance=self.blockchain
+            blockchain_instance=self.blockchain,
         )
         data["highestBid"] = Price(
             ticker["highest_bid"],
             base=self["base"],
             quote=self["quote"],
-            blockchain_instance=self.blockchain
+            blockchain_instance=self.blockchain,
         )
         data["latest"] = Price(
             ticker["latest"],
             quote=self["quote"],
             base=self["base"],
-            blockchain_instance=self.blockchain
+            blockchain_instance=self.blockchain,
         )
         data["percentChange"] = float(ticker["percent_change"])
 
@@ -189,12 +187,17 @@ class Market(BlockchainInstance, dict):
 
         """
         volume = self.blockchain.rpc.get_24_volume(
-            self["base"]["id"],
-            self["quote"]["id"],
+            self["base"]["id"], self["quote"]["id"]
         )
         return {
-            self["base"]["symbol"]: Amount(volume["base_volume"], self["base"], blockchain_instance=self.blockchain),
-            self["quote"]["symbol"]: Amount(volume["quote_volume"], self["quote"], blockchain_instance=self.blockchain)
+            self["base"]["symbol"]: Amount(
+                volume["base_volume"], self["base"], blockchain_instance=self.blockchain
+            ),
+            self["quote"]["symbol"]: Amount(
+                volume["quote_volume"],
+                self["quote"],
+                blockchain_instance=self.blockchain,
+            ),
         }
 
     def orderbook(self, limit=25):
@@ -226,22 +229,38 @@ class Market(BlockchainInstance, dict):
 
         """
         orders = self.blockchain.rpc.get_order_book(
-            self["base"]["id"],
-            self["quote"]["id"],
-            limit
+            self["base"]["id"], self["quote"]["id"], limit
         )
-        asks = list(map(lambda x: Order(
-            float(x["price"]),
-            quote=Amount(x["quote"], self["quote"], blockchain_instance=self.blockchain),
-            base=Amount(x["base"], self["base"], blockchain_instance=self.blockchain),
-            blockchain_instance=self.blockchain
-        ), orders["asks"]))
-        bids = list(map(lambda x: Order(
-            float(x["price"]),
-            quote=Amount(x["quote"], self["quote"], blockchain_instance=self.blockchain),
-            base=Amount(x["base"], self["base"], blockchain_instance=self.blockchain),
-            blockchain_instance=self.blockchain
-        ), orders["bids"]))
+        asks = list(
+            map(
+                lambda x: Order(
+                    float(x["price"]),
+                    quote=Amount(
+                        x["quote"], self["quote"], blockchain_instance=self.blockchain
+                    ),
+                    base=Amount(
+                        x["base"], self["base"], blockchain_instance=self.blockchain
+                    ),
+                    blockchain_instance=self.blockchain,
+                ),
+                orders["asks"],
+            )
+        )
+        bids = list(
+            map(
+                lambda x: Order(
+                    float(x["price"]),
+                    quote=Amount(
+                        x["quote"], self["quote"], blockchain_instance=self.blockchain
+                    ),
+                    base=Amount(
+                        x["base"], self["base"], blockchain_instance=self.blockchain
+                    ),
+                    blockchain_instance=self.blockchain,
+                ),
+                orders["bids"],
+            )
+        )
         data = {"asks": asks, "bids": bids}
         return data
 
@@ -274,7 +293,8 @@ class Market(BlockchainInstance, dict):
                     self["quote"]["symbol"],
                     formatTime(stop),
                     formatTime(start),
-                    first_run)
+                    first_run,
+                )
             else:
                 # obtain subsequent set of orders
                 continuous_limit = min(limit - cnt, 100)
@@ -283,7 +303,8 @@ class Market(BlockchainInstance, dict):
                     self["quote"]["symbol"],
                     sequence,
                     formatTime(start),
-                    continuous_limit)
+                    continuous_limit,
+                )
 
             if len(orders) == 0:
                 return
@@ -291,9 +312,17 @@ class Market(BlockchainInstance, dict):
                 cnt += 1
                 yield FilledOrder(
                     order,
-                    quote=Amount(order["amount"], self["quote"], blockchain_instance=self.blockchain),
-                    base=Amount(float(order["amount"]) * float(order["price"]), self["base"], blockchain_instance=self.blockchain),
-                    blockchain_instance=self.blockchain
+                    quote=Amount(
+                        order["amount"],
+                        self["quote"],
+                        blockchain_instance=self.blockchain,
+                    ),
+                    base=Amount(
+                        float(order["amount"]) * float(order["price"]),
+                        self["base"],
+                        blockchain_instance=self.blockchain,
+                    ),
+                    blockchain_instance=self.blockchain,
                 )
                 if cnt >= limit:
                     return
@@ -328,10 +357,7 @@ class Market(BlockchainInstance, dict):
         account = Account(account, blockchain_instance=self.blockchain)
 
         filled = self.blockchain.rpc.get_fill_order_history(
-            self["base"]["id"],
-            self["quote"]["id"],
-            2 * limit,
-            api="history"
+            self["base"]["id"], self["quote"]["id"], 2 * limit, api="history"
         )
         trades = []
         for f in filled:
@@ -341,8 +367,9 @@ class Market(BlockchainInstance, dict):
                         f,
                         base=self["base"],
                         quote=self["quote"],
-                        blockchain_instance=self.blockchain
-                    ))
+                        blockchain_instance=self.blockchain,
+                    )
+                )
         return trades
 
     def accountopenorders(self, account=None):
@@ -361,17 +388,14 @@ class Market(BlockchainInstance, dict):
         account.refresh()
         orders = account["limit_orders"]
         for o in orders:
-            if ((
-                o["sell_price"]["base"]["asset_id"] == self["base"]["id"] and
-                o["sell_price"]["quote"]["asset_id"] == self["quote"]["id"]
+            if (
+                o["sell_price"]["base"]["asset_id"] == self["base"]["id"]
+                and o["sell_price"]["quote"]["asset_id"] == self["quote"]["id"]
             ) or (
-                o["sell_price"]["base"]["asset_id"] == self["quote"]["id"] and
-                o["sell_price"]["quote"]["asset_id"] == self["base"]["id"]
-            )):
-                r.append(Order(
-                    o,
-                    blockchain_instance=self.blockchain
-                ))
+                o["sell_price"]["base"]["asset_id"] == self["quote"]["id"]
+                and o["sell_price"]["quote"]["asset_id"] == self["base"]["id"]
+            ):
+                r.append(Order(o, blockchain_instance=self.blockchain))
         return r
 
     def buy(
@@ -419,7 +443,9 @@ class Market(BlockchainInstance, dict):
                     * If an order on the market exists that sells USD for cheaper, you will end up with more than 10 USD
         """
         if not expiration:
-            expiration = self.blockchain.config["order-expiration"] or 60 * 60 * 24 * 365
+            expiration = (
+                self.blockchain.config["order-expiration"] or 60 * 60 * 24 * 365
+            )
         if not account:
             if "default_account" in self.blockchain.config:
                 account = self.blockchain.config["default_account"]
@@ -432,26 +458,32 @@ class Market(BlockchainInstance, dict):
 
         if isinstance(amount, Amount):
             amount = Amount(amount, blockchain_instance=self.blockchain)
-            assert(amount["asset"]["symbol"] == self["quote"]["symbol"]), \
-                "Price: {} does not match amount: {}".format(
-                    str(price), str(amount))
+            assert (
+                amount["asset"]["symbol"] == self["quote"]["symbol"]
+            ), "Price: {} does not match amount: {}".format(str(price), str(amount))
         else:
-            amount = Amount(amount, self["quote"]["symbol"], blockchain_instance=self.blockchain)
+            amount = Amount(
+                amount, self["quote"]["symbol"], blockchain_instance=self.blockchain
+            )
 
-        order = operations.Limit_order_create(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "seller": account["id"],
-            "amount_to_sell": {
-                "amount": int(float(amount) * float(price) * 10 ** self["base"]["precision"]),
-                "asset_id": self["base"]["id"]
-            },
-            "min_to_receive": {
-                "amount": int(float(amount) * 10 ** self["quote"]["precision"]),
-                "asset_id": self["quote"]["id"]
-            },
-            "expiration": formatTimeFromNow(expiration),
-            "fill_or_kill": killfill,
-        })
+        order = operations.Limit_order_create(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "seller": account["id"],
+                "amount_to_sell": {
+                    "amount": int(
+                        float(amount) * float(price) * 10 ** self["base"]["precision"]
+                    ),
+                    "asset_id": self["base"]["id"],
+                },
+                "min_to_receive": {
+                    "amount": int(float(amount) * 10 ** self["quote"]["precision"]),
+                    "asset_id": self["quote"]["id"],
+                },
+                "expiration": formatTimeFromNow(expiration),
+                "fill_or_kill": killfill,
+            }
+        )
 
         if returnOrderId:
             # Make blocking broadcasts
@@ -511,26 +543,32 @@ class Market(BlockchainInstance, dict):
 
         if isinstance(amount, Amount):
             amount = Amount(amount, blockchain_instance=self.blockchain)
-            assert(amount["asset"]["symbol"] == self["quote"]["symbol"]), \
-                "Price: {} does not match amount: {}".format(
-                    str(price), str(amount))
+            assert (
+                amount["asset"]["symbol"] == self["quote"]["symbol"]
+            ), "Price: {} does not match amount: {}".format(str(price), str(amount))
         else:
-            amount = Amount(amount, self["quote"]["symbol"], blockchain_instance=self.blockchain)
+            amount = Amount(
+                amount, self["quote"]["symbol"], blockchain_instance=self.blockchain
+            )
 
-        order = operations.Limit_order_create(**{
-            "fee": {"amount": 0, "asset_id": "1.3.0"},
-            "seller": account["id"],
-            "amount_to_sell": {
-                "amount": int(float(amount) * 10 ** self["quote"]["precision"]),
-                "asset_id": self["quote"]["id"]
-            },
-            "min_to_receive": {
-                "amount": int(float(amount) * float(price) * 10 ** self["base"]["precision"]),
-                "asset_id": self["base"]["id"]
-            },
-            "expiration": formatTimeFromNow(expiration),
-            "fill_or_kill": killfill,
-        })
+        order = operations.Limit_order_create(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "seller": account["id"],
+                "amount_to_sell": {
+                    "amount": int(float(amount) * 10 ** self["quote"]["precision"]),
+                    "asset_id": self["quote"]["id"],
+                },
+                "min_to_receive": {
+                    "amount": int(
+                        float(amount) * float(price) * 10 ** self["base"]["precision"]
+                    ),
+                    "asset_id": self["base"]["id"],
+                },
+                "expiration": formatTimeFromNow(expiration),
+                "fill_or_kill": killfill,
+            }
+        )
         if returnOrderId:
             # Make blocking broadcasts
             prevblocking = self.blockchain.blocking
@@ -564,7 +602,7 @@ class Market(BlockchainInstance, dict):
         self["quote"].refresh()
         collateral = Asset(
             self["quote"]["bitasset_data"]["options"]["short_backing_asset"],
-            blockchain_instance=self.blockchain
+            blockchain_instance=self.blockchain,
         )
         return Market(quote=self["quote"], base=collateral)
 
@@ -579,6 +617,6 @@ class Market(BlockchainInstance, dict):
         self["base"].refresh()
         collateral = Asset(
             self["base"]["bitasset_data"]["options"]["short_backing_asset"],
-            blockchain_instance=self.blockchain
+            blockchain_instance=self.blockchain,
         )
         return Market(quote=self["base"], base=collateral)

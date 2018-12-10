@@ -13,6 +13,7 @@ class Worker(BlockchainObject):
             accesing a RPC
 
     """
+
     type_id = 14
 
     def __init__(self, *args, **kwargs):
@@ -35,8 +36,7 @@ class Worker(BlockchainObject):
 
     @property
     def account(self):
-        return Account(
-            self["worker_account"], blockchain_instance=self.blockchain)
+        return Account(self["worker_account"], blockchain_instance=self.blockchain)
 
 
 class Workers(list):
@@ -46,12 +46,12 @@ class Workers(list):
         :param bitshares blockchain_instance: BitShares() instance to use when
             accesing a RPC
     """
+
     def __init__(self, account_name=None, lazy=False, **kwargs):
         BlockchainInstance.__init__(self, **kwargs)
         if account_name:
             account = Account(account_name, blockchain_instance=self.blockchain)
-            self.workers = self.blockchain.rpc.get_workers_by_account(
-                account["id"])
+            self.workers = self.blockchain.rpc.get_workers_by_account(account["id"])
         else:
             self.workers = self.blockchain.rpc.get_all_workers()
 
