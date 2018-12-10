@@ -1,8 +1,8 @@
-from .instance import BlockchainInstance
 from .account import Account
-from .exceptions import WorkerDoesNotExistsException
-from .utils import formatTimeString
 from .blockchainobject import BlockchainObject
+from .exceptions import WorkerDoesNotExistsException
+from .instance import BlockchainInstance
+from .utils import formatTimeString
 
 
 class Worker(BlockchainObject):

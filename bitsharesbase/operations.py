@@ -1,47 +1,52 @@
-from collections import OrderedDict
 import json
+
+from collections import OrderedDict
+
 from graphenebase.types import (
-    Uint8,
+    Array,
+    Bool,
+    Bytes,
+    Fixed_array,
+    Id,
     Int16,
+    Int64,
+    Map,
+    Optional,
+    PointInTime,
+    Set,
+    Signature,
+    Static_variant,
+    String,
+    Uint8,
     Uint16,
     Uint32,
     Uint64,
     Varint32,
-    Int64,
-    String,
-    Bytes,
     Void,
-    Array,
-    PointInTime,
-    Signature,
-    Bool,
-    Set,
-    Fixed_array,
-    Optional,
-    Static_variant,
-    Map,
-    Id,
     VoteId,
 )
-from .objects import GrapheneObject, isArgsThisClass
+
 from .account import PublicKey
-from .operationids import operations
 from .objects import (
-    Operation,
+    AccountCreateExtensions,
+    AccountOptions,
     Asset,
+    AssetOptions,
+    BitAssetOptions,
+    CallOrderExtension,
+    GrapheneObject,
     Memo,
+    ObjectId,
+    Operation,
+    Permission,
     Price,
     PriceFeed,
-    Permission,
-    AccountOptions,
-    BitAssetOptions,
-    AssetOptions,
-    ObjectId,
-    Worker_initializer,
     SpecialAuthority,
-    AccountCreateExtensions,
-    CallOrderExtension,
+    Worker_initializer,
+    isArgsThisClass,
 )
+from .operationids import operations
+
 
 default_prefix = "BTS"
 class_idmap = {}

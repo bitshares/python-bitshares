@@ -1,14 +1,13 @@
-from graphenebase.account import (
-    PasswordKey as GPHPasswordKey,
-    BrainKey as GPHBrainKey,
-    Address as GPHAddress,
-    PublicKey as GPHPublicKey,
-    PrivateKey as GPHPrivateKey,
-)
-
-import sys
 import hashlib
+import sys
+
 from binascii import hexlify, unhexlify
+
+from graphenebase.account import Address as GPHAddress
+from graphenebase.account import BrainKey as GPHBrainKey
+from graphenebase.account import PasswordKey as GPHPasswordKey
+from graphenebase.account import PrivateKey as GPHPrivateKey
+from graphenebase.account import PublicKey as GPHPublicKey
 
 
 class PasswordKey(GPHPasswordKey):

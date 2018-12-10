@@ -7,8 +7,8 @@ except ImportError:
         from Crypto import Random
     except ImportError:
         raise ImportError("Missing dependency: pyCryptodome")
-import hashlib
 import base64
+import hashlib
 
 
 class AESCipher(object):

@@ -1,7 +1,7 @@
-from .instance import BlockchainInstance
 from .account import Account
-from .exceptions import WitnessDoesNotExistsException
 from .blockchainobject import BlockchainObject
+from .exceptions import WitnessDoesNotExistsException
+from .instance import BlockchainInstance
 
 
 class Witness(BlockchainObject):

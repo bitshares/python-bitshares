@@ -1,6 +1,6 @@
 from .account import Account
-from .exceptions import VestingBalanceDoesNotExistsException
 from .blockchainobject import BlockchainObject
+from .exceptions import VestingBalanceDoesNotExistsException
 
 
 class Vesting(BlockchainObject):

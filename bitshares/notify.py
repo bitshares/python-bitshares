@@ -1,10 +1,13 @@
 import logging
-from events import Events
+
 from bitsharesapi.websocket import BitSharesWebsocket
+from events import Events
+
+from .account import AccountUpdate
 from .instance import BlockchainInstance
 from .market import Market
-from .price import Order, FilledOrder, UpdateCallOrder
-from .account import AccountUpdate
+from .price import FilledOrder, Order, UpdateCallOrder
+
 
 log = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)

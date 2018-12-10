@@ -1,9 +1,11 @@
 import random
-from .instance import BlockchainInstance
+
 from bitsharesbase import memo as BtsMemo
 from bitsharesbase.account import PrivateKey, PublicKey
+
 from .account import Account
-from .exceptions import MissingKeyError, KeyNotFound
+from .exceptions import KeyNotFound, MissingKeyError
+from .instance import BlockchainInstance
 
 
 class Memo(object):

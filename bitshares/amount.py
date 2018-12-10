@@ -1,5 +1,5 @@
-from .instance import BlockchainInstance
 from .asset import Asset
+from .instance import BlockchainInstance
 
 
 class Amount(dict):

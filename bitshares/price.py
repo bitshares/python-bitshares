@@ -1,11 +1,11 @@
 from fractions import Fraction
-from .exceptions import InvalidAssetException
-from .instance import BlockchainInstance
+
 from .account import Account
 from .amount import Amount
 from .asset import Asset
-from .utils import formatTimeString
-from .utils import parse_time, assets_from_string
+from .exceptions import InvalidAssetException
+from .instance import BlockchainInstance
+from .utils import assets_from_string, formatTimeString, parse_time
 
 
 class Price(dict, BlockchainInstance):

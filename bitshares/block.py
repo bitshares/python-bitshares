@@ -1,6 +1,6 @@
+from .blockchainobject import BlockchainObject
 from .exceptions import BlockDoesNotExistsException
 from .utils import parse_time
-from .blockchainobject import BlockchainObject
 
 
 class Block(BlockchainObject):

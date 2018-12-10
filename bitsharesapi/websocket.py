@@ -1,14 +1,19 @@
-import traceback
-import threading
-import ssl
-import time
 import json
 import logging
-import websocket
+import ssl
+import threading
+import time
+import traceback
+
 from itertools import cycle
 from threading import Thread
-from .exceptions import NumRetriesReached
+
+import websocket
+
 from events import Events
+
+from .exceptions import NumRetriesReached
+
 
 log = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)

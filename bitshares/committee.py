@@ -1,6 +1,6 @@
 from .account import Account
-from .exceptions import CommitteeMemberDoesNotExistsException
 from .blockchainobject import BlockchainObject
+from .exceptions import CommitteeMemberDoesNotExistsException
 
 
 class Committee(BlockchainObject):

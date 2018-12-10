@@ -1,6 +1,11 @@
-import sys
 import hashlib
+import struct
+import sys
+
 from binascii import hexlify, unhexlify
+
+from .account import PrivateKey, PublicKey
+
 
 try:
     from Cryptodome.Cipher import AES
@@ -9,8 +14,6 @@ except ImportError:
         from Crypto.Cipher import AES
     except ImportError:
         raise ImportError("Missing dependency: pyCryptodome")
-from .account import PrivateKey, PublicKey
-import struct
 
 " This class and the methods require python3 "
 assert sys.version_info[0] == 3, "this library requires python3"

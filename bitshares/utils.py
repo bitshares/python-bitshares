@@ -1,7 +1,10 @@
 import re
 import time
+
 from datetime import datetime, timezone
+
 from .exceptions import ObjectNotInProposalBuffer
+
 
 timeFormat = "%Y-%m-%dT%H:%M:%S"
 

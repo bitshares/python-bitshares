@@ -1,7 +1,8 @@
-from .instance import BlockchainInstance
-from .asset import Asset
-from .amount import Amount
 from bitsharesbase.operations import Operation
+
+from .amount import Amount
+from .asset import Asset
+from .instance import BlockchainInstance
 
 
 class OperationsFee(list):

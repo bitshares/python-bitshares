@@ -1,10 +1,11 @@
 # from .storage import config
-from .instance import BlockchainInstance
-from .account import Account
-from .asset import Asset
-from .amount import Amount
-from .price import Price
 from bitsharesbase import operations
+
+from .account import Account
+from .amount import Amount
+from .asset import Asset
+from .instance import BlockchainInstance
+from .price import Price
 
 
 class Dex(BlockchainInstance):

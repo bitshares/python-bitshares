@@ -1,17 +1,20 @@
-import re
 import json
 import logging
+import re
+
 from binascii import hexlify, unhexlify
-from graphenebase.ecdsa import verify_message, sign_message
+
 from bitsharesbase.account import PublicKey
-from .instance import BlockchainInstance
+from graphenebase.ecdsa import sign_message, verify_message
+
 from .account import Account
 from .exceptions import (
-    InvalidMessageSignature,
     AccountDoesNotExistsException,
     InvalidMemoKeyException,
+    InvalidMessageSignature,
     WrongMemoKey,
 )
+from .instance import BlockchainInstance
 
 
 log = logging.getLogger(__name__)

@@ -1,6 +1,8 @@
 import re
-from grapheneapi.api import Api as Original_Api
+
 from bitsharesbase.chains import known_chains
+from grapheneapi.api import Api as Original_Api
+
 from . import exceptions
 
 

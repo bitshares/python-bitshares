@@ -1,4 +1,5 @@
 import json
+
 from bitshares.account import Account
 from bitsharesbase import operations
 from bitsharesbase.asset_permissions import (
@@ -7,8 +8,9 @@ from bitsharesbase.asset_permissions import (
     test_permissions,
     todict,
 )
-from .exceptions import AssetDoesNotExistsException
+
 from .blockchainobject import BlockchainObject
+from .exceptions import AssetDoesNotExistsException
 
 
 class Asset(BlockchainObject):
