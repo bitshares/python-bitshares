@@ -1,7 +1,8 @@
 import logging
 
-from graphenebase.signedtransactions import \
-    Signed_Transaction as GrapheneSigned_Transaction
+from graphenebase.signedtransactions import (
+    Signed_Transaction as GrapheneSigned_Transaction,
+)
 
 from .chains import known_chains
 from .operations import Operation

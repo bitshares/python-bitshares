@@ -744,30 +744,6 @@ class Worker_create(GrapheneObject):
             )
 
 
-class Bid_collateral(GrapheneObject):
-    def __init__(self, *args, **kwargs):
-        if isArgsThisClass(self, args):
-            self.data = args[0].data
-        else:
-            if len(args) == 1 and len(kwargs) == 0:
-                kwargs = args[0]
-
-            super().__init__(
-                OrderedDict(
-                    [
-                        ("fee", Asset(kwargs["fee"])),
-                        ("bidder", ObjectId(kwargs["bidder"], "account")),
-                        (
-                            "additional_collateral",
-                            Asset(kwargs["additional_collateral"]),
-                        ),
-                        ("debt_covered", Asset(kwargs["debt_covered"])),
-                        ("extensions", Set([])),
-                    ]
-                )
-            )
-
-
 class Withdraw_permission_create(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
