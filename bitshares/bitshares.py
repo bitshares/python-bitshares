@@ -165,6 +165,8 @@ class BitShares(object):
 
     @property
     def prefix(self):
+        """ Contains the prefix of the blockchain
+        """
         return self.rpc.chain_params["prefix"]
 
     def set_default_account(self, account):
@@ -415,6 +417,13 @@ class BitShares(object):
         # Base/Default proposal/tx buffers
         self.new_tx()
         # self.new_proposal()
+
+    def clear_cache(self):
+        """ Clear Caches
+        """
+        from .blockchainobject import BlockchainObject
+
+        BlockchainObject.clear_cache()
 
     # -------------------------------------------------------------------------
     # Simple Transfer

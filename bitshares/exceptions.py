@@ -1,19 +1,14 @@
+# -*- coding: utf-8 -*-
 from graphenestorage.exceptions import WrongMasterPasswordException
-
-
-class WalletExists(Exception):
-    """ A wallet has already been created and requires a password to be
-        unlocked by means of :func:`bitshares.wallet.unlock`.
-    """
-
-    pass
-
-
-class WalletLocked(Exception):
-    """ Wallet is locked
-    """
-
-    pass
+from graphenecommon.exceptions import (
+    InvalidWifError,
+    KeyAlreadyInStoreException,
+    KeyNotFound,
+    NoWalletException,
+    OfflineHasNoRPCException,
+    WalletExists,
+    WalletLocked,
+)
 
 
 class RPCConnectionRequired(Exception):
@@ -65,13 +60,6 @@ class MissingKeyError(Exception):
     pass
 
 
-class InvalidWifError(Exception):
-    """ The provided private Key has an invalid format
-    """
-
-    pass
-
-
 class ProposalDoesNotExistException(Exception):
     """ The proposal does not exist
     """
@@ -81,14 +69,6 @@ class ProposalDoesNotExistException(Exception):
 
 class BlockDoesNotExistsException(Exception):
     """ The block does not exist
-    """
-
-    pass
-
-
-class NoWalletException(Exception):
-    """ No Wallet could be found, please use :func:`bitshares.wallet.create` to
-        create a new wallet
     """
 
     pass
@@ -136,13 +116,6 @@ class InvalidMessageSignature(Exception):
     pass
 
 
-class KeyNotFound(Exception):
-    """ Key not found
-    """
-
-    pass
-
-
 class InvalidMemoKeyException(Exception):
     """ Memo key in message is invalid
     """
@@ -150,22 +123,8 @@ class InvalidMemoKeyException(Exception):
     pass
 
 
-class OfflineHasNoRPCException(Exception):
-    """ When in offline mode, we don't have RPC
-    """
-
-    pass
-
-
 class WrongMemoKey(Exception):
     """ The memo provided is not equal the one on the blockchain
-    """
-
-    pass
-
-
-class KeyAlreadyInStoreException(Exception):
-    """ The key is already stored in the store
     """
 
     pass
