@@ -1,6 +1,7 @@
 graphenelib>=1.0.1
+pycryptodome
 websockets
 appdirs
 Events
 scrypt
-pycryptodome
+pyyaml
