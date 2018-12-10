@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 
 from datetime import datetime, timedelta
@@ -533,7 +534,7 @@ class BitShares(object):
         try:
             Account(account_name, blockchain_instance=self)
             raise AccountExistsException
-        except:
+        except Exception:
             pass
 
         referrer = Account(referrer, blockchain_instance=self)
@@ -706,11 +707,11 @@ class BitShares(object):
         try:
             pubkey = PublicKey(foreign, prefix=self.prefix)
             authority["key_auths"].append([str(pubkey), weight])
-        except:
+        except Exception:
             try:
                 foreign_account = Account(foreign, blockchain_instance=self)
                 authority["account_auths"].append([foreign_account["id"], weight])
-            except:
+            except Exception:
                 raise ValueError("Unknown foreign account or invalid public key")
         if threshold:
             authority["weight_threshold"] = threshold
@@ -763,7 +764,7 @@ class BitShares(object):
             authority["key_auths"] = list(
                 filter(lambda x: x[0] != str(pubkey), authority["key_auths"])
             )
-        except:
+        except Exception:
             try:
                 foreign_account = Account(foreign, blockchain_instance=self)
                 affected_items = list(
@@ -778,7 +779,7 @@ class BitShares(object):
                         authority["account_auths"],
                     )
                 )
-            except:
+            except Exception:
                 raise ValueError("Unknown foreign account or unvalid public key")
 
         if not affected_items:
@@ -793,7 +794,7 @@ class BitShares(object):
         # authority)
         try:
             self._test_weights_treshold(authority)
-        except:
+        except Exception:
             log.critical(
                 "The account's threshold will be reduced by %d" % (removed_weight)
             )
@@ -1575,18 +1576,18 @@ class BitShares(object):
         if not isinstance(lists, (set, list)):
             raise ValueError('"lists" must be of instance list()')
 
-        l = operations.Account_whitelist.no_listing
+        new_listing = operations.Account_whitelist.no_listing
         if "white" in lists:
-            l += operations.Account_whitelist.white_listed
+            new_listing += operations.Account_whitelist.white_listed
         if "black" in lists:
-            l += operations.Account_whitelist.black_listed
+            new_listing += operations.Account_whitelist.black_listed
 
         op = operations.Account_whitelist(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 "authorizing_account": account["id"],
                 "account_to_list": account_to_list["id"],
-                "new_listing": l,
+                "new_listing": new_listing,
             }
         )
         return self.finalizeOp(op, account, "active", **kwargs)
