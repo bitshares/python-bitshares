@@ -36,4 +36,4 @@ class Block(GrapheneBlock):
 
 @BlockchainInstance.inject
 class BlockHeader(GrapheneBlockHeader):
-    pass
+    type_id = "-none-"
