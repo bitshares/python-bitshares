@@ -9,8 +9,7 @@ from .instance import BlockchainInstance
 from .price import Price
 
 
-@BlockchainInstance.inject
-class Dex:
+class Dex(BlockchainInstance):
     """ This class simplifies interactions with the decentralized exchange.
 
         :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
@@ -20,6 +19,9 @@ class Dex:
                   please use :class:`bitshares.market.Market`.
 
     """
+
+    def __init__(self, *args, **kwargs):
+        BlockchainInstance.__init__(self, *args, **kwargs)
 
     def returnFees(self):
         """ Returns a dictionary of all fees that apply through the

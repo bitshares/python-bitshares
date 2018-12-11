@@ -37,6 +37,7 @@ class ProposalBuilder(GrapheneProposalBuilder):
 
     operation_class = Operation
     operations = operations
+    account_class = Account
 
 
 @BlockchainInstance.inject
