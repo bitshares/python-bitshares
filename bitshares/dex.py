@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # from .storage import config
 from bitsharesbase import operations
 
@@ -8,7 +9,8 @@ from .instance import BlockchainInstance
 from .price import Price
 
 
-class Dex(BlockchainInstance):
+@BlockchainInstance.inject
+class Dex:
     """ This class simplifies interactions with the decentralized exchange.
 
         :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance

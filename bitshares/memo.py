@@ -1,14 +1,13 @@
-import random
-
-from bitsharesbase import memo as BtsMemo
+# -*- coding: utf-8 -*-
 from bitsharesbase.account import PrivateKey, PublicKey
-
 from .account import Account
-from .exceptions import KeyNotFound, MissingKeyError
 from .instance import BlockchainInstance
 
+from graphenecommon.memo import Memo as GrapheneMemo
 
-class Memo(object):
+
+@BlockchainInstance.inject
+class Memo(GrapheneMemo):
     """ Deals with Memos that are attached to a transfer
 
         :param bitshares.account.Account from_account: Account that has sent
@@ -48,92 +47,6 @@ class Memo(object):
 
     """
 
-    def __init__(self, from_account=None, to_account=None, **kwargs):
-        BlockchainInstance.__init__(self, **kwargs)
-
-        if to_account:
-            self.to_account = Account(to_account, blockchain_instance=self.blockchain)
-        if from_account:
-            self.from_account = Account(
-                from_account, blockchain_instance=self.blockchain
-            )
-
-    def unlock_wallet(self, *args, **kwargs):
-        """ Unlock the library internal wallet
-        """
-        self.blockchain.wallet.unlock(*args, **kwargs)
-        return self
-
-    def encrypt(self, memo):
-        """ Encrypt a memo
-
-            :param str memo: clear text memo message
-            :returns: encrypted memo
-            :rtype: str
-        """
-        if not memo:
-            return None
-
-        nonce = str(random.getrandbits(64))
-        memo_wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
-            self.from_account["options"]["memo_key"]
-        )
-        if not memo_wif:
-            raise MissingKeyError(
-                "Memo key for %s missing!" % self.from_account["name"]
-            )
-
-        if not hasattr(self, "chain_prefix"):
-            self.chain_prefix = self.blockchain.prefix
-
-        enc = BtsMemo.encode_memo(
-            PrivateKey(memo_wif),
-            PublicKey(self.to_account["options"]["memo_key"], prefix=self.chain_prefix),
-            nonce,
-            memo,
-        )
-
-        return {
-            "message": enc,
-            "nonce": nonce,
-            "from": self.from_account["options"]["memo_key"],
-            "to": self.to_account["options"]["memo_key"],
-        }
-
-    def decrypt(self, memo):
-        """ Decrypt a memo
-
-            :param str memo: encrypted memo message
-            :returns: encrypted memo
-            :rtype: str
-        """
-        if not memo:
-            return None
-
-        # We first try to decode assuming we received the memo
-        try:
-            memo_wif = self.blockchain.wallet.getPrivateKeyForPublicKey(memo["to"])
-            pubkey = memo["from"]
-        except KeyNotFound:
-            try:
-                # if that failed, we assume that we have sent the memo
-                memo_wif = self.blockchain.wallet.getPrivateKeyForPublicKey(
-                    memo["from"]
-                )
-                pubkey = memo["to"]
-            except KeyNotFound:
-                # if all fails, raise exception
-                raise MissingKeyError(
-                    "Non of the required memo keys are installed!"
-                    "Need any of {}".format([memo["to"], memo["from"]])
-                )
-
-        if not hasattr(self, "chain_prefix"):
-            self.chain_prefix = self.blockchain.prefix
-
-        return BtsMemo.decode_memo(
-            PrivateKey(memo_wif),
-            PublicKey(pubkey, prefix=self.chain_prefix),
-            memo.get("nonce"),
-            memo.get("message"),
-        )
+    account_class = Account
+    privatekey_class = PrivateKey
+    publickey_class = PublicKey

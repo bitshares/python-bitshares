@@ -4,7 +4,6 @@ from .bitshares import BitShares
 
 __all__ = [
     "bitshares",
-    "aes",
     "account",
     "amount",
     "asset",

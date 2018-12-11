@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import bitshares as bts
-
 from graphenecommon.instance import (
     BlockchainInstance as GrapheneBlockchainInstance,
     SharedInstance,
@@ -21,6 +19,8 @@ class BlockchainInstance(GrapheneBlockchainInstance):
     def get_instance_class(self):
         """ Should return the Chain instance class, e.g. `bitshares.BitShares`
         """
+        import bitshares as bts
+
         return bts.BitShares
 
     @property
@@ -35,7 +35,9 @@ def shared_blockchain_instance():
 
 
 def set_shared_blockchain_instance(instance):
-    shared_blockchain_instance().clear_cache()  # clear cache
+    # clear cache
+    inst = shared_blockchain_instance()
+    inst.clear_cache()
     BlockchainInstance().set_shared_blockchain_instance(instance)
 
 

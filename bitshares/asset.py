@@ -1,6 +1,6 @@
+# -*- coding: utf-8 -*-
 import json
 
-from bitshares.account import Account
 from bitsharesbase import operations
 from bitsharesbase.asset_permissions import (
     asset_permissions,
@@ -8,12 +8,15 @@ from bitsharesbase.asset_permissions import (
     test_permissions,
     todict,
 )
-
 from .blockchainobject import BlockchainObject
 from .exceptions import AssetDoesNotExistsException
+from .instance import BlockchainInstance
+
+from graphenecommon.asset import Asset as GrapheneAsset
 
 
-class Asset(BlockchainObject):
+@BlockchainInstance.inject
+class Asset(GrapheneAsset):
     """ Deals with Assets of the network.
 
         :param str Asset: Symbol name or object id of an asset
@@ -32,69 +35,15 @@ class Asset(BlockchainObject):
     type_id = 3
 
     def __init__(self, *args, **kwargs):
-        self.full = kwargs.pop("full", False)
         super().__init__(*args, **kwargs)
 
-    def refresh(self):
-        """ Refresh the data from the API server
-        """
-        asset = self.blockchain.rpc.get_asset(self.identifier)
-        if not asset:
-            raise AssetDoesNotExistsException(self.identifier)
-        super(Asset, self).__init__(asset, blockchain_instance=self.blockchain)
-        if self.full:
-            if "bitasset_data_id" in asset:
-                self["bitasset_data"] = self.blockchain.rpc.get_object(
-                    asset["bitasset_data_id"]
-                )
-            self["dynamic_asset_data"] = self.blockchain.rpc.get_object(
-                asset["dynamic_asset_data_id"]
-            )
-
         # Permissions and flags
-        self["permissions"] = todict(asset["options"].get("issuer_permissions"))
-        self["flags"] = todict(asset["options"].get("flags"))
+        self["permissions"] = todict(self["options"].get("issuer_permissions"))
+        self["flags"] = todict(self["options"].get("flags"))
         try:
-            self["description"] = json.loads(asset["options"]["description"])
-        except:
-            self["description"] = asset["options"]["description"]
-
-    @property
-    def is_fully_loaded(self):
-        """ Is this instance fully loaded / e.g. all data available?
-        """
-        return self.full and "bitasset_data_id" in self and "bitasset_data" in self
-
-    @property
-    def symbol(self):
-        return self["symbol"]
-
-    @property
-    def precision(self):
-        return self["precision"]
-
-    @property
-    def is_bitasset(self):
-        """ Is the asset a :doc:`mpa`?
-        """
-        return "bitasset_data_id" in self
-
-    @property
-    def permissions(self):
-        """ List the permissions for this asset that the issuer can obtain
-        """
-        return self["permissions"]
-
-    @property
-    def flags(self):
-        """ List the permissions that are currently used (flags)
-        """
-        return self["flags"]
-
-    def ensure_full(self):
-        if not self.is_fully_loaded:
-            self.full = True
-            self.refresh()
+            self["description"] = json.loads(self["options"]["description"])
+        except Exception:
+            self["description"] = self["options"]["description"]
 
     @property
     def market_fee_percent(self):
@@ -136,6 +85,7 @@ class Asset(BlockchainObject):
 
     def get_call_orders(self, limit=100):
         from .price import Price
+        from .account import Account
         from .amount import Amount
 
         assert limit <= 100
@@ -187,6 +137,7 @@ class Asset(BlockchainObject):
         return self.get_settle_orders(10)
 
     def get_settle_orders(self, limit=100):
+        from .account import Account
         from .amount import Amount
         from .utils import formatTimeString
 
@@ -211,6 +162,8 @@ class Asset(BlockchainObject):
     def halt(self):
         """ Halt this asset from being moved or traded
         """
+        from .account import Account
+
         nullaccount = Account(
             "null-account",  # We set the null-account
             blockchain_instance=self.blockchain,
@@ -258,6 +211,8 @@ class Asset(BlockchainObject):
             :param list blacklist_markets: List of assets to prevent
                 trading with
         """
+        from .account import Account
+
         flags = {"white_list": False, "transfer_restricted": False}
         options = self["options"]
         test_permissions(options["issuer_permissions"], flags)
@@ -369,6 +324,7 @@ class Asset(BlockchainObject):
         """
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
+        from .account import Account
 
         options = self["options"]
         if type == "whitelist":
@@ -398,6 +354,7 @@ class Asset(BlockchainObject):
         """
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
+        from .account import Account
 
         options = self["options"]
         if type == "whitelist":
@@ -516,6 +473,8 @@ class Asset(BlockchainObject):
                  a feed
         """
         assert self.is_bitasset, "Asset needs to be a bitasset/market pegged asset"
+        from .account import Account
+
         op = operations.Asset_update_feed_producers(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -526,10 +485,3 @@ class Asset(BlockchainObject):
             }
         )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
-
-    def update_cer(self, cer, account=None, **kwargs):
-        """ Update the Core Exchange Rate (CER) of an asset
-        """
-        return self.blockchain.update_cer(
-            self["symbol"], cer, account=account, **kwargs
-        )
