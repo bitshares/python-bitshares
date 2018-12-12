@@ -31,9 +31,11 @@ class Block(GrapheneBlock):
 
     """
 
-    type_id = "-none-"
+    def define_classes(self):
+        self.type_id = "-none-"
 
 
 @BlockchainInstance.inject
 class BlockHeader(GrapheneBlockHeader):
-    type_id = "-none-"
+    def define_classes(self):
+        self.type_id = "-none-"

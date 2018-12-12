@@ -20,5 +20,6 @@ class Blockchain(GrapheneBlockchain):
         This class let's you deal with blockchain related data and methods.
     """
 
-    block_class = Block
-    operationids = operationids
+    def define_classes(self):
+        self.block_class = Block
+        self.operationids = operationids

@@ -15,5 +15,6 @@ class Committee(GrapheneCommittee):
 
     """
 
-    type_id = 5
-    account_class = Account
+    def define_classes(self):
+        self.type_id = 5
+        self.account_class = Account

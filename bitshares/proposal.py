@@ -16,8 +16,9 @@ class Proposal(GrapheneProposal):
 
     """
 
-    type_id = 10
-    account_class = Account
+    def define_classes(self):
+        self.type_id = 10
+        self.account_class = Account
 
 
 @BlockchainInstance.inject
@@ -28,5 +29,6 @@ class Proposals(GrapheneProposals):
         :param bitshares blockchain_instance: BitShares() instance to use when accesing a RPC
     """
 
-    account_class = Account
-    proposal_class = Proposal
+    def define_classes(self):
+        self.account_class = Account
+        self.proposal_class = Proposal

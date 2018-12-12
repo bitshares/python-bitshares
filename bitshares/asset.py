@@ -32,7 +32,8 @@ class Asset(GrapheneAsset):
                   refreshed with ``Asset.refresh()``.
     """
 
-    type_id = 3
+    def define_classes(self):
+        self.type_id = 3
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

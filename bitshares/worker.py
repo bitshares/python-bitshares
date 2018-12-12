@@ -15,8 +15,9 @@ class Worker(GrapheneWorker):
 
     """
 
-    account_class = Account
-    type_id = 14
+    def define_classes(self):
+        self.account_class = Account
+        self.type_id = 14
 
 
 @BlockchainInstance.inject
@@ -28,5 +29,6 @@ class Workers(GrapheneWorkers):
             accesing a RPC
     """
 
-    account_class = Account
-    worker_class = Worker
+    def define_classes(self):
+        self.account_class = Account
+        self.worker_class = Worker

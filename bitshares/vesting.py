@@ -15,6 +15,7 @@ class Vesting(GrapheneVesting):
 
     """
 
-    type_id = 13
-    account_class = Account
-    amount_class = Amount
+    def define_classes(self):
+        self.type_id = 13
+        self.account_class = Account
+        self.amount_class = Amount

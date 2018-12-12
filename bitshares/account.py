@@ -40,9 +40,10 @@ class Account(GrapheneAccount):
 
     """
 
-    type_id = 2
-    amount_class = Amount
-    operations = operations
+    def define_classes(self):
+        self.type_id = 2
+        self.amount_class = Amount
+        self.operations = operations
 
     @property
     def call_positions(self):

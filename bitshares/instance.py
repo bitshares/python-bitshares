@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-from graphenecommon.instance import (
-    BlockchainInstance as GrapheneBlockchainInstance,
-    SharedInstance,
-)
+from graphenecommon.instance import AbstractBlockchainInstanceProvider, SharedInstance
 
 
-class BlockchainInstance(GrapheneBlockchainInstance):
+class BlockchainInstance(AbstractBlockchainInstanceProvider):
     """ This is a class that allows compatibility with previous
         naming conventions
     """
@@ -14,7 +11,8 @@ class BlockchainInstance(GrapheneBlockchainInstance):
         # Also allow 'bitshares_instance'
         if kwargs.get("bitshares_instance"):
             kwargs["blockchain_instance"] = kwargs["bitshares_instance"]
-        GrapheneBlockchainInstance.__init__(self, *args, **kwargs)
+        if kwargs.get("blockchain_instance"):
+            SharedInstance.instance = kwargs["blockchain_instance"]
 
     def get_instance_class(self):
         """ Should return the Chain instance class, e.g. `bitshares.BitShares`

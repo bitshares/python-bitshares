@@ -54,10 +54,8 @@ class Amount(GrapheneAmount):
             Amount("15 GOLD") + Amount("0.5 GOLD")
     """
 
-    asset_class = Asset
-
-    def get_price_class(self):
-        # We cannot import Price directly due to cyclic dependencies
+    def define_classes(self):
         from .price import Price
 
-        return Price
+        self.asset_class = Asset
+        self.price_class = Price

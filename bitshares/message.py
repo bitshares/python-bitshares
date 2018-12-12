@@ -8,5 +8,6 @@ from graphenecommon.message import Message as GrapheneMessage, InvalidMessageSig
 
 @BlockchainInstance.inject
 class Message(GrapheneMessage):
-    account_class = Account
-    publickey_class = PublicKey
+    def define_classes(self):
+        self.account_class = Account
+        self.publickey_class = PublicKey

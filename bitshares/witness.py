@@ -18,8 +18,9 @@ class Witness(GrapheneWitness):
 
     """
 
-    account_class = Account
-    type_ids = [6, 2]
+    def define_classes(self):
+        self.account_class = Account
+        self.type_ids = [6, 2]
 
 
 @BlockchainInstance.inject
@@ -32,5 +33,6 @@ class Witnesses(GrapheneWitnesses):
             accesing a RPC
     """
 
-    account_class = Account
-    witness_class = Witness
+    def define_classes(self):
+        self.account_class = Account
+        self.witness_class = Witness

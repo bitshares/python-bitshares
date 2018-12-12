@@ -35,9 +35,10 @@ class ProposalBuilder(GrapheneProposalBuilder):
         :param instance blockchain_instance: Blockchain instance
     """
 
-    operation_class = Operation
-    operations = operations
-    account_class = Account
+    def define_classes(self):
+        self.operation_class = Operation
+        self.operations = operations
+        self.account_class = Account
 
 
 @BlockchainInstance.inject
@@ -46,11 +47,12 @@ class TransactionBuilder(GrapheneTransactionBuilder):
         operations and signers.
     """
 
-    account_class = Account
-    asset_class = Asset
-    operation_class = Operation
-    operations = operations
-    privatekey_class = PrivateKey
-    publickey_class = PublicKey
-    signed_transaction_class = Signed_Transaction
-    amount_class = Amount
+    def define_classes(self):
+        self.account_class = Account
+        self.asset_class = Asset
+        self.operation_class = Operation
+        self.operations = operations
+        self.privatekey_class = PrivateKey
+        self.publickey_class = PublicKey
+        self.signed_transaction_class = Signed_Transaction
+        self.amount_class = Amount

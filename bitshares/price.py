@@ -67,8 +67,9 @@ class Price(GraphenePrice):
 
     """
 
-    amount_class = Amount
-    asset_class = Asset
+    def define_classes(self):
+        self.amount_class = Amount
+        self.asset_class = Asset
 
     @property
     def market(self):

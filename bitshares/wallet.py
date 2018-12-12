@@ -13,7 +13,8 @@ from graphenecommon.exceptions import (
 from .instance import BlockchainInstance
 
 
-class Wallet(GrapheneWallet, BlockchainInstance):
-    chaininstance_class = BlockchainInstance
-    default_key_store_app_name = "bitshares"
-    privatekey_class = PrivateKey
+@BlockchainInstance.inject
+class Wallet(GrapheneWallet):
+    def define_classes(self):
+        self.default_key_store_app_name = "bitshares"
+        self.privatekey_class = PrivateKey

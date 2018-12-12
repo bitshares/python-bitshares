@@ -27,7 +27,7 @@ class Memo(GrapheneMemo):
 
             from bitshares.memo import Memo
             m = Memo("bitshareseu", "wallet.xeroc")
-            m.blockchain.wallet.unlock("secret")
+            m.unlock_wallet("secret")
             enc = (m.encrypt("foobar"))
             print(enc)
             >> {'nonce': '17329630356955254641', 'message': '8563e2bb2976e0217806d642901a2855'}
@@ -47,6 +47,14 @@ class Memo(GrapheneMemo):
 
     """
 
-    account_class = Account
-    privatekey_class = PrivateKey
-    publickey_class = PublicKey
+    MESSAGE_SPLIT = (
+        "-----BEGIN BITSHARES SIGNED MESSAGE-----",
+        "-----BEGIN META-----",
+        "-----BEGIN SIGNATURE-----",
+        "-----END BITSHARES SIGNED MESSAGE-----",
+    )
+
+    def define_classes(self):
+        self.account_class = Account
+        self.privatekey_class = PrivateKey
+        self.publickey_class = PublicKey
