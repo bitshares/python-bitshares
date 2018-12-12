@@ -602,12 +602,8 @@ class Withdraw_permission_claim(GrapheneObject):
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
-            if "memo" in kwargs and kwargs["memo"]:
-                if isinstance(kwargs["memo"], dict):
-                    kwargs["memo"]["prefix"] = prefix
-                    memo = Optional(Memo(**kwargs["memo"]))
-                else:
-                    memo = Optional(Memo(kwargs["memo"]))
+            if "memo" in kwargs:
+                memo = Optional(Memo(kwargs["memo"]))
             else:
                 memo = Optional(None)
             super().__init__(OrderedDict([
@@ -627,14 +623,6 @@ class Withdraw_permission_update(GrapheneObject):
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
-            if "memo" in kwargs and kwargs["memo"]:
-                if isinstance(kwargs["memo"], dict):
-                    kwargs["memo"]["prefix"] = prefix
-                    memo = Optional(Memo(**kwargs["memo"]))
-                else:
-                    memo = Optional(Memo(kwargs["memo"]))
-            else:
-                memo = Optional(None)
             super().__init__(OrderedDict([
                 ('fee', Asset(kwargs["fee"])),
                 ('withdraw_from_account', ObjectId(kwargs["withdraw_from_account"], "account")),
