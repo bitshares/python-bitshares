@@ -109,7 +109,7 @@ class Account(BlockchainObject):
         for b in balances:
             if b["symbol"] == symbol:
                 return b
-        return Amount(0, symbol)
+        return Amount(0, symbol, blockchain_instance=self.blockchain)
 
     @property
     def call_positions(self):
