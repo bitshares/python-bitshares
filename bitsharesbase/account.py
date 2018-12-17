@@ -1,13 +1,10 @@
-import hashlib
-import sys
-
-from binascii import hexlify, unhexlify
-
+# -*- coding: utf-8 -*-
 from graphenebase.account import Address as GPHAddress
 from graphenebase.account import BrainKey as GPHBrainKey
 from graphenebase.account import PasswordKey as GPHPasswordKey
 from graphenebase.account import PrivateKey as GPHPrivateKey
 from graphenebase.account import PublicKey as GPHPublicKey
+from graphenebase.account import Prefix
 
 
 class PasswordKey(GPHPasswordKey):
@@ -17,20 +14,7 @@ class PasswordKey(GPHPasswordKey):
         passphrase only.
     """
 
-    def __init__(self, *args, **kwargs):
-        super(PasswordKey, self).__init__(*args, **kwargs)
-
-    # overloaded from GHPPasswordKey, JUST to set prefix='BTS' :(
-    def get_private(self):
-        """ Derive private key from the brain key and the current sequence
-            number
-        """
-        if sys.version > "3":
-            a = bytes(self.account + self.role + self.password, "utf8")
-        else:
-            a = bytes(self.account + self.role + self.password).encode("utf8")
-        s = hashlib.sha256(a).digest()
-        return PrivateKey(hexlify(s).decode("ascii"))
+    prefix = "BTS"
 
 
 class BrainKey(GPHBrainKey):
@@ -52,30 +36,7 @@ class BrainKey(GPHBrainKey):
         regenerated given the brain key.
     """
 
-    def __init__(self, *args, **kwargs):
-        super(BrainKey, self).__init__(*args, **kwargs)
-
-    # overloaded from GHPBrainKey, JUST to set prefix='BTS' :(
-    def get_private(self):
-        """ Derive private key from the brain key and the current sequence
-            number
-        """
-        encoded = "%s %d" % (self.brainkey, self.sequence)
-        if sys.version > "3":
-            a = bytes(encoded, "ascii")
-        else:
-            a = bytes(encoded).encode("ascii")
-        s = hashlib.sha256(hashlib.sha512(a).digest()).digest()
-        return PrivateKey(hexlify(s).decode("ascii"))
-
-    def get_blind_private(self):
-        """ Derive private key from the brain key (and no sequence number)
-        """
-        if sys.version > "3":
-            a = bytes(self.brainkey, "ascii")
-        else:
-            a = bytes(self.brainkey).encode("ascii")
-        return PrivateKey(hashlib.sha256(a).hexdigest())
+    prefix = "BTS"
 
 
 class Address(GPHAddress):
@@ -93,10 +54,7 @@ class Address(GPHAddress):
 
     """
 
-    def __init__(self, *args, **kwargs):
-        if "prefix" not in kwargs:
-            kwargs["prefix"] = "BTS"  # make prefix BTS
-        super(Address, self).__init__(*args, **kwargs)
+    prefix = "BTS"
 
 
 class PublicKey(GPHPublicKey):
@@ -117,10 +75,7 @@ class PublicKey(GPHPublicKey):
 
     """
 
-    def __init__(self, *args, **kwargs):
-        if "prefix" not in kwargs:
-            kwargs["prefix"] = "BTS"  # make prefix BTS
-        super(PublicKey, self).__init__(*args, **kwargs)
+    prefix = "BTS"
 
 
 class PrivateKey(GPHPrivateKey):
@@ -147,7 +102,4 @@ class PrivateKey(GPHPrivateKey):
 
     """
 
-    def __init__(self, *args, **kwargs):
-        if "prefix" not in kwargs:
-            kwargs["prefix"] = "BTS"  # make prefix BTS
-        super(PrivateKey, self).__init__(*args, **kwargs)
+    prefix = "BTS"
