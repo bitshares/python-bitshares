@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# The entire file is deprecated!
+
 from graphenebase.transactions import formatTimeFromNow, getBlockParams, timeformat
 
 from .account import PublicKey
@@ -20,6 +23,7 @@ from .operations import (
 from .signedtransactions import Signed_Transaction
 
 
+# Deprecated!
 def addRequiredFees(ws, ops, asset_id="1.3.0"):
     """ Auxiliary method to obtain the required fees for a set of
         operations. Requires a websocket connection to a witness node!
