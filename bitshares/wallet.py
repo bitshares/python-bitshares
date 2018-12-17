@@ -16,5 +16,6 @@ from .instance import BlockchainInstance
 @BlockchainInstance.inject
 class Wallet(GrapheneWallet):
     def define_classes(self):
+        # identical to those in bitshares.py!
         self.default_key_store_app_name = "bitshares"
         self.privatekey_class = PrivateKey
