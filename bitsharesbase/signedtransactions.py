@@ -1,14 +1,10 @@
-import logging
-
+# -*- coding: utf-8 -*-
 from graphenebase.signedtransactions import (
     Signed_Transaction as GrapheneSigned_Transaction,
 )
 
 from .chains import known_chains
 from .operations import Operation
-
-
-log = logging.getLogger(__name__)
 
 
 class Signed_Transaction(GrapheneSigned_Transaction):
