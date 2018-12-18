@@ -11,15 +11,3 @@ from graphenecommon.utils import (
     parse_time,
     assets_from_string,
 )
-
-
-def injectClass(inj):
-    def param(cls):
-        class NewClass(inj, cls):
-            def __init__(self, *args, **kwargs):
-                inj.__init__(self, *args, **kwargs)
-                cls.__init__(self, *args, **kwargs)
-
-        return NewClass
-
-    return param

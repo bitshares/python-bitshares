@@ -21,6 +21,7 @@ from graphenecommon.exceptions import (
     WitnessDoesNotExistsException,
     WorkerDoesNotExistsException,
     WrongMemoKey,
+    GenesisBalanceDoesNotExistsException,
 )
 
 

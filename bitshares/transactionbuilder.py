@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
-
 from graphenecommon.transactionbuilder import (
     TransactionBuilder as GrapheneTransactionBuilder,
     ProposalBuilder as GrapheneProposalBuilder,
@@ -15,9 +13,6 @@ from .amount import Amount
 from .asset import Asset
 from .account import Account
 from .instance import BlockchainInstance
-
-
-log = logging.getLogger(__name__)
 
 
 @BlockchainInstance.inject
