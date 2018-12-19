@@ -1,0 +1,24 @@
+# Read up on pre-commit
+# https://ljvmiranda921.github.io/notebook/2018/06/21/precommits-using-black-and-flake8/
+
+repos:
+
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.0.0
+  hooks:
+  - id: trailing-whitespace
+  - id: check-docstring-first
+  - id: check-executables-have-shebangs
+  - id: check-json
+  - id: check-yaml
+  - id: end-of-file-fixer
+  - id: fix-encoding-pragma
+  - id: no-commit-to-branch
+    branch: master
+  - id: flake8
+
+- repo: https://github.com/ambv/black
+  rev: 18.9b0
+  hooks:
+  - id: black
+    language_version: python3.6

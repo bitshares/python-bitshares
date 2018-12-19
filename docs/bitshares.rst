@@ -1,20 +1,12 @@
 bitshares package
 =================
 
-Subpackages
------------
-
-.. toctree::
-
-    bitshares.storage
-
 Submodules
 ----------
 
 .. toctree::
 
    bitshares.account
-   bitshares.aes
    bitshares.amount
    bitshares.asset
    bitshares.bitshares
@@ -24,7 +16,6 @@ Submodules
    bitshares.committee
    bitshares.dex
    bitshares.exceptions
-   bitshares.fee
    bitshares.instance
    bitshares.market
    bitshares.memo
@@ -32,6 +23,7 @@ Submodules
    bitshares.notify
    bitshares.price
    bitshares.proposal
+   bitshares.storage
    bitshares.transactionbuilder
    bitshares.utils
    bitshares.vesting
@@ -46,3 +38,4 @@ Module contents
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:

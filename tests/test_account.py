@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 import mock
 from pprint import pprint
@@ -11,11 +12,11 @@ from .fixtures import fixture_data, bitshares
 
 
 class Testcases(unittest.TestCase):
-
     def setUp(self):
         fixture_data()
 
     def test_account(self):
+        pprint(Account._cache)
         Account("init0")
         Account("1.2.3")
         account = Account("init0", full=True)
@@ -59,41 +60,53 @@ class Testcases(unittest.TestCase):
 
     def test_whitelist(self):
         from bitsharesbase.operations import Account_whitelist
+
         account = Account("init0")
         tx = account.whitelist("committee-account")
         self.assertEqual(len(tx["operations"]), 1)
         self.assertEqual(tx["operations"][0][0], 7)
         self.assertEqual(tx["operations"][0][1]["authorizing_account"], account["id"])
-        self.assertEqual(tx["operations"][0][1]["new_listing"], Account_whitelist.white_listed)
+        self.assertEqual(
+            tx["operations"][0][1]["new_listing"], Account_whitelist.white_listed
+        )
 
     def test_blacklist(self):
         from bitsharesbase.operations import Account_whitelist
+
         account = Account("init0")
         tx = account.blacklist("committee-account")
         self.assertEqual(len(tx["operations"]), 1)
         self.assertEqual(tx["operations"][0][0], 7)
         self.assertEqual(tx["operations"][0][1]["authorizing_account"], account["id"])
-        self.assertEqual(tx["operations"][0][1]["new_listing"], Account_whitelist.black_listed)
+        self.assertEqual(
+            tx["operations"][0][1]["new_listing"], Account_whitelist.black_listed
+        )
 
     def test_unlist(self):
         from bitsharesbase.operations import Account_whitelist
+
         account = Account("init0")
         tx = account.nolist("committee-account")
         self.assertEqual(len(tx["operations"]), 1)
         self.assertEqual(tx["operations"][0][0], 7)
         self.assertEqual(tx["operations"][0][1]["authorizing_account"], account["id"])
-        self.assertEqual(tx["operations"][0][1]["new_listing"], Account_whitelist.no_listing)
+        self.assertEqual(
+            tx["operations"][0][1]["new_listing"], Account_whitelist.no_listing
+        )
 
     def test_accountupdate(self):
         from bitshares.account import AccountUpdate
-        t = {'id': '2.6.29',
-             'lifetime_fees_paid': '44261516129',
-             'most_recent_op': '2.9.0',
-             'owner': '1.2.100',
-             'pending_fees': 0,
-             'pending_vested_fees': 16310,
-             'total_core_in_orders': '6788845277634',
-             'total_ops': 0}
+
+        t = {
+            "id": "2.6.29",
+            "lifetime_fees_paid": "44261516129",
+            "most_recent_op": "2.9.0",
+            "owner": "1.2.100",
+            "pending_fees": 0,
+            "pending_vested_fees": 16310,
+            "total_core_in_orders": "6788845277634",
+            "total_ops": 0,
+        }
         update = AccountUpdate(t)
         self.assertEqual(update["owner"], "1.2.100")
         self.assertIsInstance(update.account, Account)

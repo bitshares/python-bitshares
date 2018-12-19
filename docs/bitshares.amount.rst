@@ -5,3 +5,4 @@ bitshares\.amount module
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:

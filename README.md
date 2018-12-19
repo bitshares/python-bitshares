@@ -57,3 +57,8 @@ Discussions around development and use of this library can be found in a
 
 A copy of the license is available in the repository's
 [LICENSE](LICENSE.txt) file.
+
+### Bounties
+
+As part of [HackTheDex](https://hackthedex.io), security issues found in this
+library are potentially eligible for a bounty.

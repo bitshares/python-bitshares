@@ -1,4 +1,5 @@
 import re
+
 from grapheneapi.exceptions import RPCError
 
 
@@ -13,7 +14,8 @@ def decodeRPCErrorMsg(e):
             ".*: (.*)\n"
         ),
         str(e),
-        flags=re.M)
+        flags=re.M,
+    )
     if found:
         return found.group(2).strip()
     else:

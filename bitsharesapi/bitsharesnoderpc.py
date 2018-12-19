@@ -1,6 +1,8 @@
 import re
-from grapheneapi.api import Api as Original_Api
+
 from bitsharesbase.chains import known_chains
+from grapheneapi.api import Api as Original_Api
+
 from . import exceptions
 
 
@@ -9,7 +11,9 @@ class Api(Original_Api):
         msg = exceptions.decodeRPCErrorMsg(e).strip()
         if msg == "missing required active authority":
             raise exceptions.MissingRequiredActiveAuthority
-        elif re.match("current_account_itr == acnt_indx.indices().get<by_name>().end()", msg):
+        elif re.match(
+            "current_account_itr == acnt_indx.indices().get<by_name>().end()", msg
+        ):
             raise exceptions.AccountCouldntBeFoundException(msg)
         elif re.match("Assert Exception: is_valid_name( name )", msg):
             raise exceptions.InvalidAccountNameException(msg)
@@ -22,7 +26,6 @@ class Api(Original_Api):
 
 
 class BitSharesNodeRPC(Api):
-
     def get_network(self):
         """ Identify the connected network. This call returns a
             dictionary with keys chain_id, core_symbol and prefix

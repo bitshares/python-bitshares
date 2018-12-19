@@ -47,6 +47,8 @@ ops = [
     "fba_distribute",
     "bid_collateral",
     "execute_bid",
+    "asset_claim_pool",
+    "asset_update_issuer",
 ]
 operations = {o: ops.index(o) for o in ops}
 

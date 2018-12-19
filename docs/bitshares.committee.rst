@@ -5,3 +5,4 @@ bitshares\.committee module
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:

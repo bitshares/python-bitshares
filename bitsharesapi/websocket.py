@@ -1,14 +1,20 @@
-import traceback
-import threading
-import ssl
-import time
+# -*- coding: utf-8 -*-
 import json
 import logging
-import websocket
+import ssl
+import threading
+import time
+import traceback
+
 from itertools import cycle
 from threading import Thread
-from .exceptions import NumRetriesReached
+
+import websocket
+
 from events import Events
+
+from .exceptions import NumRetriesReached
+
 
 log = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
@@ -89,13 +95,8 @@ class BitSharesWebsocket(Events):
                 ['1.7.68612']
 
     """
-    __events__ = [
-        'on_tx',
-        'on_object',
-        'on_block',
-        'on_account',
-        'on_market',
-    ]
+
+    __events__ = ["on_tx", "on_object", "on_block", "on_account", "on_market"]
 
     def __init__(
         self,
@@ -166,9 +167,7 @@ class BitSharesWebsocket(Events):
         self.login(self.user, self.password, api_id=1)
         self.database(api_id=1)
         self.__set_subscriptions()
-        self.keepalive = threading.Thread(
-            target=self._ping
-        )
+        self.keepalive = threading.Thread(target=self._ping)
         self.keepalive.start()
 
     def reset_subscriptions(self, accounts=[], markets=[], objects=[]):
@@ -184,9 +183,7 @@ class BitSharesWebsocket(Events):
         # callback number that allows us to identify the event
 
         if len(self.on_object) or len(self.subscription_accounts):
-            self.set_subscribe_callback(
-                self.__events__.index('on_object'),
-                False)
+            self.set_subscribe_callback(self.__events__.index("on_object"), False)
 
         if self.subscription_accounts and self.on_account:
             # Unfortunately, account subscriptions don't have their own
@@ -200,19 +197,17 @@ class BitSharesWebsocket(Events):
                 # Technially, every market could have it's own
                 # callback number
                 self.subscribe_to_market(
-                    self.__events__.index('on_market'),
-                    market[0], market[1])
+                    self.__events__.index("on_market"), market[0], market[1]
+                )
         if len(self.on_tx):
-            self.set_pending_transaction_callback(
-                self.__events__.index('on_tx'))
+            self.set_pending_transaction_callback(self.__events__.index("on_tx"))
         if len(self.on_block):
-            self.set_block_applied_callback(
-                self.__events__.index('on_block'))
+            self.set_block_applied_callback(self.__events__.index("on_block"))
 
     def _ping(self):
         # We keep the connection alive by requesting a short object
         while not self.run_event.wait(self.keep_alive):
-            log.debug('Sending ping')
+            log.debug("Sending ping")
             self.get_objects(["2.8.0"])
 
     def process_notice(self, notice):
@@ -250,14 +245,11 @@ class BitSharesWebsocket(Events):
             id = data["params"][0]
 
             if id >= len(self.__events__):
-                log.critical(
-                    "Received an id that is out of range\n\n" +
-                    str(data)
-                )
+                log.critical("Received an id that is out of range\n\n" + str(data))
                 return
 
             # This is a "general" object change notification
-            if id == self.__events__.index('on_object'):
+            if id == self.__events__.index("on_object"):
                 # Let's see if a specific object has changed
                 for notice in data["params"][1]:
                     try:
@@ -268,15 +260,22 @@ class BitSharesWebsocket(Events):
                                 if "id" in obj:
                                     self.process_notice(obj)
                     except Exception as e:
-                        log.critical("Error in process_notice: {}\n\n{}".format(str(e), traceback.format_exc))
+                        log.critical(
+                            "Error in process_notice: {}\n\n{}".format(
+                                str(e), traceback.format_exc
+                            )
+                        )
             else:
                 try:
                     callbackname = self.__events__[id]
                     log.debug("Patching through to call %s" % callbackname)
                     [getattr(self.events, callbackname)(x) for x in data["params"][1]]
                 except Exception as e:
-                    log.critical("Error in {}: {}\n\n{}".format(
-                        callbackname, str(e), traceback.format_exc()))
+                    log.critical(
+                        "Error in {}: {}\n\n{}".format(
+                            callbackname, str(e), traceback.format_exc()
+                        )
+                    )
 
     def on_error(self, error, *args, **kwargs):
         """ Called on websocket errors
@@ -286,7 +285,7 @@ class BitSharesWebsocket(Events):
     def on_close(self, *args, **kwargs):
         """ Called when websocket connection is closed
         """
-        log.debug('Closing WebSocket connection with {}'.format(self.url))
+        log.debug("Closing WebSocket connection with {}".format(self.url))
 
     def run_forever(self, *args, **kwargs):
         """ This method is used to run the websocket app continuously.
@@ -305,19 +304,19 @@ class BitSharesWebsocket(Events):
                     on_message=self.on_message,
                     on_error=self.on_error,
                     on_close=self.on_close,
-                    on_open=self.on_open
+                    on_open=self.on_open,
                 )
                 self.ws.run_forever()
-            except websocket.WebSocketException as exc:
-                if (self.num_retries >= 0 and cnt > self.num_retries):
+            except websocket.WebSocketException:
+                if self.num_retries >= 0 and cnt > self.num_retries:
                     raise NumRetriesReached()
 
                 sleeptime = (cnt - 1) * 2 if cnt < 10 else 10
                 if sleeptime:
                     log.warning(
                         "Lost connection to node during wsconnect(): %s (%d/%d) "
-                        % (self.url, cnt, self.num_retries) +
-                        "Retrying in %d seconds" % sleeptime
+                        % (self.url, cnt, self.num_retries)
+                        + "Retrying in %d seconds" % sleeptime
                     )
                     time.sleep(sleeptime)
 
@@ -343,15 +342,16 @@ class BitSharesWebsocket(Events):
 
     """ RPC Calls
     """
+
     def rpcexec(self, payload):
         """ Execute a call by sending the payload
 
-            :param json payload: Payload data
+            :param dict payload: Payload data
             :raises ValueError: if the server does not respond in proper JSON format
             :raises RPCError: if the server returns an error
         """
         log.debug(json.dumps(payload))
-        self.ws.send(json.dumps(payload, ensure_ascii=False).encode('utf8'))
+        self.ws.send(json.dumps(payload, ensure_ascii=False).encode("utf8"))
 
     def __getattr__(self, name):
         """ Map all methods to RPC calls and pass through the arguments
@@ -363,15 +363,13 @@ class BitSharesWebsocket(Events):
 
             # Sepcify the api to talk to
             if "api_id" not in kwargs:
-                if ("api" in kwargs):
-                    if (kwargs["api"] in self.api_id and
-                            self.api_id[kwargs["api"]]):
+                if "api" in kwargs:
+                    if kwargs["api"] in self.api_id and self.api_id[kwargs["api"]]:
                         api_id = self.api_id[kwargs["api"]]
                     else:
                         raise ValueError(
                             "Unknown API! "
-                            "Verify that you have registered to %s"
-                            % kwargs["api"]
+                            "Verify that you have registered to %s" % kwargs["api"]
                         )
                 else:
                     api_id = 0
@@ -381,10 +379,13 @@ class BitSharesWebsocket(Events):
             # let's be able to define the num_retries per query
             self.num_retries = kwargs.get("num_retries", self.num_retries)
 
-            query = {"method": "call",
-                     "params": [api_id, name, list(args)],
-                     "jsonrpc": "2.0",
-                     "id": self.get_request_id()}
+            query = {
+                "method": "call",
+                "params": [api_id, name, list(args)],
+                "jsonrpc": "2.0",
+                "id": self.get_request_id(),
+            }
             r = self.rpcexec(query)
             return r
+
         return method

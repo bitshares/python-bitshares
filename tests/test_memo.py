@@ -41,7 +41,19 @@ test_cases = [
      'nonce': '16332877645293003478',
      'plain': 'äöüß€@$²³',
      'to': 'GPH6HAMuJRkjGJkj6cZWBbTU13gkUhBep383prqRdExXsZsYTrWT5',
-     'wif': '5Jpkeq1jiNE8Pe24GxFWTsyWbcP59Qq4cD7qg3Wgd6JFJqJkoG8'}
+     'wif': '5Jpkeq1jiNE8Pe24GxFWTsyWbcP59Qq4cD7qg3Wgd6JFJqJkoG8'},
+    {'from': 'GPH6APYcWtrWXBhcrjPEhPz41bc98NxjnvufVVnRH1M8sjwtvFacz',
+     'message': '40b7ed2efd5e23b97e3f3aec6319fda722194e08b4cee45b84566e2741916797',
+     'nonce': '10864609094208714729',
+     'plain': '1234567890\x02\x02', # final bytes LOOK LIKE padding
+     'to': 'GPH7Ge953jTDzHKxFAzy19uhJtXxw8CbBM938hkSKWE3yXfRjLV57',
+     'wif': '5KR8jzysz2kbYy3TkL3x6NRxfNXwQUWyeVAF5ZagxdqKMawGgXG'},
+    {'from': 'GPH6APYcWtrWXBhcrjPEhPz41bc98NxjnvufVVnRH1M8sjwtvFacz',
+     'message': 'f43800298f9974c7b334bb1bf6224f236309520e99697f3980775231bfb4ef21',
+     'nonce': '8555724032490455626',
+     'plain': 'abcdefghijÛ', # padding limit and last character is unicode
+     'to': 'GPH7Ge953jTDzHKxFAzy19uhJtXxw8CbBM938hkSKWE3yXfRjLV57',
+     'wif': '5KR8jzysz2kbYy3TkL3x6NRxfNXwQUWyeVAF5ZagxdqKMawGgXG'},
 ]
 
 test_shared_secrets = [
@@ -57,14 +69,26 @@ test_shared_secrets = [
     ["5Jg7muALcVxncN32LyGMDK8zut2b1Sw3VJA1xjZE5ght7DRM9ac", "GPH5Vj6uR2iKmrB2DcFyqNzperycD3a32BBYkefzKYCHoGnXemwWS", "60928672da8e9a7dc0f783f2bf8aaf1b206b9bbd85f0a61b638e0b99f5f8ea56"],
 ]
 
+# This is a result of an olden/buggy padding implementation,
+# where "abcdefghijÛ" + 4 bytes of checksum == 16 bytes,
+# and no padding was applied. Since those are out there, we must
+# still try to handle this gracefully.
+not_enough_padding = [
+    {'from': 'GPH6APYcWtrWXBhcrjPEhPz41bc98NxjnvufVVnRH1M8sjwtvFacz',
+     'message': '0b93e05a3b017d00ee16dfea0c1a9d64',
+     'nonce': '7675159740645758991',
+     'plain': 'abcdefghijÛ',
+     'to': 'GPH7Ge953jTDzHKxFAzy19uhJtXxw8CbBM938hkSKWE3yXfRjLV57',
+     'wif': '5KR8jzysz2kbYy3TkL3x6NRxfNXwQUWyeVAF5ZagxdqKMawGgXG'},
+]
 
 class Testcases(unittest.TestCase):
 
     def test_padding(self):
         for l in range(0, 255):
             s = bytes(l * chr(l), 'utf-8')
-            padded = _pad(s, 16).decode('utf-8')
-            self.assertEqual(s.decode('utf-8'), _unpad(padded, 16))
+            padded = _pad(s, 16)
+            self.assertEqual(s, _unpad(padded, 16))
 
     def test_decrypt(self):
         for memo in test_cases:
@@ -103,3 +127,11 @@ class Testcases(unittest.TestCase):
                 get_shared_secret(sender_private_key, receiver_public_key),
                 get_shared_secret(receiver_private_key, sender_public_key)
             )
+
+    def test_decrypt_bugged_padding(self):
+        for memo in not_enough_padding:
+            dec = decode_memo(PrivateKey(memo["wif"]),
+                              PublicKey(memo["to"], prefix="GPH"),
+                              memo["nonce"],
+                              memo["message"])
+            self.assertEqual(memo["plain"], dec)

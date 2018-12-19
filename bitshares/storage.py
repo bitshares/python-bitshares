@@ -1,12 +1,13 @@
 from graphenestorage import (
     InRamConfigurationStore,
-    InRamPlainKeyStore,
     InRamEncryptedKeyStore,
+    InRamPlainKeyStore,
     SqliteConfigurationStore,
-    SqlitePlainKeyStore,
     SqliteEncryptedKeyStore,
-    SQLiteFile
+    SQLiteFile,
+    SqlitePlainKeyStore,
 )
+
 
 url = "wss://node.bitshares.eu"
 InRamConfigurationStore.setdefault("node", url)
@@ -22,6 +23,4 @@ def get_default_config_store(*args, **kwargs):
 def get_default_key_store(config, *args, **kwargs):
     if "appname" not in kwargs:
         kwargs["appname"] = "bitshares"
-    return SqliteEncryptedKeyStore(
-        config=config, **kwargs
-    )
+    return SqliteEncryptedKeyStore(config=config, **kwargs)

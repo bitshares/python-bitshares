@@ -1,8 +1,10 @@
-from graphenebase.signedtransactions import Signed_Transaction as GrapheneSigned_Transaction
-from .operations import Operation
+# -*- coding: utf-8 -*-
+from graphenebase.signedtransactions import (
+    Signed_Transaction as GrapheneSigned_Transaction,
+)
+
 from .chains import known_chains
-import logging
-log = logging.getLogger(__name__)
+from .operations import Operation
 
 
 class Signed_Transaction(GrapheneSigned_Transaction):
@@ -14,6 +16,7 @@ class Signed_Transaction(GrapheneSigned_Transaction):
         :param str expiration: expiration date
         :param Array operations:  array of operations
     """
+
     known_chains = known_chains
     default_prefix = "BTS"
     operation_klass = Operation

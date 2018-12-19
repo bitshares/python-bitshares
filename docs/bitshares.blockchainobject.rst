@@ -5,3 +5,4 @@ bitshares\.blockchainobject module
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
