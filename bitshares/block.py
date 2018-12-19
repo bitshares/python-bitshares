@@ -1,9 +1,13 @@
-from .blockchainobject import BlockchainObject
-from .exceptions import BlockDoesNotExistsException
-from .utils import parse_time
+# -*- coding: utf-8 -*-
+from .instance import BlockchainInstance
+from graphenecommon.block import (
+    Block as GrapheneBlock,
+    BlockHeader as GrapheneBlockHeader,
+)
 
 
-class Block(BlockchainObject):
+@BlockchainInstance.inject
+class Block(GrapheneBlock):
     """ Read a single block from the chain
 
         :param int block: block number
@@ -27,32 +31,11 @@ class Block(BlockchainObject):
 
     """
 
-    def refresh(self):
-        """ Even though blocks never change, you freshly obtain its contents
-            from an API with this method
-        """
-        block = self.blockchain.rpc.get_block(self.identifier)
-        if not block:
-            raise BlockDoesNotExistsException
-        super(Block, self).__init__(block, blockchain_instance=self.blockchain)
-
-    def time(self):
-        """ Return a datatime instance for the timestamp of this block
-        """
-        return parse_time(self["timestamp"])
+    def define_classes(self):
+        self.type_id = "-none-"
 
 
-class BlockHeader(BlockchainObject):
-    def refresh(self):
-        """ Even though blocks never change, you freshly obtain its contents
-            from an API with this method
-        """
-        block = self.blockchain.rpc.get_block_header(self.identifier)
-        if not block:
-            raise BlockDoesNotExistsException
-        super(BlockHeader, self).__init__(block, blockchain_instance=self.blockchain)
-
-    def time(self):
-        """ Return a datatime instance for the timestamp of this block
-        """
-        return parse_time(self["timestamp"])
+@BlockchainInstance.inject
+class BlockHeader(GrapheneBlockHeader):
+    def define_classes(self):
+        self.type_id = "-none-"

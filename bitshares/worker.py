@@ -1,11 +1,12 @@
+# -*- coding: utf-8 -*-
 from .account import Account
 from .blockchainobject import BlockchainObject
-from .exceptions import WorkerDoesNotExistsException
 from .instance import BlockchainInstance
-from .utils import formatTimeString
+from graphenecommon.worker import Worker as GrapheneWorker, Workers as GrapheneWorkers
 
 
-class Worker(BlockchainObject):
+@BlockchainInstance.inject
+class Worker(GrapheneWorker):
     """ Read data about a worker in the chain
 
         :param str id: id of the worker
@@ -14,32 +15,13 @@ class Worker(BlockchainObject):
 
     """
 
-    type_id = 14
-
-    def __init__(self, *args, **kwargs):
-        super(Worker, self).__init__(*args, **kwargs)
-        self.post_format()
-
-    def post_format(self):
-        if isinstance(self["work_end_date"], str):
-            self["work_end_date"] = formatTimeString(self["work_end_date"])
-            self["work_begin_date"] = formatTimeString(self["work_begin_date"])
-        self["daily_pay"] = int(self["daily_pay"])
-
-    def refresh(self):
-        worker = self.blockchain.rpc.get_object(self.identifier)
-        if not worker:
-            raise WorkerDoesNotExistsException
-        super(Worker, self).__init__(worker, blockchain_instance=self.blockchain)
-        self.post_format()
-        self.cached = True
-
-    @property
-    def account(self):
-        return Account(self["worker_account"], blockchain_instance=self.blockchain)
+    def define_classes(self):
+        self.account_class = Account
+        self.type_id = 14
 
 
-class Workers(list):
+@BlockchainInstance.inject
+class Workers(GrapheneWorkers):
     """ Obtain a list of workers for an account
 
         :param str account_name/id: Name/id of the account (optional)
@@ -47,17 +29,6 @@ class Workers(list):
             accesing a RPC
     """
 
-    def __init__(self, account_name=None, lazy=False, **kwargs):
-        BlockchainInstance.__init__(self, **kwargs)
-        if account_name:
-            account = Account(account_name, blockchain_instance=self.blockchain)
-            self.workers = self.blockchain.rpc.get_workers_by_account(account["id"])
-        else:
-            self.workers = self.blockchain.rpc.get_all_workers()
-
-        super(Workers, self).__init__(
-            [
-                Worker(x, lazy=lazy, blockchain_instance=self.blockchain)
-                for x in self.workers
-            ]
-        )
+    def define_classes(self):
+        self.account_class = Account
+        self.worker_class = Worker

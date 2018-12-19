@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 
 from bitsharesbase import operations
@@ -7,10 +8,11 @@ from .amount import Amount
 from .asset import Asset
 from .instance import BlockchainInstance
 from .price import FilledOrder, Order, Price
-from .utils import assets_from_string, formatTime, formatTimeFromNow, formatTimeString
+from .utils import assets_from_string, formatTime, formatTimeFromNow
 
 
-class Market(BlockchainInstance, dict):
+@BlockchainInstance.inject
+class Market(dict):
     """ This class allows to easily access Markets on the blockchain for trading, etc.
 
         :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
@@ -44,7 +46,6 @@ class Market(BlockchainInstance, dict):
     def __init__(self, *args, **kwargs):
         base = kwargs.get("base", None)
         quote = kwargs.get("quote", None)
-        BlockchainInstance.__init__(self, *args, **kwargs)
 
         if len(args) == 1 and isinstance(args[0], str):
             quote_symbol, base_symbol = assets_from_string(args[0])

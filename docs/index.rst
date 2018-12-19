@@ -15,7 +15,7 @@
    :align: center
 
 Welcome to pybitshares's documentation!
-===============================================
+=======================================
 
 BitShares is a **blockchain-based autonomous company** (i.e. a DAC) that
 offers decentralized exchanging as well as sophisticated financial
@@ -41,7 +41,7 @@ services that use the BitShares blockchain. It comes with
 * *and more*
 
 General
--------------------------
+-------
 .. toctree::
    :maxdepth: 1
 
@@ -58,7 +58,7 @@ Quickstart
 .. note:: All methods that construct and sign a transaction can be given
           the ``account=`` parameter to identify the user that is going
           to affected by this transaction, e.g.:
-          
+
           * the source account in a transfer
           * the accout that buys/sells an asset in the exchange
           * the account whos collateral will be modified
@@ -148,7 +148,7 @@ Packages
 --------
 
 bitshares
-~~~~~~~~~
+_________
 
 .. toctree::
    :maxdepth: 3
@@ -156,7 +156,7 @@ bitshares
    bitshares
 
 bitsharesbase
-~~~~~~~~~~~~~
+_____________
 
 .. toctree::
    :maxdepth: 3

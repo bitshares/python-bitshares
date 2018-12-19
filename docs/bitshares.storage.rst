@@ -1,18 +1,8 @@
-bitshares\.storage package
-==========================
-
-Submodules
-----------
-
-.. toctree::
-
-   bitshares.storage.base
-   bitshares.storage.sqlite
-
-Module contents
----------------
+bitshares\.storage module
+=========================
 
 .. automodule:: bitshares.storage
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:

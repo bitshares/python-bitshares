@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 import json
 
 from collections import OrderedDict
 
 from graphenebase.objects import GrapheneObject
 from graphenebase.objects import Operation as GrapheneOperation
-from graphenebase.objects import isArgsThisClass
+from graphenebase.objects import isArgsThisClass, Asset
 from graphenebase.types import Array, Bool, Bytes, Fixed_array, Id, Int16, Int64, Map
 from graphenebase.types import ObjectId as GPHObjectId
 from graphenebase.types import (
@@ -54,23 +55,6 @@ def AssetId(asset):
 
 def AccountId(asset):
     return ObjectId(asset, "account")
-
-
-class Asset(GrapheneObject):
-    def __init__(self, *args, **kwargs):
-        if isArgsThisClass(self, args):
-            self.data = args[0].data
-        else:
-            if len(args) == 1 and len(kwargs) == 0:
-                kwargs = args[0]
-            super().__init__(
-                OrderedDict(
-                    [
-                        ("amount", Int64(kwargs["amount"])),
-                        ("asset_id", ObjectId(kwargs["asset_id"], "asset")),
-                    ]
-                )
-            )
 
 
 class Memo(GrapheneObject):

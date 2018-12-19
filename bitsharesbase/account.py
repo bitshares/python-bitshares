@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
+import hashlib
+import sys
+
+from binascii import hexlify, unhexlify
+
 from graphenebase.account import Address as GPHAddress
 from graphenebase.account import BrainKey as GPHBrainKey
 from graphenebase.account import PasswordKey as GPHPasswordKey
 from graphenebase.account import PrivateKey as GPHPrivateKey
 from graphenebase.account import PublicKey as GPHPublicKey
 from graphenebase.account import Prefix
+
+default_prefix = "BTS"
 
 
 class PasswordKey(GPHPasswordKey):
@@ -14,7 +21,7 @@ class PasswordKey(GPHPasswordKey):
         passphrase only.
     """
 
-    prefix = "BTS"
+    prefix = default_prefix
 
 
 class BrainKey(GPHBrainKey):
@@ -36,7 +43,7 @@ class BrainKey(GPHBrainKey):
         regenerated given the brain key.
     """
 
-    prefix = "BTS"
+    prefix = default_prefix
 
 
 class Address(GPHAddress):
@@ -54,7 +61,7 @@ class Address(GPHAddress):
 
     """
 
-    prefix = "BTS"
+    prefix = default_prefix
 
 
 class PublicKey(GPHPublicKey):
@@ -75,7 +82,7 @@ class PublicKey(GPHPublicKey):
 
     """
 
-    prefix = "BTS"
+    prefix = default_prefix
 
 
 class PrivateKey(GPHPrivateKey):
@@ -102,4 +109,4 @@ class PrivateKey(GPHPrivateKey):
 
     """
 
-    prefix = "BTS"
+    prefix = default_prefix

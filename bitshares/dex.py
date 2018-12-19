@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # from .storage import config
 from bitsharesbase import operations
 
@@ -18,6 +19,9 @@ class Dex(BlockchainInstance):
                   please use :class:`bitshares.market.Market`.
 
     """
+
+    def __init__(self, *args, **kwargs):
+        BlockchainInstance.__init__(self, *args, **kwargs)
 
     def returnFees(self):
         """ Returns a dictionary of all fees that apply through the
@@ -60,7 +64,7 @@ class Dex(BlockchainInstance):
         """ List Call Positions (borrowed assets and amounts)
 
             :return: Struct of assets with amounts and call price
-            :rtype: json
+            :rtype: dict
 
             **Example**:
 

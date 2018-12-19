@@ -5,3 +5,4 @@ bitsharesbase\.asset\_permissions module
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:

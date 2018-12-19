@@ -5,3 +5,4 @@ bitsharesbase\.bip38 module
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:

@@ -5,3 +5,4 @@ bitsharesbase\.objects module
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:

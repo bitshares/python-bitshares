@@ -9,7 +9,7 @@ that stores information like
 * default account name
 * the encrypted master password
 
-and potentially more.
+and potentially more, **persistently**.
 
 You can access those variables like a regular dictionary by using
 
@@ -21,14 +21,7 @@ You can access those variables like a regular dictionary by using
 
 Keys can be added and changed like they are for regular dictionaries.
 
-If you don't want to load the :class:`bitshares.BitShares` class, you
-can load the configuration directly by using:
-
 .. code-block:: python
 
-    from bitshares.storage import configStorage as config
-
-API
----
-.. autoclass:: bitshares.storage.Configuration
-   :members:
+    bitshares.config["my-new-variable"] = "important-content"
+    print(bitshares.config["my-new-variable"])
