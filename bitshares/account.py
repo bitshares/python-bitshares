@@ -94,4 +94,5 @@ class AccountUpdate(GrapheneAccountUpdate):
 
     """
 
-    account_class = Account
+    def define_classes(self):
+        self.account_class = Account
