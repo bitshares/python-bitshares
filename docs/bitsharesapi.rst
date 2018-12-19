@@ -7,7 +7,6 @@ Submodules
 .. toctree::
 
    bitsharesapi.bitsharesnoderpc
-   bitsharesapi.bitsharesnoderpc2
    bitsharesapi.exceptions
    bitsharesapi.websocket
 
@@ -18,3 +17,4 @@ Module contents
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:

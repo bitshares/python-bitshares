@@ -5,3 +5,4 @@ bitshares\.witness module
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:

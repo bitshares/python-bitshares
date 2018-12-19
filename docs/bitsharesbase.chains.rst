@@ -5,3 +5,4 @@ bitsharesbase\.chains module
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
