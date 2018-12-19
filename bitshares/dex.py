@@ -64,7 +64,7 @@ class Dex(BlockchainInstance):
         """ List Call Positions (borrowed assets and amounts)
 
             :return: Struct of assets with amounts and call price
-            :rtype: json
+            :rtype: dict
 
             **Example**:
 

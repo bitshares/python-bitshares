@@ -81,7 +81,7 @@ class AccountUpdate(GrapheneAccountUpdate):
         Instances of this class are dictionaries and take the following
         form:
 
-        ... code-block: js
+        .. code-block: js
 
             {'id': '2.6.29',
              'lifetime_fees_paid': '44261516129',

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 import logging
 import ssl
@@ -306,7 +307,7 @@ class BitSharesWebsocket(Events):
                     on_open=self.on_open,
                 )
                 self.ws.run_forever()
-            except websocket.WebSocketException as exc:
+            except websocket.WebSocketException:
                 if self.num_retries >= 0 and cnt > self.num_retries:
                     raise NumRetriesReached()
 
@@ -345,7 +346,7 @@ class BitSharesWebsocket(Events):
     def rpcexec(self, payload):
         """ Execute a call by sending the payload
 
-            :param json payload: Payload data
+            :param dict payload: Payload data
             :raises ValueError: if the server does not respond in proper JSON format
             :raises RPCError: if the server returns an error
         """
