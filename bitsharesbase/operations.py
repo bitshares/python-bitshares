@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 
 from collections import OrderedDict
@@ -836,6 +837,19 @@ class Bid_collateral(GrapheneObject):
                 ("bidder", ObjectId(kwargs["bidder"], "account")),
                 ("additional_collateral", Asset(kwargs["additional_collateral"])),
                 ("debt_covered", Asset(kwargs["debt_covered"])),
+                ("extensions", Set([])),
+            ]
+        )
+
+
+class Asset_settle(GrapheneObject):
+    def detail(self, *args, **kwargs):
+        # New pygraphene interface!
+        return OrderedDict(
+            [
+                ("fee", Asset(kwargs["fee"])),
+                ("account", ObjectId(kwargs["account"], "account")),
+                ("amount", Asset(kwargs["amount"])),
                 ("extensions", Set([])),
             ]
         )
