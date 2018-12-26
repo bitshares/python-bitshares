@@ -11,8 +11,7 @@ class BlockchainInstance(AbstractBlockchainInstanceProvider):
         # Also allow 'bitshares_instance'
         if kwargs.get("bitshares_instance"):
             kwargs["blockchain_instance"] = kwargs["bitshares_instance"]
-        if kwargs.get("blockchain_instance"):
-            SharedInstance.instance = kwargs["blockchain_instance"]
+        AbstractBlockchainInstanceProvider.__init__(self, *args, **kwargs)
 
     def get_instance_class(self):
         """ Should return the Chain instance class, e.g. `bitshares.BitShares`
