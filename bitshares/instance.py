@@ -32,10 +32,8 @@ def shared_blockchain_instance():
 
 
 def set_shared_blockchain_instance(instance):
-    # clear cache
-    inst = shared_blockchain_instance()
-    inst.clear_cache()
-    BlockchainInstance().set_shared_blockchain_instance(instance)
+    instance.clear_cache()
+    instance.set_shared_instance()
 
 
 def set_shared_config(config):
