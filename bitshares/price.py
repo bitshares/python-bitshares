@@ -108,7 +108,7 @@ class Order(Price):
             """
             order = self.blockchain.rpc.get_objects([args[0]])[0]
             if order:
-                dict.__init__(self, order["sell_price"])
+                Price.__init__(self, order["sell_price"])
                 self.update(order)
                 self["deleted"] = False
             else:
@@ -123,7 +123,7 @@ class Order(Price):
             """
             # Take all the arguments with us
             self.update(args[0])
-            dict.__init__(
+            Price.__init__(
                 self, args[0]["sell_price"], blockchain_instance=self.blockchain
             )
 
@@ -136,14 +136,14 @@ class Order(Price):
             """
             # Take all the arguments with us
             self.update(args[0])
-            dict.__init__(
+            Price.__init__(
                 self,
                 Amount(args[0]["min_to_receive"], blockchain_instance=self.blockchain),
                 Amount(args[0]["amount_to_sell"], blockchain_instance=self.blockchain),
             )
         else:
             # Try load Order as Price
-            dict.__init__(*args, **kwargs)
+            Price.__init__(*args, **kwargs)
 
         if "for_sale" in self:
             self["for_sale"] = Amount(
@@ -226,7 +226,7 @@ class FilledOrder(Price):
     def __init__(self, order, **kwargs):
 
         if isinstance(order, dict) and "price" in order:
-            dict.__init__(
+            Price.__init__(
                 self,
                 order.get("price"),
                 base=kwargs.get("base"),
@@ -240,7 +240,7 @@ class FilledOrder(Price):
             if "op" in order:
                 order = order["op"][1]
             base_asset = kwargs.get("base_asset", order["receives"]["asset_id"])
-            dict.__init__(self, order, base_asset=base_asset)
+            Price.__init__(self, order, base_asset=base_asset)
 
             # To be on the save side, store the entire order object in this
             # dict as well
@@ -283,7 +283,7 @@ class UpdateCallOrder(Price):
         BlockchainInstance.__init__(self, **kwargs)
 
         if isinstance(call, dict) and "call_price" in call:
-            dict.__init__(
+            Price.__init__(
                 self,
                 call.get("call_price"),
                 base=call["call_price"].get("base"),
