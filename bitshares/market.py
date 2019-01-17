@@ -391,7 +391,7 @@ class Market(BlockchainInstance, dict):
             :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
             :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
             :param string account: Account name that executes that order
-            :param string returnOrderId: If set to "head" or "irreversible" the call will wait for the tx to appear in
+            :param bool returnOrderId: If set to "head" or "irreversible" the call will wait for the tx to appear in
                                         the head/irreversible block and add the key "orderid" to the tx output
 
             Prices/Rates are denoted in 'base', i.e. the USD_BTS market
@@ -483,7 +483,7 @@ class Market(BlockchainInstance, dict):
             :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
             :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
             :param string account: Account name that executes that order
-            :param string returnOrderId: If set to "head" or "irreversible" the call will wait for the tx to appear in
+            :param bool returnOrderId: If set to "head" or "irreversible" the call will wait for the tx to appear in
                                         the head/irreversible block and add the key "orderid" to the tx output
 
             Prices/Rates are denoted in 'base', i.e. the USD_BTS market
