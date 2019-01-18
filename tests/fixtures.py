@@ -22,7 +22,7 @@ wif = wifs[0]
 
 # bitshares instance
 bitshares = BitShares(
-    "wss://node.testnet.bitshares.eu", keys=wifs, nobroadcast=True, num_retries=1
+    "wss://node.bitshares.eu", keys=wifs, nobroadcast=True, num_retries=1
 )
 config = bitshares.config
 
