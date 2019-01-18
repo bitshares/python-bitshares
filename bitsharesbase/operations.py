@@ -2,6 +2,7 @@
 import json
 
 from collections import OrderedDict
+from binascii import hexlify, unhexlify
 
 from graphenebase.types import (
     Array,
@@ -25,6 +26,9 @@ from graphenebase.types import (
     Varint32,
     Void,
     VoteId,
+    Ripemd160,
+    Sha1,
+    Sha256
 )
 
 from .account import PublicKey
@@ -850,6 +854,65 @@ class Asset_settle(GrapheneObject):
                 ("fee", Asset(kwargs["fee"])),
                 ("account", ObjectId(kwargs["account"], "account")),
                 ("amount", Asset(kwargs["amount"])),
+                ("extensions", Set([])),
+            ]
+        )
+
+
+class HtlcHash(Static_variant):
+    elements = [Ripemd160, Sha1, Sha256]
+    def __init__(self, o):
+        id = o[0]
+        if len(self.elements) <= id:
+            raise Exception("Unknown HTLC Hashing method")
+        data = self.elements[id](o[1])
+        super().__init__(data, id)
+
+
+class Htlc_create(GrapheneObject):
+    def detail(self, *args, **kwargs):
+        return OrderedDict(
+            [
+                ("fee", Asset(kwargs["fee"])),
+                ("from", ObjectId(kwargs["from"], "account")),
+                ("to", ObjectId(kwargs["to"], "account")),
+                ("amount", Asset(kwargs["amount"])),
+                ("preimage_hash", HtlcHash(kwargs["preimage_hash"])),
+                ("preimage_size", Uint16(kwargs["preimage_size"])),
+                ("claim_period_seconds", Uint32(kwargs["claim_period_seconds"])),
+                ("extensions", Set([])),
+            ]
+        )
+
+
+class Htlc_redeem(GrapheneObject):
+    def detail(self, *args, **kwargs):
+        return OrderedDict(
+            [
+                ("fee", Asset(kwargs["fee"])),
+                ("htlc_id", ObjectId(kwargs["htlc_id"], "htlc")),
+                ("redeemer", ObjectId(kwargs["redeemer"], "account")),
+                ("preimage",   # Bytes(kwargs["preimage"])
+                    Array(
+                        [
+                            Uint8(o)
+                            for o in unhexlify(kwargs["preimage"])
+                        ]
+                    ),
+                ),
+                ("extensions", Set([])),
+            ]
+        )
+
+
+class Htlc_extend(GrapheneObject):
+    def detail(self, *args, **kwargs):
+        return OrderedDict(
+            [
+                ("fee", Asset(kwargs["fee"])),
+                ("htlc_id", ObjectId(kwargs["htlc_id"], "htlc")),
+                ("update_issuer", ObjectId(kwargs["update_issuer"], "account")),
+                ("seconds_to_add", Uint32(kwargs["seconds_to_add"])),
                 ("extensions", Set([])),
             ]
         )

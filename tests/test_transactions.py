@@ -32,6 +32,7 @@ class Testcases(unittest.TestCase):
             expiration=expiration,
             operations=ops,
         )
+        pprint(tx.json())
         tx = tx.sign([wif], chain=prefix)
         tx.verify([PrivateKey(wif).pubkey], prefix)
         txWire = hexlify(bytes(tx)).decode("ascii")
@@ -754,6 +755,69 @@ class Testcases(unittest.TestCase):
             "97ed53510034210b8913f3e5d281ea49a5addb3a0b450215"
         )
         self.doit()
+
+    def test_htlc_create(self):
+        from binascii import unhexlify
+        def ripemd160(s):
+            import hashlib
+            ripemd160 = hashlib.new("ripemd160")
+            ripemd160.update(bytes(s, "utf-8"))
+            return ripemd160.hexdigest()
+
+        self.op = operations.Htlc_create(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "from": "1.2.123",
+                "to": "1.2.124",
+                "amount": {"amount": 1123456, "asset_id": "1.3.0"},
+                "preimage_hash": [0, ripemd160("foobar")],
+                "preimage_size": 200,
+                "claim_period_seconds": 120,
+                "extensions": [],
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c8045701310000000000000000007b7c8024"
+            "1100000000000000a06e327ea7388c18e4740e350ed4e60f"
+            "2e04fc41c800780000000000012071efeadf31703b98d155e1"
+            "c196cf12bcda11c363518075be2aaca0443382648e2428d277"
+            "e79b80bab4ff0b48fd00ed91e7e41d88974a00d50b832a198a"
+            "00d62d")
+        self.doit(False)
+
+    def test_htlc_redeem(self):
+        self.op = operations.Htlc_redeem(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "redeemer": "1.2.124",
+                "preimage": hexlify(b"foobar").decode("ascii"),
+                "htlc_id": "1.16.132",
+                "extensions": [],
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c80457013200000000000000000084017c06"
+            "666f6f6261720000011f21a8d2fa9a0f7c9bcc32a0dbcbf901"
+            "5051f8190c4b2239472f900458eae0bb4a7f7be8d88c60eba0"
+            "a8972f2e1b397d4e23f1b91eef12c38f11a01307809e4143")
+        self.doit(0)
+
+    def test_htlc_extend(self):
+        self.op = operations.Htlc_extend(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "htlc_id": "1.16.132",
+                "update_issuer": "1.2.124",
+                "seconds_to_add": 120,
+                "extensions": [],
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c80457013400000000000000000084017c78"
+            "000000000001206aaf202129fea824e70b92113d0812fac654"
+            "00529d86210674498f03ef33d4bd1055d17020db57092ee95d"
+            "c6320840059f85da3fbebaf2a965bb5eca15179f30")
+        self.doit(0)
 
     def compareConstructedTX(self):
         self.maxDiff = None
