@@ -534,7 +534,9 @@ class Market(dict):
                 That way you can multiply prices with `1.05` to get a +5%.
         """
         if not expiration:
-            expiration = self.blockchain.config["order-expiration"]
+            expiration = (
+                self.blockchain.config["order-expiration"] or 60 * 60 * 24 * 365
+            )
         if not account:
             if "default_account" in self.blockchain.config:
                 account = self.blockchain.config["default_account"]
