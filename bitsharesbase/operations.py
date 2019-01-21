@@ -28,7 +28,7 @@ from graphenebase.types import (
     VoteId,
     Ripemd160,
     Sha1,
-    Sha256
+    Sha256,
 )
 
 from .account import PublicKey
@@ -178,9 +178,9 @@ class Asset_update(GrapheneObject):
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
             if "new_issuer" in kwargs:
-                new_issuer = Optional(ObjectId(kwargs["new_issuer"], "account"))
-            else:
-                new_issuer = Optional(None)
+                raise ValueError(
+                    "Cannot change asset_issuer with Asset_update anylonger! (BSIP29)"
+                )
             super().__init__(
                 OrderedDict(
                     [
@@ -190,7 +190,7 @@ class Asset_update(GrapheneObject):
                             "asset_to_update",
                             ObjectId(kwargs["asset_to_update"], "asset"),
                         ),
-                        ("new_issuer", new_issuer),
+                        ("new_issuer", Optional(None)),
                         ("new_options", AssetOptions(kwargs["new_options"])),
                         ("extensions", Set([])),
                     ]
@@ -861,6 +861,7 @@ class Asset_settle(GrapheneObject):
 
 class HtlcHash(Static_variant):
     elements = [Ripemd160, Sha1, Sha256]
+
     def __init__(self, o):
         id = o[0]
         if len(self.elements) <= id:
@@ -892,13 +893,9 @@ class Htlc_redeem(GrapheneObject):
                 ("fee", Asset(kwargs["fee"])),
                 ("htlc_id", ObjectId(kwargs["htlc_id"], "htlc")),
                 ("redeemer", ObjectId(kwargs["redeemer"], "account")),
-                ("preimage",   # Bytes(kwargs["preimage"])
-                    Array(
-                        [
-                            Uint8(o)
-                            for o in unhexlify(kwargs["preimage"])
-                        ]
-                    ),
+                (
+                    "preimage",  # Bytes(kwargs["preimage"])
+                    Array([Uint8(o) for o in unhexlify(kwargs["preimage"])]),
                 ),
                 ("extensions", Set([])),
             ]
@@ -916,6 +913,27 @@ class Htlc_extend(GrapheneObject):
                 ("extensions", Set([])),
             ]
         )
+
+
+class Asset_update_issuer(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("issuer", ObjectId(kwargs["issuer"], "account")),
+                        (
+                            "asset_to_update",
+                            ObjectId(kwargs["asset_to_update"], "asset"),
+                        ),
+                        ("new_issuer", ObjectId(kwargs["new_issuer"], "account")),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
 
 
 fill_classmaps()

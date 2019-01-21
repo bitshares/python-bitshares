@@ -10,6 +10,7 @@ from bitsharesbase import transactions, memo, account, operations, objects
 from bitsharesbase.objects import Operation
 from bitsharesbase.signedtransactions import Signed_Transaction
 from bitsharesbase.account import PrivateKey
+from graphenebase.base58 import ripemd160
 
 from .fixtures import fixture_data, bitshares, wif
 
@@ -598,6 +599,36 @@ class Testcases(unittest.TestCase):
         )
         self.doit()
 
+    def test_asset_update_issuer_fail(self):
+        with self.assertRaises(ValueError):
+            self.op = operations.Asset_update(
+                **{
+                    "fee": {"amount": 0, "asset_id": "1.3.0"},
+                    "issuer": "1.2.0",
+                    "asset_to_update": "1.3.0",
+                    "new_issuer": "1.2.1",
+                    "extensions": [],
+                }
+            )
+
+    def test_asset_update_issuer(self):
+        self.op = operations.Asset_update_issuer(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": "1.2.0",
+                "asset_to_update": "1.3.0",
+                "new_issuer": "1.2.1",
+                "extensions": [],
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c804570130000000000000000000000001000"
+            "001207d24b86eb3e6ae1de872829223d205123aaf2c5d11eab4"
+            "6d8a80dbe83a42af03687cd3c43a5dd1d7f4d7a7b5afdf8d69c"
+            "42acf9224354b1af7d81bd556724a43"
+        )
+        self.doit()
+
     def test_asset_update_bitasset(self):
         self.op = operations.Asset_update_bitasset(
             **{
@@ -757,13 +788,6 @@ class Testcases(unittest.TestCase):
         self.doit()
 
     def test_htlc_create(self):
-        from binascii import unhexlify
-        def ripemd160(s):
-            import hashlib
-            ripemd160 = hashlib.new("ripemd160")
-            ripemd160.update(bytes(s, "utf-8"))
-            return ripemd160.hexdigest()
-
         self.op = operations.Htlc_create(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -782,7 +806,8 @@ class Testcases(unittest.TestCase):
             "2e04fc41c800780000000000012071efeadf31703b98d155e1"
             "c196cf12bcda11c363518075be2aaca0443382648e2428d277"
             "e79b80bab4ff0b48fd00ed91e7e41d88974a00d50b832a198a"
-            "00d62d")
+            "00d62d"
+        )
         self.doit(False)
 
     def test_htlc_redeem(self):
@@ -799,7 +824,8 @@ class Testcases(unittest.TestCase):
             "f68585abf4dce7c80457013200000000000000000084017c06"
             "666f6f6261720000011f21a8d2fa9a0f7c9bcc32a0dbcbf901"
             "5051f8190c4b2239472f900458eae0bb4a7f7be8d88c60eba0"
-            "a8972f2e1b397d4e23f1b91eef12c38f11a01307809e4143")
+            "a8972f2e1b397d4e23f1b91eef12c38f11a01307809e4143"
+        )
         self.doit(0)
 
     def test_htlc_extend(self):
@@ -816,7 +842,8 @@ class Testcases(unittest.TestCase):
             "f68585abf4dce7c80457013400000000000000000084017c78"
             "000000000001206aaf202129fea824e70b92113d0812fac654"
             "00529d86210674498f03ef33d4bd1055d17020db57092ee95d"
-            "c6320840059f85da3fbebaf2a965bb5eca15179f30")
+            "c6320840059f85da3fbebaf2a965bb5eca15179f30"
+        )
         self.doit(0)
 
     def compareConstructedTX(self):
