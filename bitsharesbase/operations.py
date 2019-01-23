@@ -464,6 +464,22 @@ class Asset_fund_fee_pool(GrapheneObject):
             )
 
 
+class Asset_claim_fees(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('issuer', ObjectId(kwargs["issuer"], "account")),
+                ('amount_to_claim', Asset(kwargs["amount_to_claim"])),
+                ('extensions', Set([])),
+            ]))
+
+
 class Override_transfer(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
@@ -781,6 +797,23 @@ class Withdraw_permission_create(GrapheneObject):
                     ]
                 )
             )
+
+
+class Asset_global_settle(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            super().__init__(OrderedDict([
+                ('fee', Asset(kwargs["fee"])),
+                ('issuer', ObjectId(kwargs["issuer"], "account")),
+                ('asset_to_settle', ObjectId(kwargs["asset_to_settle"], "asset")),
+                ('settle_price', Price(kwargs["settle_price"])),
+                ('extensions', Set([])),
+            ]))
 
 
 class Committee_member_create(GrapheneObject):
