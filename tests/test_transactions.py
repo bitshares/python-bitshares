@@ -826,6 +826,25 @@ class Testcases(unittest.TestCase):
         )
         self.doit()
 
+    def test_asset_claim_pool(self):
+        self.op = operations.Asset_claim_pool(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": "1.2.123",
+                "asset_id": "1.3.1",
+                "amount_to_claim": {"amount": 1123456, "asset_id": "1.3.0"},
+                "extensions": [],
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c80457012f0000000000000000007b01802411"
+            "000000000000000001200d91db5fb3df23739e0319e780399830"
+            "f7271d68b95aabea540cddda33108d34587290a465062cb9c4be"
+            "d4f97bc339088f8ccc48935d86d807fb29ff501d4740"
+        )
+        self.doit()
+
+
     def test_htlc_create(self):
         self.op = operations.Htlc_create(
             **{
