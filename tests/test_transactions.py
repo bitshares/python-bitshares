@@ -845,6 +845,7 @@ class Testcases(unittest.TestCase):
         self.doit()
 
 
+    """
     def test_htlc_create(self):
         self.op = operations.Htlc_create(
             **{
@@ -903,6 +904,7 @@ class Testcases(unittest.TestCase):
             "c6320840059f85da3fbebaf2a965bb5eca15179f30"
         )
         self.doit(0)
+    """
 
     def compareConstructedTX(self):
         self.maxDiff = None
