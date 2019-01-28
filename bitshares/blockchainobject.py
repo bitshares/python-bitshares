@@ -2,7 +2,7 @@
 from .instance import BlockchainInstance
 from graphenecommon.blockchainobject import (
     BlockchainObject as GrapheneBlockchainObject,
-    Object as GrapheneObject,
+    Object as GrapheneChainObject,
     ObjectCache,
 )
 
@@ -13,5 +13,5 @@ class BlockchainObject(GrapheneBlockchainObject):
 
 
 @BlockchainInstance.inject
-class Object(GrapheneObject):
-    pass
+class Object(GrapheneChainObject):
+    perform_id_tests = False
