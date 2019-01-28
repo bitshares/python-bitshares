@@ -1323,3 +1323,24 @@ class BitShares(AbstractGrapheneChain):
             }
         )
         return self.finalizeOp(op, account, "active", **kwargs)
+
+    def asset_settle(self, amount, account=None, **kwargs):
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+
+        if not isinstance(amount, (Amount)):
+            raise ValueError("'amount' must be of type Amount")
+
+        op = operations.Asset_settle(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": account["id"],
+                "amount": amount.json(),
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)

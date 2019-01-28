@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
+from graphenecommon.memo import Memo as GrapheneMemo
 from bitsharesbase.account import PrivateKey, PublicKey
+
 from .account import Account
 from .instance import BlockchainInstance
-
-from graphenecommon.memo import Memo as GrapheneMemo
+from .exceptions import (
+    InvalidMemoKeyException,
+    AccountDoesNotExistsException,
+    WrongMemoKey,
+    InvalidMessageSignature,
+)
 
 
 @BlockchainInstance.inject
@@ -46,13 +52,6 @@ class Memo(GrapheneMemo):
         if ``op_data`` being the payload of a transfer operation.
 
     """
-
-    MESSAGE_SPLIT = (
-        "-----BEGIN BITSHARES SIGNED MESSAGE-----",
-        "-----BEGIN META-----",
-        "-----BEGIN SIGNATURE-----",
-        "-----END BITSHARES SIGNED MESSAGE-----",
-    )
 
     def define_classes(self):
         self.account_class = Account

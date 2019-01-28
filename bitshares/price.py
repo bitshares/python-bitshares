@@ -108,7 +108,7 @@ class Order(Price):
             """
             order = self.blockchain.rpc.get_objects([args[0]])[0]
             if order:
-                super(Order, self).__init__(order["sell_price"])
+                Price.__init__(self, order["sell_price"])
                 self.update(order)
                 self["deleted"] = False
             else:
@@ -123,8 +123,8 @@ class Order(Price):
             """
             # Take all the arguments with us
             self.update(args[0])
-            super(Order, self).__init__(
-                args[0]["sell_price"], blockchain_instance=self.blockchain
+            Price.__init__(
+                self, args[0]["sell_price"], blockchain_instance=self.blockchain
             )
 
         elif (
@@ -136,16 +136,18 @@ class Order(Price):
             """
             # Take all the arguments with us
             self.update(args[0])
-            super(Order, self).__init__(
+            Price.__init__(
+                self,
                 Amount(args[0]["min_to_receive"], blockchain_instance=self.blockchain),
                 Amount(args[0]["amount_to_sell"], blockchain_instance=self.blockchain),
             )
         else:
             # Try load Order as Price
-            super(Order, self).__init__(*args, **kwargs)
+            Price.__init__(*args, **kwargs)
 
         if "for_sale" in self:
             self["for_sale"] = Amount(
+                self,
                 {"amount": self["for_sale"], "asset_id": self["base"]["asset"]["id"]},
                 blockchain_instance=self.blockchain,
             )
@@ -224,8 +226,11 @@ class FilledOrder(Price):
     def __init__(self, order, **kwargs):
 
         if isinstance(order, dict) and "price" in order:
-            super(FilledOrder, self).__init__(
-                order.get("price"), base=kwargs.get("base"), quote=kwargs.get("quote")
+            Price.__init__(
+                self,
+                order.get("price"),
+                base=kwargs.get("base"),
+                quote=kwargs.get("quote"),
             )
             self.update(order)
             self["time"] = formatTimeString(order["date"])
@@ -235,7 +240,7 @@ class FilledOrder(Price):
             if "op" in order:
                 order = order["op"][1]
             base_asset = kwargs.get("base_asset", order["receives"]["asset_id"])
-            super(FilledOrder, self).__init__(order, base_asset=base_asset)
+            Price.__init__(self, order, base_asset=base_asset)
 
             # To be on the save side, store the entire order object in this
             # dict as well
@@ -278,7 +283,8 @@ class UpdateCallOrder(Price):
         BlockchainInstance.__init__(self, **kwargs)
 
         if isinstance(call, dict) and "call_price" in call:
-            super(UpdateCallOrder, self).__init__(
+            Price.__init__(
+                self,
                 call.get("call_price"),
                 base=call["call_price"].get("base"),
                 quote=call["call_price"].get("quote"),
@@ -298,6 +304,7 @@ class UpdateCallOrder(Price):
     __str__ = __repr__
 
 
+@BlockchainInstance.inject
 class PriceFeed(dict):
     """ This class is used to represent a price feed consisting of
 
@@ -315,10 +322,9 @@ class PriceFeed(dict):
 
     def __init__(self, feed, **kwargs):
 
-        BlockchainInstance.__init__(self, **kwargs)
-
         if len(feed) == 2:
-            super(PriceFeed, self).__init__(
+            dict.__init__(
+                self,
                 {
                     "producer": Account(
                         feed[0], lazy=True, blockchain_instance=self.blockchain
@@ -332,10 +338,11 @@ class PriceFeed(dict):
                     ],
                     "settlement_price": Price(feed[1][1]["settlement_price"]),
                     "core_exchange_rate": Price(feed[1][1]["core_exchange_rate"]),
-                }
+                },
             )
         else:
-            super(PriceFeed, self).__init__(
+            dict.__init__(
+                self,
                 {
                     "maintenance_collateral_ratio": feed[
                         "maintenance_collateral_ratio"
@@ -343,5 +350,5 @@ class PriceFeed(dict):
                     "maximum_short_squeeze_ratio": feed["maximum_short_squeeze_ratio"],
                     "settlement_price": Price(feed["settlement_price"]),
                     "core_exchange_rate": Price(feed["core_exchange_rate"]),
-                }
+                },
             )

@@ -16,7 +16,6 @@ class Testcases(unittest.TestCase):
         fixture_data()
 
     def test_account(self):
-        pprint(Account._cache)
         Account("init0")
         Account("1.2.3")
         account = Account("init0", full=True)
@@ -35,8 +34,8 @@ class Testcases(unittest.TestCase):
         account.cached = False
         self.assertIn("id", account)
         account.cached = False
-        self.assertEqual(account["id"], "1.2.90742")
-        self.assertEqual(str(account), "<Account 1.2.90742>")
+        self.assertEqual(account["id"], "1.2.100")
+        self.assertTrue(str(account).startswith("<Account "))
         self.assertIsInstance(Account(account), Account)
 
     def test_account_upgrade(self):

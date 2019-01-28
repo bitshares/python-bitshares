@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 import json
 
 from collections import OrderedDict
+from binascii import hexlify, unhexlify
 
 from graphenebase.types import (
     Array,
@@ -24,6 +26,9 @@ from graphenebase.types import (
     Varint32,
     Void,
     VoteId,
+    Ripemd160,
+    Sha1,
+    Sha256,
 )
 
 from .account import PublicKey
@@ -173,9 +178,9 @@ class Asset_update(GrapheneObject):
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
             if "new_issuer" in kwargs:
-                new_issuer = Optional(ObjectId(kwargs["new_issuer"], "account"))
-            else:
-                new_issuer = Optional(None)
+                raise ValueError(
+                    "Cannot change asset_issuer with Asset_update anylonger! (BSIP29)"
+                )
             super().__init__(
                 OrderedDict(
                     [
@@ -185,7 +190,7 @@ class Asset_update(GrapheneObject):
                             "asset_to_update",
                             ObjectId(kwargs["asset_to_update"], "asset"),
                         ),
-                        ("new_issuer", new_issuer),
+                        ("new_issuer", Optional(None)),
                         ("new_options", AssetOptions(kwargs["new_options"])),
                         ("extensions", Set([])),
                     ]
@@ -839,6 +844,96 @@ class Bid_collateral(GrapheneObject):
                 ("extensions", Set([])),
             ]
         )
+
+
+class Asset_settle(GrapheneObject):
+    def detail(self, *args, **kwargs):
+        # New pygraphene interface!
+        return OrderedDict(
+            [
+                ("fee", Asset(kwargs["fee"])),
+                ("account", ObjectId(kwargs["account"], "account")),
+                ("amount", Asset(kwargs["amount"])),
+                ("extensions", Set([])),
+            ]
+        )
+
+
+class HtlcHash(Static_variant):
+    elements = [Ripemd160, Sha1, Sha256]
+
+    def __init__(self, o):
+        id = o[0]
+        if len(self.elements) <= id:
+            raise Exception("Unknown HTLC Hashing method")
+        data = self.elements[id](o[1])
+        super().__init__(data, id)
+
+
+class Htlc_create(GrapheneObject):
+    def detail(self, *args, **kwargs):
+        return OrderedDict(
+            [
+                ("fee", Asset(kwargs["fee"])),
+                ("from", ObjectId(kwargs["from"], "account")),
+                ("to", ObjectId(kwargs["to"], "account")),
+                ("amount", Asset(kwargs["amount"])),
+                ("preimage_hash", HtlcHash(kwargs["preimage_hash"])),
+                ("preimage_size", Uint16(kwargs["preimage_size"])),
+                ("claim_period_seconds", Uint32(kwargs["claim_period_seconds"])),
+                ("extensions", Set([])),
+            ]
+        )
+
+
+class Htlc_redeem(GrapheneObject):
+    def detail(self, *args, **kwargs):
+        return OrderedDict(
+            [
+                ("fee", Asset(kwargs["fee"])),
+                ("htlc_id", ObjectId(kwargs["htlc_id"], "htlc")),
+                ("redeemer", ObjectId(kwargs["redeemer"], "account")),
+                (
+                    "preimage",  # Bytes(kwargs["preimage"])
+                    Array([Uint8(o) for o in unhexlify(kwargs["preimage"])]),
+                ),
+                ("extensions", Set([])),
+            ]
+        )
+
+
+class Htlc_extend(GrapheneObject):
+    def detail(self, *args, **kwargs):
+        return OrderedDict(
+            [
+                ("fee", Asset(kwargs["fee"])),
+                ("htlc_id", ObjectId(kwargs["htlc_id"], "htlc")),
+                ("update_issuer", ObjectId(kwargs["update_issuer"], "account")),
+                ("seconds_to_add", Uint32(kwargs["seconds_to_add"])),
+                ("extensions", Set([])),
+            ]
+        )
+
+
+class Asset_update_issuer(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("issuer", ObjectId(kwargs["issuer"], "account")),
+                        (
+                            "asset_to_update",
+                            ObjectId(kwargs["asset_to_update"], "asset"),
+                        ),
+                        ("new_issuer", ObjectId(kwargs["new_issuer"], "account")),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
 
 
 fill_classmaps()

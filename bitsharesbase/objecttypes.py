@@ -16,4 +16,5 @@ object_type["withdraw_permission"] = 12
 object_type["vesting_balance"] = 13
 object_type["worker"] = 14
 object_type["balance"] = 15
+object_type["htlc"] = 16
 object_type["OBJECT_TYPE_COUNT"] = 16

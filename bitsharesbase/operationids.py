@@ -49,6 +49,11 @@ ops = [
     "execute_bid",
     "asset_claim_pool",
     "asset_update_issuer",
+    "htlc_create",
+    "htlc_redeem",
+    "htlc_redeemed",
+    "htlc_extend",
+    "htlc_refund",
 ]
 operations = {o: ops.index(o) for o in ops}
 

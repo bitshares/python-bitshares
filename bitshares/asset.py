@@ -486,3 +486,23 @@ class Asset(GrapheneAsset):
             }
         )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
+
+    def change_issuer(self, new_issuer, **kwargs):
+        """ Change asset issuer (needs signing with owner key!)
+
+            :param str type: ``blacklist`` or ``whitelist``
+            :param list authorities: List of authorities (Accounts)
+        """
+        from .account import Account
+
+        new_issuer = Account(new_issuer)
+        op = operations.Asset_update_issuer(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": self["issuer"],
+                "asset_to_update": self["id"],
+                "new_issuer": new_issuer["id"],
+                "extensions": [],
+            }
+        )
+        return self.blockchain.finalizeOp(op, self["issuer"], "owner", **kwargs)
