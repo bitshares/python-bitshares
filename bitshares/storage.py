@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from graphenestorage import (
     InRamConfigurationStore,
     InRamEncryptedKeyStore,
@@ -10,8 +11,8 @@ from graphenestorage import (
 
 
 url = "wss://node.bitshares.eu"
-InRamConfigurationStore.setdefault("node", url)
 SqliteConfigurationStore.setdefault("node", url)
+SqliteConfigurationStore.setdefault("order-expiration", 356 * 24 * 60 * 60)
 
 
 def get_default_config_store(*args, **kwargs):
