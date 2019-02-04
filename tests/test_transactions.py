@@ -787,6 +787,64 @@ class Testcases(unittest.TestCase):
         )
         self.doit()
 
+    def test_asset_global_settle(self):
+        self.op = operations.Asset_global_settle(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": "1.2.123",
+                "asset_to_settle": "1.3.0",
+                "settle_price": {
+                     "base": {"amount": 1123456, "asset_id": "1.3.0"},
+                     "quote": {"amount": 78901122, "asset_id": "1.3.0"},
+                 },
+                "extensions": [],
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c8045701120000000000000000007b008024"
+            "1100000000000082efb30400000000000000011f1656eada80"
+            "7f9890ba44e140a1fe822265562e1c370485543b3f7c3b34f4"
+            "0a5c5d76833c853859ad6b22ec6942f6532055844b5fd0a65e"
+            "7ae7715ed249e0ce9a"
+        )
+        self.doit()
+
+    def test_asset_claim_fees(self):
+        self.op = operations.Asset_claim_fees(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": "1.2.123",
+                "amount_to_claim": {"amount": 1123456, "asset_id": "1.3.0"},
+                "extensions": [],
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c80457012b0000000000000000007b80241100"
+            "00000000000000011f3c93aa7fd19e065361261ad4f7902d73ee"
+            "8991f1b47d4bb62298f38e93ace2c26b7e06dff026b77515200f"
+            "99c88a07aa5bfd2e7647e412f94a7246185d8c2d31"
+        )
+        self.doit()
+
+    def test_asset_claim_pool(self):
+        self.op = operations.Asset_claim_pool(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "issuer": "1.2.123",
+                "asset_id": "1.3.1",
+                "amount_to_claim": {"amount": 1123456, "asset_id": "1.3.0"},
+                "extensions": [],
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c80457012f0000000000000000007b01802411"
+            "000000000000000001200d91db5fb3df23739e0319e780399830"
+            "f7271d68b95aabea540cddda33108d34587290a465062cb9c4be"
+            "d4f97bc339088f8ccc48935d86d807fb29ff501d4740"
+        )
+        self.doit()
+
+
     """
     def test_htlc_create(self):
         self.op = operations.Htlc_create(
