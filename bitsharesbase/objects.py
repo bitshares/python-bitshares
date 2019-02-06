@@ -380,14 +380,6 @@ class AccountCreateExtensions(Extension):
         def __init__(self, *args, **kwargs):
             super().__init__(OrderedDict([]))
 
-    class Owner_special_authority(SpecialAuthority):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-
-    class Active_special_authority(SpecialAuthority):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-
     class Buyback_options(GrapheneObject):
         def __init__(self, *args, **kwargs):
             kwargs.update(args[0])
@@ -409,8 +401,8 @@ class AccountCreateExtensions(Extension):
 
     sorted_options = [
         ("null_ext", Null_ext),
-        ("owner_special_authority", Owner_special_authority),
-        ("active_special_authority", Active_special_authority),
+        ("owner_special_authority", SpecialAuthority),
+        ("active_special_authority", SpecialAuthority),
         ("buyback_options", Buyback_options),
     ]
 
