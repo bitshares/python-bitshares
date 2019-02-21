@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 
 from bitsharesapi.websocket import BitSharesWebsocket
@@ -13,7 +14,7 @@ log = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
 
 
-class Notify(Events):
+class Notify(Events, BlockchainInstance):
     """ Notifications on Blockchain events.
 
         :param list accounts: Account names/ids to be notified about when changing
