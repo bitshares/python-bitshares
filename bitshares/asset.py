@@ -506,3 +506,36 @@ class Asset(GrapheneAsset):
             }
         )
         return self.blockchain.finalizeOp(op, self["issuer"], "owner", **kwargs)
+
+    def issue(self, amount, to, memo=None, **kwargs):
+        """ Issue new shares of an asset
+
+            :param float amount: Amount to issue
+            :param str to: Recipient
+            :param str memo: (optional) Memo message
+        """
+        from .memo import Memo
+        from .account import Account
+
+        to = Account(to)
+        account = Account(self["issuer"])
+        memoObj = Memo(from_account=account, to_account=to, blockchain_instance=self)
+
+        # append operation
+        op = operations.Asset_issue(
+            **{
+                "fee": {
+                    "amount": 0,
+                    "asset_id": "1.3.0",
+                },  # Will be filled in automatically
+                "issuer": account["id"],  # the Issuer account
+                "asset_to_issue": {
+                    "amount": int(amount * 10 ** self["precision"]),
+                    "asset_id": self["id"],
+                },
+                "issue_to_account": to["id"],
+                "memo": memoObj.encrypt(memo),
+                "extensions": [],
+            }
+        )
+        return self.exbet.finalizeOp(op, self["issuer"], "active", **kwargs)
