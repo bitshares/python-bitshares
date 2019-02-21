@@ -1,4 +1,4 @@
-graphenelib>=1.1.9
+graphenelib>=1.1.11
 pycryptodome
 websockets
 appdirs
