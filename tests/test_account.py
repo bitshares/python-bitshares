@@ -6,6 +6,7 @@ from bitshares import BitShares
 from bitshares.account import Account
 from bitshares.amount import Amount
 from bitshares.asset import Asset
+from bitshares.price import Order
 from bitshares.instance import set_shared_bitshares_instance
 from bitsharesbase.operationids import getOperationNameForId
 from .fixtures import fixture_data, bitshares
@@ -50,8 +51,17 @@ class Testcases(unittest.TestCase):
         self.assertEqual(op["account_to_upgrade"], "1.2.100")
 
     def test_openorders(self):
-        account = Account("init0")
-        self.assertIsInstance(account.openorders, list)
+        account = Account("xeroc")
+        orders = account.openorders
+        self.assertIsInstance(orders, list)
+
+        # If this test fails, it may be that the order expired on-chain!
+        #
+        # $ uptick sell 100.000 PORNXXX 100000 BTS --account xeroc
+        #
+        for order in orders:
+            self.assertIsInstance(order, Order)
+            self.assertEqual(order["for_sale"]["symbol"], "PORNXXX")
 
     def test_calls(self):
         account = Account("init0")
