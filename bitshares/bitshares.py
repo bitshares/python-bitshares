@@ -1344,3 +1344,49 @@ class BitShares(AbstractGrapheneChain):
             }
         )
         return self.finalizeOp(op, account, "active", **kwargs)
+
+    def htlc_create(
+        self,
+        amount,
+        to,
+        preimage,
+        hash_type=None,
+        account=None,
+        expiration=60 * 60,
+        **kwargs
+    ):
+        from binascii import hexlify
+        from graphenebase.base58 import ripemd160
+
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+        to = Account(to, blockchain_instance=self)
+
+        if not isinstance(amount, (Amount)):
+            raise ValueError("'amount' must be of type Amount")
+
+        if hash_type == "sha1":
+            raise NotImplementedError
+        else:
+            preimage_type = 0
+            preimage_hash = hexlify(
+                ripemd160(hexlify(bytes(preimage, "utf-8")))
+            ).decode("ascii")
+
+        op = operations.Htlc_create(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "from": account["id"],
+                "to": to["id"],
+                "amount": amount.json(),
+                "preimage_hash": [preimage_type, preimage_hash],
+                "preimage_size": len(preimage),
+                "claim_period_seconds": expiration,
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
