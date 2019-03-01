@@ -22,6 +22,7 @@ from .vesting import Vesting
 from .wallet import Wallet
 from .witness import Witness
 from .worker import Worker
+from .htlc import Htlc
 
 
 # from .utils import formatTime
@@ -1350,11 +1351,12 @@ class BitShares(AbstractGrapheneChain):
         amount,
         to,
         preimage,
-        hash_type=None,
+        hash_type="ripemd160",
         account=None,
         expiration=60 * 60,
         **kwargs
     ):
+        import hashlib
         from binascii import hexlify
         from graphenebase.base58 import ripemd160
 
@@ -1369,13 +1371,21 @@ class BitShares(AbstractGrapheneChain):
         if not isinstance(amount, (Amount)):
             raise ValueError("'amount' must be of type Amount")
 
-        if hash_type == "sha1":
-            raise NotImplementedError
-        else:
+        if hash_type == "ripemd160":
             preimage_type = 0
             preimage_hash = hexlify(
                 ripemd160(hexlify(bytes(preimage, "utf-8")))
             ).decode("ascii")
+        elif hash_type == "sha1":
+            preimage_type = 1
+            preimage_hash = hashlib.sha1(bytes(preimage, "utf-8")).hexdigest()
+        elif hash_type == "sha256":
+            preimage_type = 2
+            preimage_hash = hashlib.sha256(bytes(preimage, "utf-8")).hexdigest()
+        else:
+            raise ValueError(
+                "Unknown 'hash_type'. Must be 'sha1', 'sha256', or 'ripemd160'"
+            )
 
         op = operations.Htlc_create(
             **{
@@ -1386,6 +1396,28 @@ class BitShares(AbstractGrapheneChain):
                 "preimage_hash": [preimage_type, preimage_hash],
                 "preimage_size": len(preimage),
                 "claim_period_seconds": expiration,
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
+
+    def htlc_redeem(self, htlc_id, preimage, account=None, **kwargs):
+        from binascii import hexlify
+
+        htlc = Htlc(htlc_id)
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            account = htlc["to"]
+        account = Account(account, blockchain_instance=self)
+
+        op = operations.Htlc_redeem(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "redeemer": account["id"],
+                "preimage": hexlify(bytes(preimage, "utf-8")).decode("ascii"),
+                "htlc_id": htlc["id"],
                 "extensions": [],
             }
         )

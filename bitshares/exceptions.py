@@ -44,3 +44,10 @@ class ObjectNotInProposalBuffer(Exception):
     """
 
     pass
+
+
+class HtlcDoesNotExistException(Exception):
+    """ HTLC object does not exist
+    """
+
+    pass
