@@ -1,5 +1,5 @@
-bitshares\.notify module
-========================
+bitshares.notify module
+=======================
 
 .. automodule:: bitshares.notify
     :members:

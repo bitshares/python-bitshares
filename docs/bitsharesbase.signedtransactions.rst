@@ -1,5 +1,5 @@
-bitsharesbase\.signedtransactions module
-========================================
+bitsharesbase.signedtransactions module
+=======================================
 
 .. automodule:: bitsharesbase.signedtransactions
     :members:

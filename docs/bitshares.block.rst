@@ -1,5 +1,5 @@
-bitshares\.block module
-=======================
+bitshares.block module
+======================
 
 .. automodule:: bitshares.block
     :members:

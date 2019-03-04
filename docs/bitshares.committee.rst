@@ -1,5 +1,5 @@
-bitshares\.committee module
-===========================
+bitshares.committee module
+==========================
 
 .. automodule:: bitshares.committee
     :members:

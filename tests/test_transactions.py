@@ -794,9 +794,9 @@ class Testcases(unittest.TestCase):
                 "issuer": "1.2.123",
                 "asset_to_settle": "1.3.0",
                 "settle_price": {
-                     "base": {"amount": 1123456, "asset_id": "1.3.0"},
-                     "quote": {"amount": 78901122, "asset_id": "1.3.0"},
-                 },
+                    "base": {"amount": 1123456, "asset_id": "1.3.0"},
+                    "quote": {"amount": 78901122, "asset_id": "1.3.0"},
+                },
                 "extensions": [],
             }
         )
@@ -844,16 +844,16 @@ class Testcases(unittest.TestCase):
         )
         self.doit()
 
-
     """
     def test_htlc_create(self):
+        preimage_hash = hexlify(ripemd160(hexlify(b"foobar"))).decode("ascii")
         self.op = operations.Htlc_create(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 "from": "1.2.123",
                 "to": "1.2.124",
                 "amount": {"amount": 1123456, "asset_id": "1.3.0"},
-                "preimage_hash": [0, ripemd160("foobar")],
+                "preimage_hash": [0, preimage_hash],
                 "preimage_size": 200,
                 "claim_period_seconds": 120,
                 "extensions": [],
@@ -870,11 +870,12 @@ class Testcases(unittest.TestCase):
         self.doit(False)
 
     def test_htlc_redeem(self):
+        preimage = hexlify(b"foobar").decode("ascii")
         self.op = operations.Htlc_redeem(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 "redeemer": "1.2.124",
-                "preimage": hexlify(b"foobar").decode("ascii"),
+                "preimage": preimage,
                 "htlc_id": "1.16.132",
                 "extensions": [],
             }

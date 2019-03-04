@@ -1,5 +1,5 @@
-bitsharesapi\.exceptions module
-===============================
+bitsharesapi.exceptions module
+==============================
 
 .. automodule:: bitsharesapi.exceptions
     :members:

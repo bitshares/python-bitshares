@@ -472,12 +472,16 @@ class Asset_claim_fees(GrapheneObject):
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
 
-            super().__init__(OrderedDict([
-                ('fee', Asset(kwargs["fee"])),
-                ('issuer', ObjectId(kwargs["issuer"], "account")),
-                ('amount_to_claim', Asset(kwargs["amount_to_claim"])),
-                ('extensions', Set([])),
-            ]))
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("issuer", ObjectId(kwargs["issuer"], "account")),
+                        ("amount_to_claim", Asset(kwargs["amount_to_claim"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
 
 
 class Asset_claim_pool(GrapheneObject):
@@ -488,13 +492,17 @@ class Asset_claim_pool(GrapheneObject):
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
 
-            super().__init__(OrderedDict([
-                ('fee', Asset(kwargs["fee"])),
-                ('issuer', ObjectId(kwargs["issuer"], "account")),
-                ('asset_id', ObjectId(kwargs["asset_id"], "asset")),
-                ('amount_to_claim', Asset(kwargs["amount_to_claim"])),
-                ('extensions', Set([])),
-            ]))
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("issuer", ObjectId(kwargs["issuer"], "account")),
+                        ("asset_id", ObjectId(kwargs["asset_id"], "asset")),
+                        ("amount_to_claim", Asset(kwargs["amount_to_claim"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
 
 
 class Override_transfer(GrapheneObject):
@@ -824,13 +832,20 @@ class Asset_global_settle(GrapheneObject):
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
 
-            super().__init__(OrderedDict([
-                ('fee', Asset(kwargs["fee"])),
-                ('issuer', ObjectId(kwargs["issuer"], "account")),
-                ('asset_to_settle', ObjectId(kwargs["asset_to_settle"], "asset")),
-                ('settle_price', Price(kwargs["settle_price"])),
-                ('extensions', Set([])),
-            ]))
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("issuer", ObjectId(kwargs["issuer"], "account")),
+                        (
+                            "asset_to_settle",
+                            ObjectId(kwargs["asset_to_settle"], "asset"),
+                        ),
+                        ("settle_price", Price(kwargs["settle_price"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
 
 
 class Committee_member_create(GrapheneObject):
@@ -943,10 +958,7 @@ class Htlc_redeem(GrapheneObject):
                 ("fee", Asset(kwargs["fee"])),
                 ("htlc_id", ObjectId(kwargs["htlc_id"], "htlc")),
                 ("redeemer", ObjectId(kwargs["redeemer"], "account")),
-                (
-                    "preimage",  # Bytes(kwargs["preimage"])
-                    Array([Uint8(o) for o in unhexlify(kwargs["preimage"])]),
-                ),
+                ("preimage", Bytes(kwargs["preimage"])),
                 ("extensions", Set([])),
             ]
         )

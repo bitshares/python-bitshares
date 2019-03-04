@@ -1,5 +1,5 @@
-bitshares\.witness module
-=========================
+bitshares.witness module
+========================
 
 .. automodule:: bitshares.witness
     :members:

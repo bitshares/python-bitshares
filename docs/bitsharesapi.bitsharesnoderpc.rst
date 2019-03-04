@@ -1,5 +1,5 @@
-bitsharesapi\.bitsharesnoderpc module
-=====================================
+bitsharesapi.bitsharesnoderpc module
+====================================
 
 .. automodule:: bitsharesapi.bitsharesnoderpc
     :members:

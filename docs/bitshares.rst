@@ -16,6 +16,7 @@ Submodules
    bitshares.committee
    bitshares.dex
    bitshares.exceptions
+   bitshares.htlc
    bitshares.instance
    bitshares.market
    bitshares.memo

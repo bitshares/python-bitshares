@@ -1,5 +1,5 @@
-bitshares\.exceptions module
-============================
+bitshares.exceptions module
+===========================
 
 .. automodule:: bitshares.exceptions
     :members:

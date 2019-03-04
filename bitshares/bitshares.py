@@ -13,7 +13,7 @@ from .account import Account
 from .amount import Amount
 from .asset import Asset
 from .committee import Committee
-from .exceptions import AccountExistsException
+from .exceptions import AccountExistsException, KeyAlreadyInStoreException
 from .instance import set_shared_blockchain_instance, shared_blockchain_instance
 from .price import Price
 from .storage import get_default_config_store
@@ -22,6 +22,7 @@ from .vesting import Vesting
 from .wallet import Wallet
 from .witness import Witness
 from .worker import Worker
+from .htlc import Htlc
 
 
 # from .utils import formatTime
@@ -164,6 +165,13 @@ class BitShares(AbstractGrapheneChain):
     # -------------------------------------------------------------------------
     # Account related calls
     # -------------------------------------------------------------------------
+    def _store_keys(self, *args):
+        for k in args:
+            try:
+                self.wallet.addPrivateKey(str(k))
+            except KeyAlreadyInStoreException:
+                pass
+
     def create_account(
         self,
         account_name,
@@ -173,6 +181,8 @@ class BitShares(AbstractGrapheneChain):
         owner_key=None,
         active_key=None,
         memo_key=None,
+        owner_account=None,
+        active_account=None,
         password=None,
         additional_owner_keys=[],
         additional_active_keys=[],
@@ -248,6 +258,11 @@ class BitShares(AbstractGrapheneChain):
         " Generate new keys from password"
         from bitsharesbase.account import PasswordKey, PublicKey
 
+        owner_key_authority = []
+        active_key_authority = []
+        owner_accounts_authority = []
+        active_accounts_authority = []
+
         if password:
             active_key = PasswordKey(account_name, password, role="active")
             owner_key = PasswordKey(account_name, password, role="owner")
@@ -260,32 +275,36 @@ class BitShares(AbstractGrapheneChain):
             memo_privkey = memo_key.get_private_key()
             # store private keys
             if storekeys:
-                # self.wallet.addPrivateKey(str(owner_privkey))
-                self.wallet.addPrivateKey(str(active_privkey))
-                self.wallet.addPrivateKey(str(memo_privkey))
+                self._store_keys(active_privkey, memo_privkey)
+            owner_key_authority = [[format(owner_pubkey, self.prefix), 1]]
+            active_key_authority = [[format(active_pubkey, self.prefix), 1]]
+            memo = format(memo_pubkey, self.prefix)
         elif owner_key and active_key and memo_key:
             active_pubkey = PublicKey(active_key, prefix=self.prefix)
             owner_pubkey = PublicKey(owner_key, prefix=self.prefix)
             memo_pubkey = PublicKey(memo_key, prefix=self.prefix)
+            owner_key_authority = [[format(owner_pubkey, self.prefix), 1]]
+            active_key_authority = [[format(active_pubkey, self.prefix), 1]]
+            memo = format(memo_pubkey, self.prefix)
+        elif owner_account and active_account and memo_key:
+            memo_pubkey = PublicKey(memo_key, prefix=self.prefix)
+            memo = format(memo_pubkey, self.prefix)
+            owner_account = Account(owner_account, blockchain_instance=self)
+            active_account = Account(active_account, blockchain_instance=self)
+            owner_accounts_authority = [[owner_account["id"], 1]]
+            active_accounts_authority = [[active_account["id"], 1]]
         else:
             raise ValueError(
-                "Call incomplete! Provide either a password or public keys!"
+                "Call incomplete! Provide either a password, owner/active public keys or owner/active accounts + memo key!"
             )
-        owner = format(owner_pubkey, self.prefix)
-        active = format(active_pubkey, self.prefix)
-        memo = format(memo_pubkey, self.prefix)
-
-        owner_key_authority = [[owner, 1]]
-        active_key_authority = [[active, 1]]
-        owner_accounts_authority = []
-        active_accounts_authority = []
 
         # additional authorities
         for k in additional_owner_keys:
+            PublicKey(k, prefix=self.prefix)
             owner_key_authority.append([k, 1])
         for k in additional_active_keys:
+            PublicKey(k, prefix=self.prefix)
             active_key_authority.append([k, 1])
-
         for k in additional_owner_accounts:
             addaccount = Account(k, blockchain_instance=self)
             owner_accounts_authority.append([addaccount["id"], 1])
@@ -302,7 +321,7 @@ class BitShares(AbstractGrapheneChain):
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "registrar": registrar["id"],
             "referrer": referrer["id"],
-            "referrer_percent": referrer_percent * 100,
+            "referrer_percent": int(referrer_percent * 100),
             "name": account_name,
             "owner": {
                 "account_auths": owner_accounts_authority,
@@ -545,6 +564,7 @@ class BitShares(AbstractGrapheneChain):
                 "account": account["id"],
                 "new_options": account["options"],
                 "extensions": {},
+                "prefix": self.prefix,
             }
         )
         return self.finalizeOp(op, account["name"], "active", **kwargs)
@@ -1340,6 +1360,83 @@ class BitShares(AbstractGrapheneChain):
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 "account": account["id"],
                 "amount": amount.json(),
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
+
+    def htlc_create(
+        self,
+        amount,
+        to,
+        preimage,
+        hash_type="ripemd160",
+        account=None,
+        expiration=60 * 60,
+        **kwargs
+    ):
+        import hashlib
+        from binascii import hexlify
+        from graphenebase.base58 import ripemd160
+
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+        to = Account(to, blockchain_instance=self)
+
+        if not isinstance(amount, (Amount)):
+            raise ValueError("'amount' must be of type Amount")
+
+        if hash_type == "ripemd160":
+            preimage_type = 0
+            preimage_hash = hexlify(
+                ripemd160(hexlify(bytes(preimage, "utf-8")))
+            ).decode("ascii")
+        elif hash_type == "sha1":
+            preimage_type = 1
+            preimage_hash = hashlib.sha1(bytes(preimage, "utf-8")).hexdigest()
+        elif hash_type == "sha256":
+            preimage_type = 2
+            preimage_hash = hashlib.sha256(bytes(preimage, "utf-8")).hexdigest()
+        else:
+            raise ValueError(
+                "Unknown 'hash_type'. Must be 'sha1', 'sha256', or 'ripemd160'"
+            )
+
+        op = operations.Htlc_create(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "from": account["id"],
+                "to": to["id"],
+                "amount": amount.json(),
+                "preimage_hash": [preimage_type, preimage_hash],
+                "preimage_size": len(preimage),
+                "claim_period_seconds": expiration,
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
+
+    def htlc_redeem(self, htlc_id, preimage, account=None, **kwargs):
+        from binascii import hexlify
+
+        htlc = Htlc(htlc_id)
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            account = htlc["to"]
+        account = Account(account, blockchain_instance=self)
+
+        op = operations.Htlc_redeem(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "redeemer": account["id"],
+                "preimage": hexlify(bytes(preimage, "utf-8")).decode("ascii"),
+                "htlc_id": htlc["id"],
                 "extensions": [],
             }
         )

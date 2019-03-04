@@ -147,7 +147,6 @@ class Order(Price):
 
         if "for_sale" in self:
             self["for_sale"] = Amount(
-                self,
                 {"amount": self["for_sale"], "asset_id": self["base"]["asset"]["id"]},
                 blockchain_instance=self.blockchain,
             )

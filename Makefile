@@ -47,6 +47,8 @@ docs:
 	SPHINX_APIDOC_OPTIONS="members,undoc-members,show-inheritance,inherited-members" sphinx-apidoc -d 6 -e -f -o docs . *.py tests
 	make -C docs clean html
 
+prepare: clean test apidocs authors
+
 release: clean check dist git
 
 authors:
