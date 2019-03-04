@@ -1,5 +1,5 @@
-bitshares\.worker module
-========================
+bitshares.worker module
+=======================
 
 .. automodule:: bitshares.worker
     :members:

@@ -1,5 +1,5 @@
-bitshares\.blockchain module
-============================
+bitshares.blockchain module
+===========================
 
 .. automodule:: bitshares.blockchain
     :members:

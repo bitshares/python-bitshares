@@ -1,5 +1,5 @@
-bitshares\.proposal module
-==========================
+bitshares.proposal module
+=========================
 
 .. automodule:: bitshares.proposal
     :members:

@@ -1,5 +1,5 @@
-bitshares\.wallet module
-========================
+bitshares.wallet module
+=======================
 
 .. automodule:: bitshares.wallet
     :members:

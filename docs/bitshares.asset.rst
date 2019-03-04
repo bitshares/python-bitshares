@@ -1,5 +1,5 @@
-bitshares\.asset module
-=======================
+bitshares.asset module
+======================
 
 .. automodule:: bitshares.asset
     :members:

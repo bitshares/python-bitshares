@@ -1,5 +1,5 @@
-bitshares\.transactionbuilder module
-====================================
+bitshares.transactionbuilder module
+===================================
 
 .. automodule:: bitshares.transactionbuilder
     :members:

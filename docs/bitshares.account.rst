@@ -1,5 +1,5 @@
-bitshares\.account module
-=========================
+bitshares.account module
+========================
 
 .. automodule:: bitshares.account
     :members:
