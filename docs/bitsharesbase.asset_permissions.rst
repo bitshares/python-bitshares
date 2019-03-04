@@ -1,5 +1,5 @@
-bitsharesbase\.asset\_permissions module
-========================================
+bitsharesbase.asset\_permissions module
+=======================================
 
 .. automodule:: bitsharesbase.asset_permissions
     :members:

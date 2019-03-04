@@ -1,5 +1,5 @@
-bitshares\.dex module
-=====================
+bitshares.dex module
+====================
 
 .. automodule:: bitshares.dex
     :members:

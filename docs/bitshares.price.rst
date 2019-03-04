@@ -1,5 +1,5 @@
-bitshares\.price module
-=======================
+bitshares.price module
+======================
 
 .. automodule:: bitshares.price
     :members:

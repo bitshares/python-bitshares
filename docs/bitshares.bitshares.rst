@@ -1,5 +1,5 @@
-bitshares\.bitshares module
-===========================
+bitshares.bitshares module
+==========================
 
 .. automodule:: bitshares.bitshares
     :members:

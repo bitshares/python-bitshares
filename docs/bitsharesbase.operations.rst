@@ -1,5 +1,5 @@
-bitsharesbase\.operations module
-================================
+bitsharesbase.operations module
+===============================
 
 .. automodule:: bitsharesbase.operations
     :members:

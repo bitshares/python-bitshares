@@ -1,5 +1,5 @@
-bitshares\.message module
-=========================
+bitshares.message module
+========================
 
 .. automodule:: bitshares.message
     :members:

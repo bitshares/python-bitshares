@@ -1,5 +1,5 @@
-bitsharesbase\.chains module
-============================
+bitsharesbase.chains module
+===========================
 
 .. automodule:: bitsharesbase.chains
     :members:

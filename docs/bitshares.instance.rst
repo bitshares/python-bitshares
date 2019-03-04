@@ -1,5 +1,5 @@
-bitshares\.instance module
-==========================
+bitshares.instance module
+=========================
 
 .. automodule:: bitshares.instance
     :members:

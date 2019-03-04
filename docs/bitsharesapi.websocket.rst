@@ -1,5 +1,5 @@
-bitsharesapi\.websocket module
-==============================
+bitsharesapi.websocket module
+=============================
 
 .. automodule:: bitsharesapi.websocket
     :members:
