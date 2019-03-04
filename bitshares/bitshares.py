@@ -13,7 +13,7 @@ from .account import Account
 from .amount import Amount
 from .asset import Asset
 from .committee import Committee
-from .exceptions import AccountExistsException
+from .exceptions import AccountExistsException, KeyAlreadyInStoreException
 from .instance import set_shared_blockchain_instance, shared_blockchain_instance
 from .price import Price
 from .storage import get_default_config_store
@@ -165,6 +165,13 @@ class BitShares(AbstractGrapheneChain):
     # -------------------------------------------------------------------------
     # Account related calls
     # -------------------------------------------------------------------------
+    def _store_keys(self, *args):
+        for k in args:
+            try:
+                self.wallet.addPrivateKey(str(k))
+            except KeyAlreadyInStoreException:
+                pass
+
     def create_account(
         self,
         account_name,
@@ -174,6 +181,8 @@ class BitShares(AbstractGrapheneChain):
         owner_key=None,
         active_key=None,
         memo_key=None,
+        owner_account=None,
+        active_account=None,
         password=None,
         additional_owner_keys=[],
         additional_active_keys=[],
@@ -249,6 +258,11 @@ class BitShares(AbstractGrapheneChain):
         " Generate new keys from password"
         from bitsharesbase.account import PasswordKey, PublicKey
 
+        owner_key_authority = []
+        active_key_authority = []
+        owner_accounts_authority = []
+        active_accounts_authority = []
+
         if password:
             active_key = PasswordKey(account_name, password, role="active")
             owner_key = PasswordKey(account_name, password, role="owner")
@@ -261,32 +275,36 @@ class BitShares(AbstractGrapheneChain):
             memo_privkey = memo_key.get_private_key()
             # store private keys
             if storekeys:
-                # self.wallet.addPrivateKey(str(owner_privkey))
-                self.wallet.addPrivateKey(str(active_privkey))
-                self.wallet.addPrivateKey(str(memo_privkey))
+                self._store_keys(active_privkey, memo_privkey)
+            owner_key_authority = [[format(owner_pubkey, self.prefix), 1]]
+            active_key_authority = [[format(active_pubkey, self.prefix), 1]]
+            memo = format(memo_pubkey, self.prefix)
         elif owner_key and active_key and memo_key:
             active_pubkey = PublicKey(active_key, prefix=self.prefix)
             owner_pubkey = PublicKey(owner_key, prefix=self.prefix)
             memo_pubkey = PublicKey(memo_key, prefix=self.prefix)
+            owner_key_authority = [[format(owner_pubkey, self.prefix), 1]]
+            active_key_authority = [[format(active_pubkey, self.prefix), 1]]
+            memo = format(memo_pubkey, self.prefix)
+        elif owner_account and active_account and memo_key:
+            memo_pubkey = PublicKey(memo_key, prefix=self.prefix)
+            memo = format(memo_pubkey, self.prefix)
+            owner_account = Account(owner_account, blockchain_instance=self)
+            active_account = Account(active_account, blockchain_instance=self)
+            owner_accounts_authority = [[owner_account["id"], 1]]
+            active_accounts_authority = [[active_account["id"], 1]]
         else:
             raise ValueError(
-                "Call incomplete! Provide either a password or public keys!"
+                "Call incomplete! Provide either a password, owner/active public keys or owner/active accounts + memo key!"
             )
-        owner = format(owner_pubkey, self.prefix)
-        active = format(active_pubkey, self.prefix)
-        memo = format(memo_pubkey, self.prefix)
-
-        owner_key_authority = [[owner, 1]]
-        active_key_authority = [[active, 1]]
-        owner_accounts_authority = []
-        active_accounts_authority = []
 
         # additional authorities
         for k in additional_owner_keys:
+            PublicKey(k, prefix=self.prefix)
             owner_key_authority.append([k, 1])
         for k in additional_active_keys:
+            PublicKey(k, prefix=self.prefix)
             active_key_authority.append([k, 1])
-
         for k in additional_owner_accounts:
             addaccount = Account(k, blockchain_instance=self)
             owner_accounts_authority.append([addaccount["id"], 1])
@@ -303,7 +321,7 @@ class BitShares(AbstractGrapheneChain):
             "fee": {"amount": 0, "asset_id": "1.3.0"},
             "registrar": registrar["id"],
             "referrer": referrer["id"],
-            "referrer_percent": referrer_percent * 100,
+            "referrer_percent": int(referrer_percent * 100),
             "name": account_name,
             "owner": {
                 "account_auths": owner_accounts_authority,
@@ -546,6 +564,7 @@ class BitShares(AbstractGrapheneChain):
                 "account": account["id"],
                 "new_options": account["options"],
                 "extensions": {},
+                "prefix": self.prefix,
             }
         )
         return self.finalizeOp(op, account["name"], "active", **kwargs)
