@@ -2,7 +2,7 @@
 pytest
 pytest-mock
 coverage
-mock
+mock==2.0.0
 
 # Code style
 flake8
