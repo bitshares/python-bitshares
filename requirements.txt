@@ -3,5 +3,5 @@ pycryptodome
 websockets
 appdirs
 Events
-scrypt
+scrypt==0.8.13
 pyyaml
