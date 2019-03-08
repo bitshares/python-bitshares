@@ -1,6 +1,6 @@
 # Unit testing
 pytest
-pytest-mock
+pytest-mock==1.10.1
 coverage
 mock
 
