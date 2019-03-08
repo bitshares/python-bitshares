@@ -4,4 +4,4 @@ websockets
 appdirs
 Events
 scrypt
-pyyaml
+pyyaml==3.13
