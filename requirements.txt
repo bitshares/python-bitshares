@@ -1,5 +1,5 @@
 graphenelib>=1.1.11
-pycryptodome
+pycryptodome==3.7.3
 websockets
 appdirs
 Events
