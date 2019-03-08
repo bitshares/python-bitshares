@@ -3,5 +3,5 @@ pycryptodome==3.7.3
 websockets==7.0
 appdirs==1.4.3
 Events==0.3
-scrypt
+scrypt==0.8.13
 pyyaml
