@@ -1,5 +1,5 @@
 # Unit testing
-pytest
+pytest==4.3.0
 pytest-mock
 coverage
 mock
