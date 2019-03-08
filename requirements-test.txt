@@ -5,7 +5,7 @@ coverage
 mock
 
 # Code style
-flake8
+flake8==3.7.7
 # black
 isort
 pre-commit
