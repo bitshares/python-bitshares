@@ -8,4 +8,4 @@ mock
 flake8
 # black
 isort
-pre-commit
+pre-commit==1.14.4
