@@ -1,6 +1,6 @@
 graphenelib>=1.1.11
 pycryptodome==3.7.3
-websockets
+websockets==7.0
 appdirs
 Events
 scrypt
