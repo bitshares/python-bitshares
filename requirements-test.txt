@@ -1,7 +1,7 @@
 # Unit testing
 pytest
 pytest-mock
-coverage
+coverage==4.5.3
 mock
 
 # Code style
