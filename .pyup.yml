@@ -2,6 +2,7 @@
 # see https://pyup.io/docs/configuration/ for all available options
 
 update: all
+branch: develop
 
 # update schedule
 # default: empty
