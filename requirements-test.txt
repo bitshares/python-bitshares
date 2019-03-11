@@ -7,5 +7,5 @@ mock
 # Code style
 flake8
 # black
-isort
+isort==4.3.15
 pre-commit
