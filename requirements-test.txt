@@ -7,5 +7,5 @@ mock==2.0.0
 # Code style
 flake8==3.7.7
 # black
-isort==4.3.15
+isort==4.3.16
 pre-commit==1.14.4
