@@ -149,25 +149,29 @@ class Market(dict):
 
         ticker = self.blockchain.rpc.get_ticker(self["base"]["id"], self["quote"]["id"])
         data["baseVolume"] = Amount(
-            ticker["base_volume"], self["base"], blockchain_instance=self.blockchain
+            ticker["base_volume"] or 0.0,
+            self["base"],
+            blockchain_instance=self.blockchain,
         )
         data["quoteVolume"] = Amount(
-            ticker["quote_volume"], self["quote"], blockchain_instance=self.blockchain
+            ticker["quote_volume"] or 0.0,
+            self["quote"],
+            blockchain_instance=self.blockchain,
         )
         data["lowestAsk"] = Price(
-            ticker["lowest_ask"],
+            ticker["lowest_ask"] or 0.0,
             base=self["base"],
             quote=self["quote"],
             blockchain_instance=self.blockchain,
         )
         data["highestBid"] = Price(
-            ticker["highest_bid"],
+            ticker["highest_bid"] or 0.0,
             base=self["base"],
             quote=self["quote"],
             blockchain_instance=self.blockchain,
         )
         data["latest"] = Price(
-            ticker["latest"],
+            ticker["latest"] or 0.0,
             quote=self["quote"],
             base=self["base"],
             blockchain_instance=self.blockchain,
