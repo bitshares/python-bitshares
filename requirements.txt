@@ -4,4 +4,4 @@ websockets==7.0
 appdirs==1.4.3
 Events==0.3
 scrypt==0.8.13
-pyyaml==3.13
+pyyaml==5.1
