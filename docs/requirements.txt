@@ -1,5 +1,5 @@
 graphenelib==1.1.12
 bitshares==0.3.0
 autobahn>=0.14
-pycryptodome==3.7.3
+pycryptodome==3.8.0
 appdirs==1.4.3
