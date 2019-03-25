@@ -1,5 +1,5 @@
 graphenelib>=1.1.11
-pycryptodome==3.7.3
+pycryptodome==3.8.0
 websockets==7.0
 appdirs==1.4.3
 Events==0.3
