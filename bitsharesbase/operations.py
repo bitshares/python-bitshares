@@ -911,6 +911,21 @@ class Bid_collateral(GrapheneObject):
         )
 
 
+class Balance_claim(GrapheneObject):
+    def detail(self, *args, **kwargs):
+        # New pygraphene interface!
+        prefix = kwargs.pop("prefix", default_prefix)
+        return OrderedDict(
+            [
+                ("fee", Asset(kwargs["fee"])),
+                ("deposit_to_account", ObjectId(kwargs["deposit_to_account"], "account")),
+                ("balance_to_claim", ObjectId(kwargs["balance_to_claim"], "balance")),
+                ("balance_owner_key", PublicKey(kwargs["balance_owner_key"], prefix=prefix)),
+                ("total_claimed", Asset(kwargs["total_claimed"])),
+            ]
+        )
+
+
 class Asset_settle(GrapheneObject):
     def detail(self, *args, **kwargs):
         # New pygraphene interface!
