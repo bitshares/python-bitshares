@@ -538,4 +538,4 @@ class Asset(GrapheneAsset):
                 "extensions": [],
             }
         )
-        return self.exbet.finalizeOp(op, self["issuer"], "active", **kwargs)
+        return self.blockchain.finalizeOp(op, self["issuer"], "active", **kwargs)
