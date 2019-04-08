@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import re
 
 from grapheneapi.exceptions import RPCError
@@ -47,4 +48,11 @@ class AccountCouldntBeFoundException(Exception):
 
 
 class InvalidAccountNameException(Exception):
+    pass
+
+
+class UnknownNetworkException(Exception):
+    """ Thrown when we don't recognize the chain id
+    """
+
     pass
