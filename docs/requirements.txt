@@ -1,4 +1,4 @@
-graphenelib==1.1.12
+graphenelib==1.1.14
 bitshares==0.3.0
 autobahn>=0.14
 pycryptodome==3.8.0
