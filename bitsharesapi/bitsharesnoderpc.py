@@ -36,7 +36,9 @@ class BitSharesNodeRPC(Api):
         for k, v in known_chains.items():
             if v["chain_id"] == chain_id:
                 return v
-        raise exceptions.UnknownNetworkException("Connecting to unknown network!")
+        raise exceptions.UnknownNetworkException(
+            "Connecting to unknown network (chain_id: {})!".format(props["chain_id"])
+        )
 
     def get_account(self, name, **kwargs):
         """ Get full account details from account name or id
