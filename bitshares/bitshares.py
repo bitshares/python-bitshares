@@ -1214,7 +1214,9 @@ class BitShares(AbstractGrapheneChain):
                 smartcoin (default: False)
             :param float market_fee_percent: (optional) Charge market fee (0-100)
                 (default: 0)
-            :param float max_market_fee: (optional) Max market fee (default: 100000000)
+            :param float max_market_fee: (optional) Absolute amount of max
+                market fee, value of this option should be a whole number (default:
+                100000000)
             :param dict permissions: (optional) Asset permissions
             :param dict flags: (optional) Enabled asset flags
             :param list whitelist_authorities: (optional) List of accounts that
