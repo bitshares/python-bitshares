@@ -505,7 +505,7 @@ class Market(dict):
 
         tx = self.blockchain.finalizeOp(order, account["name"], "active", **kwargs)
 
-        if returnOrderId:
+        if returnOrderId and tx.get("operation_results"):
             tx["orderid"] = tx["operation_results"][0][1]
             self.blockchain.blocking = prevblocking
 

@@ -55,7 +55,8 @@ class Asset(GrapheneAsset):
         from .amount import Amount
 
         return Amount(
-            {"amount": self["options"]["max_market_fee"], "asset_id": self["id"]}
+            {"amount": self["options"]["max_market_fee"], "asset_id": self["id"]},
+            blockchain_instance=self.blockchain,
         )
 
     @property
@@ -222,10 +223,12 @@ class Asset(GrapheneAsset):
             {
                 "flags": flags_int,
                 "whitelist_authorities": [
-                    Account(a)["id"] for a in whitelist_authorities
+                    Account(a, blockchain_instance=self.blockchain)["id"]
+                    for a in whitelist_authorities
                 ],
                 "blacklist_authorities": [
-                    Account(a)["id"] for a in blacklist_authorities
+                    Account(a, blockchain_instance=self.blockchain)["id"]
+                    for a in blacklist_authorities
                 ],
                 "whitelist_markets": [Asset(a)["id"] for a in whitelist_markets],
                 "blacklist_markets": [Asset(a)["id"] for a in blacklist_markets],
@@ -330,11 +333,17 @@ class Asset(GrapheneAsset):
         options = self["options"]
         if type == "whitelist":
             options["whitelist_authorities"].extend(
-                [Account(a)["id"] for a in authorities]
+                [
+                    Account(a, blockchain_instance=self.blockchain)["id"]
+                    for a in authorities
+                ]
             )
         if type == "blacklist":
             options["blacklist_authorities"].extend(
-                [Account(a)["id"] for a in authorities]
+                [
+                    Account(a, blockchain_instance=self.blockchain)["id"]
+                    for a in authorities
+                ]
             )
         op = operations.Asset_update(
             **{
@@ -360,10 +369,14 @@ class Asset(GrapheneAsset):
         options = self["options"]
         if type == "whitelist":
             for a in authorities:
-                options["whitelist_authorities"].remove(Account(a)["id"])
+                options["whitelist_authorities"].remove(
+                    Account(a, blockchain_instance=self.blockchain)["id"]
+                )
         if type == "blacklist":
             for a in authorities:
-                options["blacklist_authorities"].remove(Account(a)["id"])
+                options["blacklist_authorities"].remove(
+                    Account(a, blockchain_instance=self.blockchain)["id"]
+                )
         op = operations.Asset_update(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -396,9 +409,19 @@ class Asset(GrapheneAsset):
             ), "whitelist feature not enabled"
 
         if type == "whitelist":
-            options["whitelist_markets"].extend([Asset(a)["id"] for a in authorities])
+            options["whitelist_markets"].extend(
+                [
+                    Asset(a, blockchain_instance=self.blockchain)["id"]
+                    for a in authorities
+                ]
+            )
         if type == "blacklist":
-            options["blacklist_markets"].extend([Asset(a)["id"] for a in authorities])
+            options["blacklist_markets"].extend(
+                [
+                    Asset(a, blockchain_instance=self.blockchain)["id"]
+                    for a in authorities
+                ]
+            )
         op = operations.Asset_update(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -422,10 +445,14 @@ class Asset(GrapheneAsset):
         options = self["options"]
         if type == "whitelist":
             for a in authorities:
-                options["whitelist_markets"].remove(Asset(a)["id"])
+                options["whitelist_markets"].remove(
+                    Asset(a, blockchain_instance=self.blockchain)["id"]
+                )
         if type == "blacklist":
             for a in authorities:
-                options["blacklist_markets"].remove(Asset(a)["id"])
+                options["blacklist_markets"].remove(
+                    Asset(a, blockchain_instance=self.blockchain)["id"]
+                )
         op = operations.Asset_update(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -481,7 +508,10 @@ class Asset(GrapheneAsset):
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 "issuer": self["issuer"],
                 "asset_to_update": self["id"],
-                "new_feed_producers": [Account(a)["id"] for a in producers],
+                "new_feed_producers": [
+                    Account(a, blockchain_instance=self.blockchain)["id"]
+                    for a in producers
+                ],
                 "extensions": [],
             }
         )
@@ -495,7 +525,7 @@ class Asset(GrapheneAsset):
         """
         from .account import Account
 
-        new_issuer = Account(new_issuer)
+        new_issuer = Account(new_issuer, blockchain_instance=self.blockchain)
         op = operations.Asset_update_issuer(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -517,9 +547,11 @@ class Asset(GrapheneAsset):
         from .memo import Memo
         from .account import Account
 
-        to = Account(to)
+        to = Account(to, blockchain_instance=self.blockchain)
         account = Account(self["issuer"])
-        memoObj = Memo(from_account=account, to_account=to, blockchain_instance=self)
+        memoObj = Memo(
+            from_account=account, to_account=to, blockchain_instance=self.blockchain
+        )
 
         # append operation
         op = operations.Asset_issue(
@@ -538,4 +570,4 @@ class Asset(GrapheneAsset):
                 "extensions": [],
             }
         )
-        return self.exbet.finalizeOp(op, self["issuer"], "active", **kwargs)
+        return self.blockchain.finalizeOp(op, self["issuer"], "active", **kwargs)

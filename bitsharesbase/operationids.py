@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #: Operation ids
 ops = [
     "transfer",
@@ -65,3 +66,18 @@ def getOperationNameForId(i):
         if int(operations[key]) is int(i):
             return key
     return "Unknown Operation ID %d" % i
+
+
+def getOperationName(id: str):
+    """ This method returns the name representation of an operation given
+        its value as used in the API
+    """
+    if isinstance(id, str):
+        # Some graphene chains (e.g. steem) do not encode the
+        # operation_type as id but in its string form
+        assert id in operations.keys(), "Unknown operation {}".format(id)
+        return id
+    elif isinstance(id, int):
+        return getOperationNameForId(id)
+    else:
+        raise ValueError
