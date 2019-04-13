@@ -1163,7 +1163,7 @@ class BitShares(AbstractGrapheneChain):
         is_bitasset=False,
         is_prediction_market=False,
         market_fee_percent=0,
-        max_market_fee=100000000,
+        max_market_fee=None,
         permissions={
             "charge_market_fee": True,
             "white_list": True,
@@ -1216,7 +1216,7 @@ class BitShares(AbstractGrapheneChain):
                 (default: 0)
             :param float max_market_fee: (optional) Absolute amount of max
                 market fee, value of this option should be a whole number (default:
-                100000000)
+                same as max_supply)
             :param dict permissions: (optional) Asset permissions
             :param dict flags: (optional) Enabled asset flags
             :param list whitelist_authorities: (optional) List of accounts that
@@ -1254,6 +1254,9 @@ class BitShares(AbstractGrapheneChain):
         # Transform permissions and flags into bitmask
         permissions_int = toint(permissions)
         flags_int = toint(flags)
+
+        if not max_market_fee:
+            max_market_fee = max_supply
 
         op = operations.Asset_create(
             **{
