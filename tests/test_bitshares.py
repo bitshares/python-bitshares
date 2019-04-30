@@ -4,9 +4,11 @@ import unittest
 import random
 from pprint import pprint
 from bitshares import BitShares
+from bitshares.account import Account
 from bitsharesbase.operationids import getOperationNameForId
 from bitshares.amount import Amount
 from bitsharesbase.account import PrivateKey
+from bitsharesbase.asset_permissions import todict
 from bitshares.instance import set_shared_bitshares_instance
 from .fixtures import fixture_data, bitshares
 
@@ -119,6 +121,80 @@ class Testcases(unittest.TestCase):
         self.assertEqual(
             op["referrer_percent"],
             33 * 100)
+
+    def test_create_asset(self):
+        symbol = "FOOBAR"
+        precision = 7
+        max_supply = 100000
+        description = "Test asset"
+        is_bitasset = True
+        market_fee_percent = 0.1
+        max_market_fee = 10
+        blacklist_authorities = ["init1"]
+        blacklist_authorities_ids = [Account(a)["id"] for a in blacklist_authorities]
+        blacklist_markets = ["BTS"]
+        blacklist_markets_ids = ["1.3.0"]
+        permissions = {
+            "charge_market_fee": True,
+            "white_list": True,
+            "override_authority": True,
+            "transfer_restricted": True,
+            "disable_force_settle": True,
+            "global_settle": True,
+            "disable_confidential": True,
+            "witness_fed_asset": True,
+            "committee_fed_asset": True,
+        }
+        flags = {
+            "charge_market_fee": False,
+            "white_list": False,
+            "override_authority": False,
+            "transfer_restricted": False,
+            "disable_force_settle": False,
+            "global_settle": False,
+            "disable_confidential": False,
+            "witness_fed_asset": False,
+            "committee_fed_asset": False,
+        }
+        tx = bitshares.create_asset(
+            symbol,
+            precision,
+            max_supply,
+            market_fee_percent=market_fee_percent,
+            max_market_fee=max_market_fee,
+            description=description,
+            is_bitasset=is_bitasset,
+            blacklist_authorities=blacklist_authorities,
+            blacklist_markets=blacklist_markets,
+            permissions=permissions,
+            flags=flags,
+        )
+        self.assertEqual(getOperationNameForId(tx["operations"][0][0]), "asset_create")
+        op = tx["operations"][0][1]
+        self.assertEqual(op["issuer"], "1.2.100")
+        self.assertEqual(op["symbol"], symbol)
+        self.assertEqual(op["precision"], precision)
+        self.assertEqual(
+            op["common_options"]["max_supply"], int(max_supply * 10 ** precision)
+        )
+        self.assertEqual(
+            op["common_options"]["market_fee_percent"], int(market_fee_percent * 100)
+        )
+        self.assertEqual(
+            op["common_options"]["max_market_fee"],
+            int(max_market_fee * 10 ** precision),
+        )
+        self.assertEqual(op["common_options"]["description"], description)
+        self.assertEqual(
+            op["common_options"]["blacklist_authorities"], blacklist_authorities_ids
+        )
+        self.assertEqual(
+            op["common_options"]["blacklist_markets"], blacklist_markets_ids
+        )
+        self.assertEqual(
+            todict(op["common_options"]["issuer_permissions"]), permissions
+        )
+        self.assertEqual(todict(op["common_options"]["flags"]), flags)
 
     def test_weight_threshold(self):
 

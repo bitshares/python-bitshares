@@ -147,7 +147,7 @@ class Asset_create(GrapheneObject):
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
-            if "bitasset_opts" in kwargs:
+            if kwargs.get("bitasset_opts"):
                 bitasset_opts = Optional(BitAssetOptions(kwargs["bitasset_opts"]))
             else:
                 bitasset_opts = Optional(None)
