@@ -106,7 +106,13 @@ class Order(Price):
         if len(args) == 1 and isinstance(args[0], str):
             """ Load from id
             """
-            order = self.blockchain.rpc.get_objects([args[0]])[0]
+            # Avoid reinitialization of blockchain_instance
+            # Workaround for https://github.com/bitshares/python-bitshares/issues/234
+            instance = kwargs.get('blockchain_instance') or kwargs.get('bitshares_instance')
+            if instance:
+                order = instance.rpc.get_objects([args[0]])[0]
+            else:
+                order = self.blockchain.rpc.get_objects([args[0]])[0]
             if order:
                 Price.__init__(
                     self, order["sell_price"], blockchain_instance=self.blockchain
