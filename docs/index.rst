@@ -49,6 +49,7 @@ General
    quickstart
    tutorials
    configuration
+   faq
    contribute
    support
 
