@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from grapheneapi.aio.api import Api as Aio_Api
 
+from bitsharesbase.chains import known_chains
+
 from ..bitsharesnoderpc import Api as Sync_Api
+from .. import exceptions
 
 
 class Api(Aio_Api, Sync_Api):
@@ -10,11 +13,12 @@ class Api(Aio_Api, Sync_Api):
 
 
 class BitSharesNodeRPC(Api):
-    async def get_network(self):
+    def get_network(self):
         """ Identify the connected network. This call returns a
             dictionary with keys chain_id, core_symbol and prefix
         """
-        props = await self.get_chain_properties()
+        # Rely on cached chain properties!
+        props = self.get_cached_chain_properties()
         chain_id = props["chain_id"]
         for k, v in known_chains.items():
             if v["chain_id"] == chain_id:
