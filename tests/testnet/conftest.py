@@ -8,6 +8,9 @@ import random
 
 from bitshares import BitShares
 from bitshares.instance import set_shared_bitshares_instance
+from bitshares.genesisbalance import GenesisBalance
+from bitshares.asset import Asset
+
 from bitsharesbase.chains import known_chains
 
 # Note: chain_id is generated from genesis.json, every time it's changes you need to get new chain_id from
@@ -86,7 +89,7 @@ def bitshares_testnet(session_id, unused_port, docker_manager):
 
 
 @pytest.fixture(scope="session")
-def bitshares(bitshares_testnet, private_keys):
+def bitshares_instance(bitshares_testnet, private_keys):
     """ Initialize BitShares instance connected to a local testnet
     """
     bitshares = BitShares(
@@ -95,9 +98,52 @@ def bitshares(bitshares_testnet, private_keys):
         num_retries=-1,
     )
     # Shared instance allows to avoid any bugs when bitshares_instance is not passed explicitly when instantiating
-    # objects
+    # objects. Todo: remove this
     set_shared_bitshares_instance(bitshares)
-    # Todo: show chain params when connectiong to unknown network
-    # https://github.com/bitshares/python-bitshares/issues/221
 
     return bitshares
+
+
+@pytest.fixture(scope="session")
+def claim_balance(bitshares_instance, default_account):
+    """ Transfer balance from genesis into actual account
+    """
+    genesis_balance = GenesisBalance("1.15.0", bitshares_instance=bitshares_instance)
+    genesis_balance.claim(account=default_account)
+
+
+@pytest.fixture(scope="session")
+def bitshares(bitshares_instance, claim_balance):
+    """ Prepare the testnet and return BitShares instance
+    """
+    return bitshares_instance
+
+
+@pytest.fixture(scope="session")
+def create_asset(bitshares, default_account):
+    """ Create a new asset
+    """
+
+    def _create_asset(asset, precision):
+        max_supply = (
+            1000000000000000 / 10 ** precision if precision > 0 else 1000000000000000
+        )
+        bitshares.create_asset(asset, precision, max_supply, account=default_account)
+
+    return _create_asset
+
+
+@pytest.fixture(scope="session")
+def issue_asset(bitshares):
+    """ Issue asset shares to specified account
+
+        :param str asset: asset symbol to issue
+        :param float amount: amount to issue
+        :param str to: account name to receive new shares
+    """
+
+    def _issue_asset(asset, amount, to):
+        asset = Asset(asset, bitshares_instance=bitshares)
+        asset.issue(amount, to)
+
+    return _issue_asset

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+import json
 from graphenecommon.aio.asset import Asset as GrapheneAsset
 
+from bitsharesbase import operations
 from bitsharesbase.asset_permissions import (
     asset_permissions,
     force_flag,
@@ -10,7 +12,7 @@ from bitsharesbase.asset_permissions import (
 
 from .instance import BlockchainInstance
 from ..asset import Asset as SyncAsset
-from ..amount import Amount
+from .amount import Amount
 
 
 @BlockchainInstance.inject
@@ -30,65 +32,65 @@ class Asset(GrapheneAsset, SyncAsset):
         self.type_id = 3
 
     @property
-    def max_market_fee(self):
-        from .amount import Amount
+    async def max_market_fee(self):
 
-        return Amount(
+        return await Amount(
             {"amount": self["options"]["max_market_fee"], "asset_id": self["id"]},
             blockchain_instance=self.blockchain,
         )
 
     @property
-    def feeds(self):
+    async def feeds(self):
         from .price import PriceFeed
 
-        self.ensure_full()
+        await self.ensure_full()
         if not self.is_bitasset:
             return
         r = []
         for feed in self["bitasset_data"]["feeds"]:
-            r.append(PriceFeed(feed, blockchain_instance=self.blockchain))
+            r.append(await PriceFeed(feed, blockchain_instance=self.blockchain))
         return r
 
     @property
-    def feed(self):
+    async def feed(self):
         from .price import PriceFeed
 
         assert self.is_bitasset
-        self.ensure_full()
-        return PriceFeed(
+        await self.ensure_full()
+        return await PriceFeed(
             self["bitasset_data"]["current_feed"], blockchain_instance=self.blockchain
         )
 
     @property
-    def calls(self):
-        return self.get_call_orders(10)
+    async def calls(self):
+        return await self.get_call_orders(10)
 
-    def get_call_orders(self, limit=100):
+    async def get_call_orders(self, limit=100):
         from .price import Price
         from .account import Account
-        from .amount import Amount
 
         assert limit <= 100
         assert self.is_bitasset
-        self.ensure_full()
+        await self.ensure_full()
         r = list()
         bitasset = self["bitasset_data"]
-        settlement_price = Price(
+        settlement_price = await Price(
             bitasset["current_feed"]["settlement_price"],
             blockchain_instance=self.blockchain,
         )
-        ret = self.blockchain.rpc.get_call_orders(self["id"], limit)
+        ret = await self.blockchain.rpc.get_call_orders(self["id"], limit)
         for call in ret[:limit]:
-            call_price = Price(call["call_price"], blockchain_instance=self.blockchain)
-            collateral_amount = Amount(
+            call_price = await Price(
+                call["call_price"], blockchain_instance=self.blockchain
+            )
+            collateral_amount = await Amount(
                 {
                     "amount": call["collateral"],
                     "asset_id": call["call_price"]["base"]["asset_id"],
                 },
                 blockchain_instance=self.blockchain,
             )
-            debt_amount = Amount(
+            debt_amount = await Amount(
                 {
                     "amount": call["debt"],
                     "asset_id": call["call_price"]["quote"]["asset_id"],
@@ -97,7 +99,7 @@ class Asset(GrapheneAsset, SyncAsset):
             )
             r.append(
                 {
-                    "account": Account(
+                    "account": await Account(
                         call["borrower"], lazy=True, blockchain_instance=self.blockchain
                     ),
                     "collateral": collateral_amount,
@@ -114,25 +116,24 @@ class Asset(GrapheneAsset, SyncAsset):
         return r
 
     @property
-    def settlements(self):
-        return self.get_settle_orders(10)
+    async def settlements(self):
+        return await self.get_settle_orders(10)
 
-    def get_settle_orders(self, limit=100):
+    async def get_settle_orders(self, limit=100):
         from .account import Account
-        from .amount import Amount
         from .utils import formatTimeString
 
         assert limit <= 100
         assert self.is_bitasset
         r = list()
-        ret = self.blockchain.rpc.get_settle_orders(self["id"], limit)
+        ret = await self.blockchain.rpc.get_settle_orders(self["id"], limit)
         for settle in ret[:limit]:
             r.append(
                 {
-                    "account": Account(
+                    "account": await Account(
                         settle["owner"], lazy=True, blockchain_instance=self.blockchain
                     ),
-                    "amount": Amount(
+                    "amount": await Amount(
                         settle["balance"], blockchain_instance=self.blockchain
                     ),
                     "date": formatTimeString(settle["settlement_date"]),
@@ -140,12 +141,12 @@ class Asset(GrapheneAsset, SyncAsset):
             )
         return r
 
-    def halt(self):
+    async def halt(self):
         """ Halt this asset from being moved or traded
         """
         from .account import Account
 
-        nullaccount = Account(
+        nullaccount = await Account(
             "null-account",  # We set the null-account
             blockchain_instance=self.blockchain,
         )
@@ -171,9 +172,9 @@ class Asset(GrapheneAsset, SyncAsset):
                 "extensions": [],
             }
         )
-        return self.blockchain.finalizeOp(op, self["issuer"], "active")
+        return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def release(
+    async def release(
         self,
         whitelist_authorities=[],
         blacklist_authorities=[],
@@ -202,15 +203,15 @@ class Asset(GrapheneAsset, SyncAsset):
             {
                 "flags": flags_int,
                 "whitelist_authorities": [
-                    Account(a, blockchain_instance=self.blockchain)["id"]
+                    await Account(a, blockchain_instance=self.blockchain)["id"]
                     for a in whitelist_authorities
                 ],
                 "blacklist_authorities": [
-                    Account(a, blockchain_instance=self.blockchain)["id"]
+                    await Account(a, blockchain_instance=self.blockchain)["id"]
                     for a in blacklist_authorities
                 ],
-                "whitelist_markets": [Asset(a)["id"] for a in whitelist_markets],
-                "blacklist_markets": [Asset(a)["id"] for a in blacklist_markets],
+                "whitelist_markets": [await Asset(a)["id"] for a in whitelist_markets],
+                "blacklist_markets": [await Asset(a)["id"] for a in blacklist_markets],
             }
         )
         op = operations.Asset_update(
@@ -222,9 +223,9 @@ class Asset(GrapheneAsset, SyncAsset):
                 "extensions": [],
             }
         )
-        return self.blockchain.finalizeOp(op, self["issuer"], "active")
+        return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def setoptions(self, flags):
+    async def setoptions(self, flags):
         """ Enable a certain flag.
 
             Flags:
@@ -241,38 +242,24 @@ class Asset(GrapheneAsset, SyncAsset):
 
             :param dict flag: dictionary of flags and boolean
         """
-        assert set(flags.keys()).issubset(asset_permissions.keys()), "unknown flag"
+        op = super().setoptions(flags, return_op=True)
+        return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-        options = self["options"]
-        test_permissions(options["issuer_permissions"], flags)
-        flags_int = force_flag(options["flags"], flags)
-        options.update({"flags": flags_int})
-        op = operations.Asset_update(
-            **{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "issuer": self["issuer"],
-                "asset_to_update": self["id"],
-                "new_options": options,
-                "extensions": [],
-            }
-        )
-        return self.blockchain.finalizeOp(op, self["issuer"], "active")
-
-    def enableflag(self, flag):
+    async def enableflag(self, flag):
         """ Enable a certain flag.
 
             :param str flag: Flag name
         """
-        return self.setoptions({flag: True})
+        return await self.setoptions({flag: True})
 
-    def disableflag(self, flag):
+    async def disableflag(self, flag):
         """ Enable a certain flag.
 
             :param str flag: Flag name
         """
-        return self.setoptions({flag: False})
+        return await self.setoptions({flag: False})
 
-    def seize(self, from_account, to_account, amount):
+    async def seize(self, *args):
         """ Seize amount from an account and send to another
 
             ... note:: This requires the ``override_authority`` to be
@@ -282,22 +269,8 @@ class Asset(GrapheneAsset, SyncAsset):
             :param bitshares.account.Account to_account: To this account
             :param bitshares.amount.Amount amount: Amount to seize
         """
-
-        options = self["options"]
-        if not (options["flags"] & asset_permissions["override_authority"]):
-            raise Exception("Insufficient Permissions/flags for seizure!")
-
-        op = operations.Override_transfer(
-            **{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "issuer": self["issuer"],
-                "from": from_account["id"],
-                "to": to_account["id"],
-                "amount": amount.json(),
-                "extensions": [],
-            }
-        )
-        return self.blockchain.finalizeOp(op, self["issuer"], "active")
+        op = super().seize(*args, return_op=True)
+        return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def add_authorities(self, type, authorities=[]):
         """ Add authorities to an assets white/black list
