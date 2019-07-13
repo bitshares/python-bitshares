@@ -12,7 +12,6 @@ from bitsharesbase.asset_permissions import (
 
 from .instance import BlockchainInstance
 from ..asset import Asset as SyncAsset
-from .amount import Amount
 
 
 @BlockchainInstance.inject
@@ -33,6 +32,8 @@ class Asset(GrapheneAsset, SyncAsset):
 
     @property
     async def max_market_fee(self):
+
+        from .amount import Amount
 
         return await Amount(
             {"amount": self["options"]["max_market_fee"], "asset_id": self["id"]},
@@ -68,6 +69,7 @@ class Asset(GrapheneAsset, SyncAsset):
     async def get_call_orders(self, limit=100):
         from .price import Price
         from .account import Account
+        from .amount import Amount
 
         assert limit <= 100
         assert self.is_bitasset
@@ -121,6 +123,7 @@ class Asset(GrapheneAsset, SyncAsset):
 
     async def get_settle_orders(self, limit=100):
         from .account import Account
+        from .amount import Amount
         from .utils import formatTimeString
 
         assert limit <= 100
