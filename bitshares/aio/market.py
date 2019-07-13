@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
+from asyncinit import asyncinit
 
 from bitsharesbase import operations
 
@@ -12,6 +13,7 @@ from ..utils import assets_from_string, formatTime, formatTimeFromNow
 from ..market import Market as SyncMarket
 
 
+@asyncinit
 @BlockchainInstance.inject
 class Market(SyncMarket):
     """ This class allows to easily access Markets on the blockchain for trading, etc.
