@@ -275,7 +275,7 @@ class Asset(GrapheneAsset, SyncAsset):
         op = super().seize(*args, return_op=True)
         return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def add_authorities(self, type, authorities=[]):
+    async def add_authorities(self, type, authorities=[]):
         """ Add authorities to an assets white/black list
 
             :param str type: ``blacklist`` or ``whitelist``
@@ -286,20 +286,16 @@ class Asset(GrapheneAsset, SyncAsset):
         from .account import Account
 
         options = self["options"]
+        accounts = [
+            await Account(a, blockchain_instance=self.blockchain) for a in authorities
+        ]
+        ids = [a["id"] for a in accounts]
+
         if type == "whitelist":
-            options["whitelist_authorities"].extend(
-                [
-                    Account(a, blockchain_instance=self.blockchain)["id"]
-                    for a in authorities
-                ]
-            )
+            options["whitelist_authorities"].extend(ids)
         if type == "blacklist":
-            options["blacklist_authorities"].extend(
-                [
-                    Account(a, blockchain_instance=self.blockchain)["id"]
-                    for a in authorities
-                ]
-            )
+            options["blacklist_authorities"].extend(ids)
+
         op = operations.Asset_update(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -309,9 +305,9 @@ class Asset(GrapheneAsset, SyncAsset):
                 "extensions": [],
             }
         )
-        return self.blockchain.finalizeOp(op, self["issuer"], "active")
+        return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def remove_authorities(self, type, authorities=[]):
+    async def remove_authorities(self, type, authorities=[]):
         """ Remove authorities from an assets white/black list
 
             :param str type: ``blacklist`` or ``whitelist``
@@ -322,16 +318,15 @@ class Asset(GrapheneAsset, SyncAsset):
         from .account import Account
 
         options = self["options"]
+
         if type == "whitelist":
             for a in authorities:
-                options["whitelist_authorities"].remove(
-                    Account(a, blockchain_instance=self.blockchain)["id"]
-                )
+                account = await Account(a, blockchain_instance=self.blockchain)
+                options["whitelist_authorities"].remove(account["id"])
         if type == "blacklist":
             for a in authorities:
-                options["blacklist_authorities"].remove(
-                    Account(a, blockchain_instance=self.blockchain)["id"]
-                )
+                account = await Account(a, blockchain_instance=self.blockchain)
+                options["blacklist_authorities"].remove(account["id"])
         op = operations.Asset_update(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -341,9 +336,9 @@ class Asset(GrapheneAsset, SyncAsset):
                 "extensions": [],
             }
         )
-        return self.blockchain.finalizeOp(op, self["issuer"], "active")
+        return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def add_markets(self, type, authorities=[], force_enable=True):
+    async def add_markets(self, type, authorities=[], force_enable=True):
         """ Add markets to an assets white/black list
 
             :param str type: ``blacklist`` or ``whitelist``
@@ -363,20 +358,15 @@ class Asset(GrapheneAsset, SyncAsset):
                 options["flags"], ["white_list"]
             ), "whitelist feature not enabled"
 
+        assets = [
+            await Asset(a, blockchain_instance=self.blockchain) for a in authorities
+        ]
+        ids = [asset["id"] for asset in assets]
+
         if type == "whitelist":
-            options["whitelist_markets"].extend(
-                [
-                    Asset(a, blockchain_instance=self.blockchain)["id"]
-                    for a in authorities
-                ]
-            )
+            options["whitelist_markets"].extend(ids)
         if type == "blacklist":
-            options["blacklist_markets"].extend(
-                [
-                    Asset(a, blockchain_instance=self.blockchain)["id"]
-                    for a in authorities
-                ]
-            )
+            options["blacklist_markets"].extend(ids)
         op = operations.Asset_update(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -386,9 +376,9 @@ class Asset(GrapheneAsset, SyncAsset):
                 "extensions": [],
             }
         )
-        return self.blockchain.finalizeOp(op, self["issuer"], "active")
+        return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def remove_markets(self, type, authorities=[]):
+    async def remove_markets(self, type, authorities=[]):
         """ Remove markets from an assets white/black list
 
             :param str type: ``blacklist`` or ``whitelist``
@@ -400,14 +390,12 @@ class Asset(GrapheneAsset, SyncAsset):
         options = self["options"]
         if type == "whitelist":
             for a in authorities:
-                options["whitelist_markets"].remove(
-                    Asset(a, blockchain_instance=self.blockchain)["id"]
-                )
+                asset = await Asset(a, blockchain_instance=self.blockchain)
+                options["whitelist_markets"].remove(asset["id"])
         if type == "blacklist":
             for a in authorities:
-                options["blacklist_markets"].remove(
-                    Asset(a, blockchain_instance=self.blockchain)["id"]
-                )
+                asset = await Asset(a, blockchain_instance=self.blockchain)
+                options["blacklist_markets"].remove(asset["id"])
         op = operations.Asset_update(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -417,39 +405,19 @@ class Asset(GrapheneAsset, SyncAsset):
                 "extensions": [],
             }
         )
-        return self.blockchain.finalizeOp(op, self["issuer"], "active")
+        return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def set_market_fee(self, percentage_fee, max_market_fee):
+    async def set_market_fee(self, percentage_fee, max_market_fee):
         """ Set trading percentage fee
 
             :param float percentage_fee: Percentage of fee
             :param bitshares.amount.Amount max_market_fee: Max Fee
 
         """
-        assert percentage_fee <= 100 and percentage_fee > 0
-        flags = {"charge_market_fee": percentage_fee > 0}
-        options = self["options"]
-        test_permissions(options["issuer_permissions"], flags)
-        flags_int = force_flag(options["flags"], flags)
-        options.update(
-            {
-                "flags": flags_int,
-                "market_fee_percent": percentage_fee * 100,
-                "max_market_fee": int(max_market_fee),
-            }
-        )
-        op = operations.Asset_update(
-            **{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "issuer": self["issuer"],
-                "asset_to_update": self["id"],
-                "new_options": options,
-                "extensions": [],
-            }
-        )
-        return self.blockchain.finalizeOp(op, self["issuer"], "active")
+        op = super().set_market_fee(percentage_fee, max_market_fee, return_op=True)
+        return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def update_feed_producers(self, producers):
+    async def update_feed_producers(self, producers):
         """ Update bitasset feed producers
 
             :param list producers: List of accounts that are allowed to produce
@@ -458,21 +426,20 @@ class Asset(GrapheneAsset, SyncAsset):
         assert self.is_bitasset, "Asset needs to be a bitasset/market pegged asset"
         from .account import Account
 
+        accounts = [Account(a, blockchain_instance=self.blockchain) for a in producers]
+        ids = [a["id"] for a in accounts]
         op = operations.Asset_update_feed_producers(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
                 "issuer": self["issuer"],
                 "asset_to_update": self["id"],
-                "new_feed_producers": [
-                    Account(a, blockchain_instance=self.blockchain)["id"]
-                    for a in producers
-                ],
+                "new_feed_producers": ids,
                 "extensions": [],
             }
         )
-        return self.blockchain.finalizeOp(op, self["issuer"], "active")
+        return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def change_issuer(self, new_issuer, **kwargs):
+    async def change_issuer(self, new_issuer, **kwargs):
         """ Change asset issuer (needs signing with owner key!)
 
             :param str type: ``blacklist`` or ``whitelist``
@@ -480,7 +447,7 @@ class Asset(GrapheneAsset, SyncAsset):
         """
         from .account import Account
 
-        new_issuer = Account(new_issuer, blockchain_instance=self.blockchain)
+        new_issuer = await Account(new_issuer, blockchain_instance=self.blockchain)
         op = operations.Asset_update_issuer(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
@@ -490,9 +457,9 @@ class Asset(GrapheneAsset, SyncAsset):
                 "extensions": [],
             }
         )
-        return self.blockchain.finalizeOp(op, self["issuer"], "owner", **kwargs)
+        return await self.blockchain.finalizeOp(op, self["issuer"], "owner", **kwargs)
 
-    def issue(self, amount, to, memo=None, **kwargs):
+    async def issue(self, amount, to, memo=None, **kwargs):
         """ Issue new shares of an asset
 
             :param float amount: Amount to issue
@@ -502,9 +469,9 @@ class Asset(GrapheneAsset, SyncAsset):
         from .memo import Memo
         from .account import Account
 
-        to = Account(to, blockchain_instance=self.blockchain)
-        account = Account(self["issuer"], blockchain_instance=self.blockchain)
-        memoObj = Memo(
+        to = await Account(to, blockchain_instance=self.blockchain)
+        account = await Account(self["issuer"], blockchain_instance=self.blockchain)
+        memoObj = await Memo(
             from_account=account, to_account=to, blockchain_instance=self.blockchain
         )
 
@@ -525,4 +492,4 @@ class Asset(GrapheneAsset, SyncAsset):
                 "extensions": [],
             }
         )
-        return self.blockchain.finalizeOp(op, self["issuer"], "active", **kwargs)
+        return await self.blockchain.finalizeOp(op, self["issuer"], "active", **kwargs)
