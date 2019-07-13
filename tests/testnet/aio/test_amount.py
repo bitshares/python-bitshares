@@ -9,8 +9,8 @@ log.setLevel(logging.DEBUG)
 
 
 @pytest.mark.asyncio
-async def test_aio_amount(bitshares):
-    amount = await Amount("10 CNY", blockchain_instance=bitshares)
+async def test_aio_amount_init(bitshares, assets):
+    amount = await Amount("10 USD", blockchain_instance=bitshares)
     assert amount["amount"] == 10
-    copied = amount.copy()
+    copied = await amount.copy()
     assert amount["amount"] == copied["amount"]
