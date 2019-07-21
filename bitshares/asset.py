@@ -548,7 +548,7 @@ class Asset(GrapheneAsset):
         from .account import Account
 
         to = Account(to, blockchain_instance=self.blockchain)
-        account = Account(self["issuer"])
+        account = Account(self["issuer"], blockchain_instance=self.blockchain)
         memoObj = Memo(
             from_account=account, to_account=to, blockchain_instance=self.blockchain
         )
