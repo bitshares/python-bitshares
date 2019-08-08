@@ -926,6 +926,48 @@ class Testcases(unittest.TestCase):
         )
         self.doit(0)
 
+    def test_assert_a(self):
+        self.op = operations.Assert(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "fee_paying_account": "1.2.0",
+                "predicates": [],
+                "required_auths": [],
+                "extensions": [],
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c80457012400000000000000000000000000"
+            "00011f2ee18d66da4314d7fa4d4cf5ad327e7c0504ace99e5d"
+            "757b214107a955e363fe7a371aaa16101741163ce64d0c0ee0"
+            "5c799b94467dbf15322d0f6bd7c5ed29a4"
+        )
+        self.doit(0)
+
+    def test_assert_b(self):
+        self.op = operations.Assert(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "fee_paying_account": "1.2.4",
+                "predicates": [
+                    [0, {"account_id": "1.2.2414", "name": "foobar"}],
+                    [1, {"asset_id": "1.3.2424", "symbol": "USD"}],
+                    [2, {"id": "0260c042666dd23b6c380f55be2eaae0086f643f"}],
+                ],
+                "required_auths": ["1.2.124124"],
+                "extensions": [],
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c804570124000000000000000000040300ee"
+            "1206666f6f62617201f81203555344020260c042666dd23b6c"
+            "380f55be2eaae0086f643f01dcc9070000011f3820288751dd"
+            "38b422c3930cb5b703e8f3af06aa50fde004eb46a480846dd4"
+            "4e01b0d4893934225befa42e1077ab2d71fc13fff5c6e0697c"
+            "f103aec7dc8e7496"
+        )
+        self.doit(0)
+
     def compareConstructedTX(self):
         self.maxDiff = None
         self.op = operations.Call_order_update(
