@@ -7,6 +7,7 @@ from .amount import Amount
 from .asset import Asset
 from .instance import BlockchainInstance
 from .price import Price
+from .market import Market
 
 
 class Dex(BlockchainInstance):
@@ -104,17 +105,23 @@ class Dex(BlockchainInstance):
             )
             if not settlement_price:
                 continue
-            call_price = Price(debt["call_price"], blockchain_instance=self.blockchain)
             collateral_amount = Amount({"amount": debt["collateral"], "asset": base})
             debt_amount = Amount({"amount": debt["debt"], "asset": quote})
+            # call_price = Price(debt["call_price"], blockchain_instance=self.blockchain)
+            call_price = collateral_amount / (
+                debt_amount
+                * (bitasset["current_feed"]["maintenance_collateral_ratio"] / 1000)
+            )
+            latest = Market("{}:{}".format(base["symbol"], quote["symbol"])).ticker()[
+                "latest"
+            ]
+            print(latest)
             r[quote["symbol"]] = {
                 "collateral": collateral_amount,
                 "debt": debt_amount,
                 "call_price": call_price,
                 "settlement_price": settlement_price,
-                "ratio": float(collateral_amount)
-                / float(debt_amount)
-                * float(settlement_price),
+                "ratio": float(collateral_amount) / float(debt_amount) * float(latest),
             }
         return r
 
