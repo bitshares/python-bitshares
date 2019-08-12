@@ -115,7 +115,6 @@ class Dex(BlockchainInstance):
             latest = Market("{}:{}".format(base["symbol"], quote["symbol"])).ticker()[
                 "latest"
             ]
-            print(latest)
             r[quote["symbol"]] = {
                 "collateral": collateral_amount,
                 "debt": debt_amount,
