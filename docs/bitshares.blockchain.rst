@@ -2,7 +2,7 @@ bitshares.blockchain module
 ===========================
 
 .. automodule:: bitshares.blockchain
-    :members:
-    :undoc-members:
-    :show-inheritance:
-    :inherited-members:
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :inherited-members:

@@ -1,7 +1,7 @@
-bitshares.asset module
-======================
+bitshares.htlc module
+=====================
 
-.. automodule:: bitshares.asset
+.. automodule:: bitshares.htlc
    :members:
    :undoc-members:
    :show-inheritance:

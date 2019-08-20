@@ -1,0 +1,14 @@
+[
+  {
+    "description": "pyup updates",
+    "type": "patch"
+  },
+  {
+    "description": "Released with semversioner",
+    "type": "patch"
+  },
+  {
+    "description": "New docs",
+    "type": "patch"
+  }
+]

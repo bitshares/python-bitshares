@@ -108,7 +108,9 @@ class Order(Price):
             """
             order = self.blockchain.rpc.get_objects([args[0]])[0]
             if order:
-                Price.__init__(self, order["sell_price"])
+                Price.__init__(
+                    self, order["sell_price"], blockchain_instance=self.blockchain
+                )
                 self.update(order)
                 self["deleted"] = False
             else:

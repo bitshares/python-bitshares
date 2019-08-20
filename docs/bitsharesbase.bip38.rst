@@ -2,7 +2,7 @@ bitsharesbase.bip38 module
 ==========================
 
 .. automodule:: bitsharesbase.bip38
-    :members:
-    :undoc-members:
-    :show-inheritance:
-    :inherited-members:
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :inherited-members:

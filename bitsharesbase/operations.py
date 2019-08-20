@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-import json
-
 from collections import OrderedDict
-from binascii import hexlify, unhexlify
 
 from graphenebase.types import (
     Array,
@@ -16,7 +13,6 @@ from graphenebase.types import (
     Optional,
     PointInTime,
     Set,
-    Signature,
     Static_variant,
     String,
     Uint8,
@@ -25,7 +21,6 @@ from graphenebase.types import (
     Uint64,
     Varint32,
     Void,
-    VoteId,
     Ripemd160,
     Sha1,
     Sha256,
@@ -46,9 +41,9 @@ from .objects import (
     Permission,
     Price,
     PriceFeed,
-    SpecialAuthority,
     Worker_initializer,
     isArgsThisClass,
+    AssertPredicate,
 )
 from .operationids import operations
 
@@ -147,7 +142,7 @@ class Asset_create(GrapheneObject):
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
-            if "bitasset_opts" in kwargs:
+            if kwargs.get("bitasset_opts"):
                 bitasset_opts = Optional(BitAssetOptions(kwargs["bitasset_opts"]))
             else:
                 bitasset_opts = Optional(None)
@@ -918,9 +913,15 @@ class Balance_claim(GrapheneObject):
         return OrderedDict(
             [
                 ("fee", Asset(kwargs["fee"])),
-                ("deposit_to_account", ObjectId(kwargs["deposit_to_account"], "account")),
+                (
+                    "deposit_to_account",
+                    ObjectId(kwargs["deposit_to_account"], "account"),
+                ),
                 ("balance_to_claim", ObjectId(kwargs["balance_to_claim"], "balance")),
-                ("balance_owner_key", PublicKey(kwargs["balance_owner_key"], prefix=prefix)),
+                (
+                    "balance_owner_key",
+                    PublicKey(kwargs["balance_owner_key"], prefix=prefix),
+                ),
                 ("total_claimed", Asset(kwargs["total_claimed"])),
             ]
         )
@@ -1007,6 +1008,38 @@ class Asset_update_issuer(GrapheneObject):
                             ObjectId(kwargs["asset_to_update"], "asset"),
                         ),
                         ("new_issuer", ObjectId(kwargs["new_issuer"], "account")),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Assert(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        (
+                            "fee_paying_account",
+                            ObjectId(kwargs["fee_paying_account"], "account"),
+                        ),
+                        (
+                            "predicates",
+                            Array([AssertPredicate(o) for o in kwargs["predicates"]]),
+                        ),
+                        (
+                            "required_auths",
+                            Array(
+                                [
+                                    ObjectId(o, "account")
+                                    for o in kwargs["required_auths"]
+                                ]
+                            ),
+                        ),
                         ("extensions", Set([])),
                     ]
                 )

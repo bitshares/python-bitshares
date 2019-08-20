@@ -1,7 +1,7 @@
-bitsharesbase.operations module
+bitshares.genesisbalance module
 ===============================
 
-.. automodule:: bitsharesbase.operations
+.. automodule:: bitshares.genesisbalance
    :members:
    :undoc-members:
    :show-inheritance:
