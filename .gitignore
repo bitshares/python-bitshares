@@ -63,5 +63,3 @@ target/
 *.swp
 .ropeproject/
 */.ropeproject/
-
-.changes/next-release
