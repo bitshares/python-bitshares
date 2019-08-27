@@ -1,20 +1,18 @@
 # -*- coding: utf-8 -*-
 import json
-import logging
-import ssl
-import threading
 import time
+import signal
+import logging
+import threading
+import websocket
 import traceback
 
 from itertools import cycle
-from threading import Thread
-
-import websocket
-
 from events import Events
-
 from .exceptions import NumRetriesReached
 
+# This restores the default Ctrl+C signal handler, which just kills the process
+signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 log = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.DEBUG)
@@ -322,7 +320,7 @@ class BitSharesWebsocket(Events):
 
             except KeyboardInterrupt:
                 self.ws.keep_running = False
-                raise
+                return
 
             except Exception as e:
                 log.critical("{}\n\n{}".format(str(e), traceback.format_exc()))
