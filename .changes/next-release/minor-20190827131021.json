@@ -1,4 +1,0 @@
-{
-  "type": "minor",
-  "description": "Ensure we can invert Order and FilledOrder too"
-}
