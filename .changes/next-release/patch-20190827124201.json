@@ -1,0 +1,4 @@
+{
+  "type": "patch",
+  "description": "Make Notify terminate on CTRL-C"
+}
