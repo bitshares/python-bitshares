@@ -10,12 +10,6 @@ log = logging.getLogger("grapheneapi")
 log.setLevel(logging.DEBUG)
 
 
-@pytest.fixture(scope="session")
-async def assets(create_asset):
-    await create_asset("USD", 3)
-    await create_asset("GOLD", 3)
-
-
 @pytest.mark.asyncio
 async def test_price_init(bitshares, assets):
     await Price("0.315 USD/TEST")
