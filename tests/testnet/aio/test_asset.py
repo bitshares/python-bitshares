@@ -9,7 +9,7 @@ log.setLevel(logging.DEBUG)
 
 
 @pytest.mark.asyncio
-async def test_aio_asset(bitshares):
+async def test_aio_asset_init(bitshares):
     asset = await Asset("TEST", blockchain_instance=bitshares)
     assert asset["id"] == "1.3.0"
     copy = asset.copy()
