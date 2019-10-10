@@ -86,6 +86,8 @@ async def issue_asset(bitshares):
 
 @pytest.fixture(scope="session")
 async def assets(create_asset, issue_asset, default_account):
+    """ Create some assets to use in tests
+    """
     await create_asset("USD", 3)
     await create_asset("GOLD", 3)
     await issue_asset("USD", 1000, default_account)
