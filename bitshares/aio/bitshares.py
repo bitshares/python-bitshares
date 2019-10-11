@@ -187,3 +187,36 @@ class BitShares(AbstractGrapheneChain):
         )
 
         return await self.finalizeOp(op, account, "active", **kwargs)
+
+    async def cancel(self, orderNumbers, account=None, **kwargs):
+        """ Cancels an order you have placed in a given market. Requires
+            only the "orderNumbers". An order number takes the form
+            ``1.7.xxx``.
+
+            :param str orderNumbers: The Order Object ide of the form
+                ``1.7.xxxx``
+        """
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = await Account(account, full=False, blockchain_instance=self)
+
+        if not isinstance(orderNumbers, (list, set, tuple)):
+            orderNumbers = {orderNumbers}
+
+        op = []
+        for order in orderNumbers:
+            op.append(
+                operations.Limit_order_cancel(
+                    **{
+                        "fee": {"amount": 0, "asset_id": "1.3.0"},
+                        "fee_paying_account": account["id"],
+                        "order": order,
+                        "extensions": [],
+                        "prefix": self.prefix,
+                    }
+                )
+            )
+        return await self.finalizeOp(op, account["name"], "active", **kwargs)
