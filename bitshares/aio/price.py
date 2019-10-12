@@ -106,7 +106,8 @@ class Order(Price):
         if len(args) == 1 and isinstance(args[0], str):
             """ Load from id
             """
-            order = await self.blockchain.rpc.get_objects([args[0]])[0]
+            result = await self.blockchain.rpc.get_objects([args[0]])
+            order = result[0]
             if order:
                 await Price.__init__(
                     self, order["sell_price"], blockchain_instance=self.blockchain
@@ -169,27 +170,13 @@ class Order(Price):
             if "type" in self and self["type"]:
                 t += "%s " % str(self["type"])
             if "for_sale" in self and self["for_sale"]:
-                t += "{} for {} ".format(
-                    str(
-                        float(self["for_sale"]) / self["price"],
-                        self["quote"]["asset"]["symbol"],
-                    ),
+                t += "{} {} for {} ".format(
+                    float(self["for_sale"]) / self["price"],
+                    self["quote"]["asset"]["symbol"],
                     str(self["for_sale"]),
                 )
             elif "amount_to_sell" in self:
-                # TODO
-                t += "{} for {} ".format(
-                    str(
-                        Amount(
-                            self["amount_to_sell"], blockchain_instance=self.blockchain
-                        )
-                    ),
-                    str(
-                        Amount(
-                            self["min_to_receive"], blockchain_instance=self.blockchain
-                        )
-                    ),
-                )
+                t += "{} for {} ".format(self["amount_to_sell"], self["min_to_receive"])
             elif "quote" in self and "base" in self:
                 t += "{} for {} ".format(self["quote"], self["base"])
             return t + "@ " + Price.__repr__(self)
@@ -254,7 +241,7 @@ class FilledOrder(Price):
         if "quote" in self and self["quote"]:
             t += "%s " % str(self["quote"])
         if "base" in self and self["base"]:
-            t += "%s " % str(self["base"])
+            t += "for %s " % str(self["base"])
         return t + "@ " + Price.__repr__(self)
 
     __str__ = __repr__
@@ -273,7 +260,7 @@ class UpdateCallOrder(Price):
         await BlockchainInstance.__init__(self, **kwargs)
 
         if isinstance(call, dict) and "call_price" in call:
-            Price.__init__(
+            await Price.__init__(
                 self,
                 call.get("call_price"),
                 base=call["call_price"].get("base"),
