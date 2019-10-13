@@ -2,9 +2,6 @@
 Support and Questions
 *********************
 
-We have currently not setup a distinct channel for development around
-pybitshares. However, many of the contributors are frequently reading
-through these channels:
-
-* https://bitsharestalk.org
-* https://t.me/BitSharesDEX
+* https://t.me/pybitshares - dedicated channel
+* https://bitsharestalk.org - BitShares forum
+* https://t.me/BitSharesDEX - general telegram channel

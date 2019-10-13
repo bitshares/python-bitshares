@@ -22,6 +22,7 @@ from graphenebase.types import (
     Varint32,
     Void,
     VoteId,
+    Ripemd160,
 )
 
 from .account import PublicKey
@@ -30,6 +31,8 @@ from .operationids import operations
 
 
 default_prefix = "BTS"
+
+BlockId = Ripemd160
 
 
 class Operation(GrapheneOperation):
@@ -319,7 +322,7 @@ class Worker_initializer(Static_variant):
         elif id == 2:
             data = Burn_worker_initializer(o[1])
         else:
-            raise Exception("Unknown Worker_initializer")
+            raise ValueError("Unknown {}".format(self.__class__.name))
         super().__init__(data, id)
 
 
@@ -415,3 +418,46 @@ class CallOrderExtension(Extension):
             return None
 
     sorted_options = [("target_collateral_ratio", targetCollateralRatio)]
+
+
+class AssertPredicate(Static_variant):
+    def __init__(self, o):
+        class Account_name_eq_lit_predicate(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                kwargs.update(args[0])
+                super().__init__(
+                    OrderedDict(
+                        [
+                            ("account_id", ObjectId(kwargs["account_id"], "account")),
+                            ("name", String(kwargs["name"])),
+                        ]
+                    )
+                )
+
+        class Asset_symbol_eq_lit_predicate(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                kwargs.update(args[0])
+                super().__init__(
+                    OrderedDict(
+                        [
+                            ("asset_id", ObjectId(kwargs["asset_id"], "asset")),
+                            ("symbol", String(kwargs["symbol"])),
+                        ]
+                    )
+                )
+
+        class Block_id_predicate(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                kwargs.update(args[0])
+                super().__init__(OrderedDict([("id", BlockId(kwargs["id"]))]))
+
+        id = o[0]
+        if id == 0:
+            data = Account_name_eq_lit_predicate(o[1])
+        elif id == 1:
+            data = Asset_symbol_eq_lit_predicate(o[1])
+        elif id == 2:
+            data = Block_id_predicate(o[1])
+        else:
+            raise ValueError("Unknown {}".format(self.__class__.name))
+        super().__init__(data, id)

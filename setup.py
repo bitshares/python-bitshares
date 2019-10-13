@@ -13,15 +13,15 @@ except LookupError:
     ascii = codecs.lookup("ascii")
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == "mbcs"))
 
-VERSION = "0.3.2"
+__version__ = "0.4.0"
 URL = "https://github.com/bitshares/python-bitshares"
 
 setup(
     name="bitshares",
-    version=VERSION,
+    version=__version__,
     description="Python library for bitshares",
     long_description=open("README.md").read(),
-    download_url="{}/tarball/{}".format(URL, VERSION),
+    download_url="{}/tarball/{}".format(URL, __version__),
     author="Fabian Schuh",
     author_email="Fabian@chainsquad.com",
     maintainer="Fabian Schuh",

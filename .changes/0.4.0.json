@@ -1,0 +1,10 @@
+[
+  {
+    "description": "Make Notify terminate on CTRL-C",
+    "type": "patch"
+  },
+  {
+    "description": "Ensure we can invert Order and FilledOrder too",
+    "type": "minor"
+  }
+]
