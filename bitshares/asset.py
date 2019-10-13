@@ -223,6 +223,8 @@ class Asset(GrapheneAsset):
         from .account import Account
 
         flags = {"white_list": False, "transfer_restricted": False}
+        if whitelist_authorities or blacklist_authorities:
+            flags["white_list"] = True
         options = self["options"]
         test_permissions(options["issuer_permissions"], flags)
         flags_int = force_flag(options["flags"], flags)
