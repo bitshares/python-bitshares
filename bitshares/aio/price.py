@@ -257,7 +257,7 @@ class UpdateCallOrder(Price):
 
     async def __init__(self, call, **kwargs):
 
-        await BlockchainInstance.__init__(self, **kwargs)
+        BlockchainInstance.__init__(self, **kwargs)
 
         if isinstance(call, dict) and "call_price" in call:
             await Price.__init__(
