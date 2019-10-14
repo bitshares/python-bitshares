@@ -27,9 +27,6 @@ class Asset(GrapheneAsset, SyncAsset):
         except Exception:
             self["description"] = self["options"]["description"]
 
-    def define_classes(self):
-        self.type_id = 3
-
     @property
     async def max_market_fee(self):
 
@@ -199,6 +196,8 @@ class Asset(GrapheneAsset, SyncAsset):
         from .account import Account
 
         flags = {"white_list": False, "transfer_restricted": False}
+        if whitelist_authorities or blacklist_authorities:
+            flags["white_list"] = True
         options = self["options"]
         test_permissions(options["issuer_permissions"], flags)
         flags_int = force_flag(options["flags"], flags)
@@ -206,15 +205,19 @@ class Asset(GrapheneAsset, SyncAsset):
             {
                 "flags": flags_int,
                 "whitelist_authorities": [
-                    await Account(a, blockchain_instance=self.blockchain)["id"]
+                    (await Account(a, blockchain_instance=self.blockchain))["id"]
                     for a in whitelist_authorities
                 ],
                 "blacklist_authorities": [
-                    await Account(a, blockchain_instance=self.blockchain)["id"]
+                    (await Account(a, blockchain_instance=self.blockchain))["id"]
                     for a in blacklist_authorities
                 ],
-                "whitelist_markets": [await Asset(a)["id"] for a in whitelist_markets],
-                "blacklist_markets": [await Asset(a)["id"] for a in blacklist_markets],
+                "whitelist_markets": [
+                    (await Asset(a))["id"] for a in whitelist_markets
+                ],
+                "blacklist_markets": [
+                    (await Asset(a))["id"] for a in blacklist_markets
+                ],
             }
         )
         op = operations.Asset_update(
@@ -285,7 +288,12 @@ class Asset(GrapheneAsset, SyncAsset):
         assert isinstance(authorities, (list, set))
         from .account import Account
 
+        flags = {"white_list": True}
         options = self["options"]
+        test_permissions(options["issuer_permissions"], flags)
+        flags_int = force_flag(options["flags"], flags)
+        options.update({"flags": flags_int})
+
         accounts = [
             await Account(a, blockchain_instance=self.blockchain) for a in authorities
         ]
