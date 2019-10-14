@@ -6,6 +6,7 @@ from .account import Account
 from .amount import Amount
 from .asset import Asset
 from .price import Price
+from .market import Market
 from ..dex import Dex as SyncDex
 
 
@@ -101,21 +102,23 @@ class Dex(SyncDex):
             )
             if not settlement_price:
                 continue
-            call_price = await Price(
-                debt["call_price"], blockchain_instance=self.blockchain
-            )
             collateral_amount = await Amount(
                 {"amount": debt["collateral"], "asset": base}
             )
             debt_amount = await Amount({"amount": debt["debt"], "asset": quote})
+            call_price = collateral_amount / (
+                debt_amount
+                * (bitasset["current_feed"]["maintenance_collateral_ratio"] / 1000)
+            )
+            latest = (
+                await Market("{}:{}".format(base["symbol"], quote["symbol"])).ticker()
+            )["latest"]
             r[quote["symbol"]] = {
                 "collateral": collateral_amount,
                 "debt": debt_amount,
                 "call_price": call_price,
                 "settlement_price": settlement_price,
-                "ratio": float(collateral_amount)
-                / float(debt_amount)
-                * float(settlement_price),
+                "ratio": float(collateral_amount) / float(debt_amount) * float(latest),
             }
         return r
 

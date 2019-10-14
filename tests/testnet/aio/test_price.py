@@ -71,7 +71,7 @@ async def test_order_repr(bitshares, default_account, market):
 
 
 @pytest.mark.asyncio
-async def test_filled_order_repr(default_account, do_trade):
+async def test_filled_order(default_account, do_trade):
     # Sleep needed to wait for order appear in history
     await asyncio.sleep(5)
     a = await Account(default_account)
@@ -80,4 +80,7 @@ async def test_filled_order_repr(default_account, do_trade):
     assert len(trades) > 0
     trade = trades[0]["op"][1]
     order = await FilledOrder(trade)
+    # Test __repr__
     log.info("Order from history: {}".format(order))
+    # Test copy()
+    await order.copy()

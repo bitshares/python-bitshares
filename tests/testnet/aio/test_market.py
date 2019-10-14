@@ -6,7 +6,7 @@ import asyncio
 from bitshares.aio.asset import Asset
 from bitshares.aio.amount import Amount
 from bitshares.aio.account import Account
-from bitshares.aio.price import Price
+from bitshares.aio.price import Price, Order
 from bitshares.aio.market import Market
 
 log = logging.getLogger("grapheneapi")
@@ -74,6 +74,13 @@ async def test_orderbook(market, place_order):
     assert "bids" in orderbook
     assert "asks" in orderbook
     assert len(orderbook["bids"]) > 0
+
+
+@pytest.mark.asyncio
+async def test_get_limit_orders(market, place_order):
+    orderbook = await market.get_limit_orders()
+    assert len(orderbook) > 0
+    assert isinstance(orderbook[0], Order)
 
 
 @pytest.mark.xfail(reason="no trades returned by backend")

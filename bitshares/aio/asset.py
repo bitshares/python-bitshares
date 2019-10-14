@@ -67,6 +67,7 @@ class Asset(GrapheneAsset, SyncAsset):
         from .price import Price
         from .account import Account
         from .amount import Amount
+        from .market import Market
 
         assert limit <= 100
         assert self.is_bitasset
@@ -79,9 +80,6 @@ class Asset(GrapheneAsset, SyncAsset):
         )
         ret = await self.blockchain.rpc.get_call_orders(self["id"], limit)
         for call in ret[:limit]:
-            call_price = await Price(
-                call["call_price"], blockchain_instance=self.blockchain
-            )
             collateral_amount = await Amount(
                 {
                     "amount": call["collateral"],
@@ -96,6 +94,17 @@ class Asset(GrapheneAsset, SyncAsset):
                 },
                 blockchain_instance=self.blockchain,
             )
+            call_price = collateral_amount / (
+                debt_amount
+                * (bitasset["current_feed"]["maintenance_collateral_ratio"] / 1000)
+            )
+            latest = (
+                await Market(
+                    "{}:{}".format(
+                        bitasset["options"]["short_backing_asset"], self["symbol"]
+                    )
+                ).ticker()
+            )["latest"]
             r.append(
                 {
                     "account": await Account(
@@ -106,9 +115,7 @@ class Asset(GrapheneAsset, SyncAsset):
                     "call_price": call_price,
                     "settlement_price": settlement_price,
                     "ratio": (
-                        float(collateral_amount)
-                        / float(debt_amount)
-                        * float(settlement_price)
+                        float(collateral_amount) / float(debt_amount) * float(latest)
                     ),
                 }
             )

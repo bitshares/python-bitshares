@@ -121,7 +121,7 @@ class Order(Price):
                 self["base"] = None
                 self["price"] = None
                 self["seller"] = None
-        elif isinstance(args[0], dict) and "sell_price" in args[0]:
+        elif len(args) == 1 and isinstance(args[0], dict) and "sell_price" in args[0]:
             """ Load from object 1.7.xxx
             """
             # Take all the arguments with us
@@ -131,7 +131,8 @@ class Order(Price):
             )
 
         elif (
-            isinstance(args[0], dict)
+            len(args) == 1
+            and isinstance(args[0], dict)
             and "min_to_receive" in args[0]
             and "amount_to_sell" in args[0]
         ):
@@ -196,7 +197,13 @@ class FilledOrder(Price):
                   that shows when the order has been filled!
     """
 
+    async def copy(self):
+        return await self.__class__(
+            self.order, base=await self["base"].copy(), quote=await self["quote"].copy()
+        )
+
     async def __init__(self, order, **kwargs):
+        self.order = order
 
         if isinstance(order, dict) and "price" in order:
             await Price.__init__(

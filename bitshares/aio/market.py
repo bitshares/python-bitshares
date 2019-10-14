@@ -222,6 +222,9 @@ class Market(SyncMarket):
                 ``base``, ``quote`` and ``price``. From those you can
                 obtain the actual amounts for sale
 
+            .. note:: This method does order consolidation and hides some
+                details of individual orders!
+
         """
         orders = await self.blockchain.rpc.get_order_book(
             self["base"]["id"], self["quote"]["id"], limit
@@ -254,6 +257,32 @@ class Market(SyncMarket):
         ]
         data = {"asks": asks, "bids": bids}
         return data
+
+    async def get_limit_orders(self, limit=25):
+        """ Returns the list of limit orders for a given market.
+
+            :param int limit: Limit the amount of orders (default: 25)
+
+            Sample output:
+
+            .. code-block:: js
+
+                [0.003679 USD/BTS (1.9103 USD|519.29602 BTS),
+                0.003676 USD/BTS (299.9997 USD|81606.16394 BTS),
+                0.003665 USD/BTS (288.4618 USD|78706.21881 BTS),
+                0.003665 USD/BTS (3.5285 USD|962.74409 BTS),
+                0.003665 USD/BTS (72.5474 USD|19794.41299 BTS)],
+
+            .. note:: Each bid is an instance of
+                class:`bitshares.price.Order` and thus carries the keys
+                ``base``, ``quote`` and ``price``. From those you can
+                obtain the actual amounts for sale
+
+        """
+        orders = await self.blockchain.rpc.get_limit_orders(
+            self["base"]["id"], self["quote"]["id"], limit
+        )
+        return [await Order(x, blockchain_instance=self.blockchain) for x in orders]
 
     async def trades(self, limit=25, start=None, stop=None):
         """ Returns your trade history for a given market.
