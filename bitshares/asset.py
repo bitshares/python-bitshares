@@ -339,7 +339,12 @@ class Asset(GrapheneAsset):
         assert isinstance(authorities, (list, set))
         from .account import Account
 
+        flags = {"white_list": True}
         options = self["options"]
+        test_permissions(options["issuer_permissions"], flags)
+        flags_int = force_flag(options["flags"], flags)
+        options.update({"flags": flags_int})
+
         if type == "whitelist":
             options["whitelist_authorities"].extend(
                 [
