@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import pytest
+import random
+import string
 
 from bitshares.aio import BitShares
 from bitshares.aio.instance import set_shared_bitshares_instance
 from bitshares.aio.genesisbalance import GenesisBalance
 from bitshares.aio.asset import Asset
+from bitshares.exceptions import AssetDoesNotExistsException
 
 
 @pytest.fixture(scope="session")
@@ -91,3 +94,16 @@ async def assets(create_asset, issue_asset, default_account):
     await create_asset("USD", 3)
     await create_asset("GOLD", 3)
     await issue_asset("USD", 1000, default_account)
+
+
+@pytest.fixture(scope="session")
+async def unused_asset(bitshares):
+    async def func():
+        while True:
+            asset = "".join(random.choice(string.ascii_uppercase) for x in range(7))
+            try:
+                await Asset(asset, bitshares_instance=bitshares)
+            except AssetDoesNotExistsException:
+                return asset
+
+    return func
