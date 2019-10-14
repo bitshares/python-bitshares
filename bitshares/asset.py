@@ -254,7 +254,7 @@ class Asset(GrapheneAsset):
         )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def setoptions(self, flags):
+    def setoptions(self, flags, **kwargs):
         """ Enable a certain flag.
 
             Flags:
@@ -286,6 +286,8 @@ class Asset(GrapheneAsset):
                 "extensions": [],
             }
         )
+        if kwargs.get("return_op") is True:
+            return op
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def enableflag(self, flag):
@@ -302,7 +304,7 @@ class Asset(GrapheneAsset):
         """
         return self.setoptions({flag: False})
 
-    def seize(self, from_account, to_account, amount):
+    def seize(self, from_account, to_account, amount, **kwargs):
         """ Seize amount from an account and send to another
 
             ... note:: This requires the ``override_authority`` to be
@@ -327,6 +329,8 @@ class Asset(GrapheneAsset):
                 "extensions": [],
             }
         )
+        if kwargs.get("return_op") is True:
+            return op
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def add_authorities(self, type, authorities=[]):
@@ -478,7 +482,7 @@ class Asset(GrapheneAsset):
         )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def set_market_fee(self, percentage_fee, max_market_fee):
+    def set_market_fee(self, percentage_fee, max_market_fee, **kwargs):
         """ Set trading percentage fee
 
             :param float percentage_fee: Percentage of fee
@@ -506,6 +510,8 @@ class Asset(GrapheneAsset):
                 "extensions": [],
             }
         )
+        if kwargs.get("return_op") is True:
+            return op
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def update_feed_producers(self, producers):
