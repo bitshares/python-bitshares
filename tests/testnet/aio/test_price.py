@@ -65,8 +65,8 @@ async def test_order_repr(bitshares, default_account, market):
     log.info("Order from object 1.7.x: {}".format(order))
 
     # Load from an operation
-    ops = await market.buy(1, 1, account=default_account, return_op=True)
-    order = await Order(ops["operations"][0][1])
+    trx = await market.buy(1, 1, account=default_account)
+    order = await Order(trx["operations"][0][1])
     log.info("Order from an operation: {}".format(order))
 
 
