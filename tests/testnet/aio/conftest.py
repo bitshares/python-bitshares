@@ -8,7 +8,11 @@ from bitshares.aio import BitShares
 from bitshares.aio.instance import set_shared_bitshares_instance
 from bitshares.aio.genesisbalance import GenesisBalance
 from bitshares.aio.asset import Asset
-from bitshares.exceptions import AssetDoesNotExistsException
+from bitshares.aio.account import Account
+from bitshares.exceptions import (
+    AssetDoesNotExistsException,
+    AccountDoesNotExistsException,
+)
 
 
 @pytest.fixture(scope="session")
@@ -105,5 +109,22 @@ async def unused_asset(bitshares):
                 await Asset(asset, bitshares_instance=bitshares)
             except AssetDoesNotExistsException:
                 return asset
+
+    return func
+
+
+@pytest.fixture(scope="session")
+async def unused_account(bitshares):
+    """ Find unexistent account
+    """
+
+    async def func():
+        _range = 100000
+        while True:
+            account = "worker-{}".format(random.randint(1, _range))  # nosec
+            try:
+                await Account(account, bitshares_instance=bitshares)
+            except AccountDoesNotExistsException:
+                return account
 
     return func
