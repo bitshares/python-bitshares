@@ -63,6 +63,7 @@ async def test_update_memo_key(bitshares, default_account):
 async def test_approve_disapprove_witness(bitshares, default_account):
     witnesses = ["init1", "init2"]
     await bitshares.approvewitness(witnesses, account=default_account)
+    await asyncio.sleep(1.1)
     await bitshares.disapprovewitness(witnesses, account=default_account)
 
 
@@ -70,6 +71,7 @@ async def test_approve_disapprove_witness(bitshares, default_account):
 async def test_approve_disapprove_committee(bitshares, default_account):
     cm = ["init5", "init6"]
     await bitshares.approvecommittee(cm, account=default_account)
+    await asyncio.sleep(1.1)
     await bitshares.disapprovecommittee(cm, account=default_account)
 
 

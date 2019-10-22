@@ -39,6 +39,9 @@ async def bitshares_instance(bitshares_testnet, private_keys, event_loop):
     # Todo: show chain params when connectiong to unknown network
     # https://github.com/bitshares/python-bitshares/issues/221
 
+    # Wait for several blocks to be produced
+    await asyncio.sleep(5)
+
     yield bitshares
 
 
