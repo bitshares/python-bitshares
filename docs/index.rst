@@ -50,6 +50,7 @@ General
    tutorials
    configuration
    faq
+   classes
    contribute
    support
 
