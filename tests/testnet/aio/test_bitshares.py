@@ -3,6 +3,8 @@ import asyncio
 import pytest
 import logging
 
+from bitshares.aio.proposal import Proposals
+
 log = logging.getLogger("grapheneapi")
 log.setLevel(logging.DEBUG)
 
@@ -76,8 +78,41 @@ async def test_approve_disapprove_committee(bitshares, default_account):
 
 
 @pytest.mark.asyncio
-async def test_approve_disapprove_proposal(bitshares, default_account):
-    pass
-    # make proposal from acc A to do transfer B -> C
-    # approve from B
-    # disapprove from B
+async def test_approve_proposal(bitshares, default_account):
+    parent = bitshares.new_tx()
+    proposal = bitshares.new_proposal(parent=parent)
+    await bitshares.transfer(
+        "init1", 1, "TEST", append_to=proposal, account=default_account
+    )
+    await proposal.broadcast()
+    proposals = await Proposals(default_account)
+    assert len(proposals) == 1
+    await bitshares.approveproposal(proposals[0]["id"], account=default_account)
+
+
+@pytest.mark.asyncio
+async def test_disapprove_proposal(bitshares, default_account, unused_account):
+    # Create child account
+    account = await unused_account()
+    await bitshares.create_account(
+        account, referrer=default_account, registrar=default_account, password="test"
+    )
+    await bitshares.transfer(account, 100, "TEST", account=default_account)
+
+    # Grant child account access with 1/2 threshold
+    await bitshares.allow(account, weight=1, threshold=2, account=default_account)
+
+    # Create proposal
+    parent = bitshares.new_tx()
+    proposal = bitshares.new_proposal(parent=parent)
+    await bitshares.transfer(
+        "init1", 1, "TEST", append_to=proposal, account=default_account
+    )
+    await proposal.broadcast()
+    proposals = await Proposals(default_account)
+    assert len(proposals) == 1
+
+    # Approve proposal; 1/2 is not sufficient to completely approve
+    await bitshares.approveproposal(proposals[0]["id"], account=account)
+    # Revoke vote
+    await bitshares.disapproveproposal(proposals[0]["id"], account=account)
