@@ -950,7 +950,13 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
                 raise ValueError(
                     "CER must be manually provided because it relates to core asset '1.3.0'"
                 )
-            cer = await settlement_price.as_quote(symbol) * 0.95
+            cer = float(await settlement_price.as_quote(symbol)) * 0.95
+            cer = await Price(
+                cer,
+                quote=await Asset(symbol),
+                base=await Asset("1.3.0"),
+                blockchain_instance=self,
+            )
 
         op = operations.Asset_publish_feed(
             **{
@@ -958,8 +964,8 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
                 "publisher": account["id"],
                 "asset_id": asset["id"],
                 "feed": {
-                    "settlement_price": await settlement_price.as_base(symbol).json(),
-                    "core_exchange_rate": await cer.as_base(symbol).json(),
+                    "settlement_price": (await settlement_price.as_base(symbol)).json(),
+                    "core_exchange_rate": (await cer.as_base(symbol)).json(),
                     "maximum_short_squeeze_ratio": int(mssr * 10),
                     "maintenance_collateral_ratio": int(mcr * 10),
                 },
