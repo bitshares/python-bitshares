@@ -880,7 +880,7 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
 
         if not amount:
             obj = await Vesting(vesting_id, blockchain_instance=self)
-            amount = obj.claimable
+            amount = await obj.claimable
 
         op = operations.Vesting_balance_withdraw(
             **{
