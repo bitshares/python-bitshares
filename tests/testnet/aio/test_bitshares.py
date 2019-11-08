@@ -112,7 +112,7 @@ async def test_disapprove_proposal(bitshares, default_account, unused_account):
     proposals = await Proposals(default_account)
     assert len(proposals) == 1
 
-    # Approve proposal; 1/2 is not sufficient to completely approve
+    # Approve proposal; 1/2 is not sufficient to completely approve, so proposal remains active
     await bitshares.approveproposal(proposals[0]["id"], account=account)
     # Revoke vote
     await bitshares.disapproveproposal(proposals[0]["id"], account=account)
