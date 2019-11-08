@@ -22,7 +22,7 @@ from .transactionbuilder import ProposalBuilder, TransactionBuilder
 from .vesting import Vesting
 from .wallet import Wallet
 from .witness import Witness
-from ..worker import Worker
+from .worker import Worker
 from ..htlc import Htlc
 from ..bitshares import BitShares as SyncBitShares
 
@@ -1225,7 +1225,7 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
 
             **Required**
 
-            :param str name: Name of the worke
+            :param str name: Name of the worker
             :param bitshares.amount.Amount daily_pay: The amount to be paid
                 daily
             :param datetime end: Date/time of end of the worker
