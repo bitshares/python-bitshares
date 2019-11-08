@@ -67,12 +67,16 @@ async def create_asset(bitshares, default_account):
     """ Create a new asset
     """
 
-    async def _create_asset(asset, precision):
+    async def _create_asset(asset, precision, is_bitasset=False):
         max_supply = (
             1000000000000000 / 10 ** precision if precision > 0 else 1000000000000000
         )
         await bitshares.create_asset(
-            asset, precision, max_supply, account=default_account
+            asset,
+            precision,
+            max_supply,
+            is_bitasset=is_bitasset,
+            account=default_account,
         )
 
     return _create_asset
