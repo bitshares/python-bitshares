@@ -441,7 +441,9 @@ class Asset(GrapheneAsset, SyncAsset):
         assert self.is_bitasset, "Asset needs to be a bitasset/market pegged asset"
         from .account import Account
 
-        accounts = [Account(a, blockchain_instance=self.blockchain) for a in producers]
+        accounts = [
+            await Account(a, blockchain_instance=self.blockchain) for a in producers
+        ]
         ids = [a["id"] for a in accounts]
         op = operations.Asset_update_feed_producers(
             **{
