@@ -171,8 +171,9 @@ async def test_publish_price_feed(bitshares, default_account, bitasset):
 
 
 @pytest.mark.asyncio
-async def test_update_cer(bitshares, default_account):
-    pass
+async def test_update_cer(bitshares, default_account, bitasset):
+    price = await Price("1.2 CNY/TEST")
+    await bitshares.update_cer("CNY", price, account=default_account)
 
 
 @pytest.mark.asyncio

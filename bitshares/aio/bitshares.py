@@ -1003,7 +1003,7 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
             raise ValueError("CER must be defined against core asset '1.3.0'")
 
         options = asset["options"]
-        options.update({"core_exchange_rate": await cer.as_base(symbol).json()})
+        options.update({"core_exchange_rate": (await cer.as_base(symbol)).json()})
         op = operations.Asset_update(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
