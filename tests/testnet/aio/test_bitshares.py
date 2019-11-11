@@ -10,6 +10,7 @@ from bitshares.aio.account import Account
 from bitshares.aio.price import Price
 from bitshares.aio.proposal import Proposals
 from bitshares.aio.worker import Workers
+from bitshares.aio.dex import Dex
 
 log = logging.getLogger("grapheneapi")
 log.setLevel(logging.DEBUG)
@@ -23,10 +24,45 @@ async def testworker(bitshares, default_account):
 
 
 @pytest.fixture(scope="module")
-async def bitasset(create_asset, default_account):
-    await create_asset("CNY", 5, is_bitasset=True)
-    asset = await Asset("CNY")
-    await asset.update_feed_producers([default_account])
+async def base_bitasset(bitshares, unused_asset, default_account):
+    async def func():
+        bitasset_options = {
+            "feed_lifetime_sec": 86400,
+            "minimum_feeds": 1,
+            "force_settlement_delay_sec": 86400,
+            "force_settlement_offset_percent": 100,
+            "maximum_force_settlement_volume": 50,
+            "short_backing_asset": "1.3.0",
+            "extensions": [],
+        }
+        symbol = await unused_asset()
+        await bitshares.create_asset(
+            symbol, 5, 10000000000, is_bitasset=True, bitasset_options=bitasset_options
+        )
+        asset = await Asset(symbol)
+        await asset.update_feed_producers([default_account])
+        return asset
+
+    return func
+
+
+@pytest.fixture(scope="module")
+async def bitasset(base_bitasset):
+    return await base_bitasset()
+
+
+@pytest.fixture(scope="module")
+async def gs_bitasset(bitshares, default_account, base_bitasset):
+    asset = await base_bitasset()
+
+    price = await Price(10.0, base=asset, quote=await Asset("TEST"))
+    await bitshares.publish_price_feed(asset.symbol, price, account=default_account)
+    dex = Dex(blockchain_instance=bitshares)
+    to_borrow = await Amount(1000, asset)
+    await dex.borrow(to_borrow, collateral_ratio=2.1, account=default_account)
+    price = await Price(1.0, base=asset, quote=await Asset("TEST"))
+    # Trigger GS
+    await bitshares.publish_price_feed(asset.symbol, price, account=default_account)
     return asset
 
 
@@ -175,14 +211,14 @@ async def test_vesting_balance_withdraw(bitshares, default_account):
 
 @pytest.mark.asyncio
 async def test_publish_price_feed(bitshares, default_account, bitasset):
-    price = await Price("1.0 CNY/TEST")
-    await bitshares.publish_price_feed("CNY", price, account=default_account)
+    price = await Price(1.0, base=bitasset, quote=await Asset("TEST"))
+    await bitshares.publish_price_feed(bitasset.symbol, price, account=default_account)
 
 
 @pytest.mark.asyncio
 async def test_update_cer(bitshares, default_account, bitasset):
-    price = await Price("1.2 CNY/TEST")
-    await bitshares.update_cer("CNY", price, account=default_account)
+    price = await Price(1.2, base=bitasset, quote=await Asset("TEST"))
+    await bitshares.update_cer(bitasset.symbol, price, account=default_account)
 
 
 @pytest.mark.asyncio
@@ -198,7 +234,7 @@ async def test_reserve(bitshares, default_account):
 
 @pytest.mark.asyncio
 async def test_create_asset(bitshares, default_account, bitasset):
-    asset = await Asset("CNY")
+    asset = bitasset
     assert asset.is_bitasset
 
 
@@ -224,13 +260,25 @@ async def test_account_whitelist(bitshares, default_account):
 
 
 @pytest.mark.asyncio
-async def test_bid_collateral(bitshares, default_account):
-    pass
+async def test_bid_collateral(bitshares, default_account, gs_bitasset):
+    asset = gs_bitasset
+    additional_collateral = await Amount("1000 TEST")
+    debt_covered = await Amount(10, asset)
+    await bitshares.bid_collateral(
+        additional_collateral, debt_covered, account=default_account
+    )
 
 
 @pytest.mark.asyncio
-async def test_asset_settle(bitshares, default_account):
-    pass
+async def test_asset_settle(bitshares, default_account, bitasset):
+    asset = bitasset
+    price = await Price(10.0, base=asset, quote=await Asset("TEST"))
+    await bitshares.publish_price_feed(asset.symbol, price, account=default_account)
+    dex = Dex(blockchain_instance=bitshares)
+    to_borrow = await Amount(1000, asset)
+    await dex.borrow(to_borrow, collateral_ratio=2.1, account=default_account)
+    to_settle = await Amount(100, asset)
+    await bitshares.asset_settle(to_settle, account=default_account)
 
 
 @pytest.mark.asyncio
