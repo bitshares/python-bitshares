@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 from bitshares.aio.asset import Asset
 from bitshares.aio.amount import Amount
+from bitshares.aio.account import Account
 from bitshares.aio.price import Price
 from bitshares.aio.proposal import Proposals
 from bitshares.aio.worker import Workers
@@ -26,6 +27,20 @@ async def bitasset(create_asset, default_account):
     await create_asset("CNY", 5, is_bitasset=True)
     asset = await Asset("CNY")
     await asset.update_feed_producers([default_account])
+    return asset
+
+
+@pytest.fixture(scope="module")
+async def ltm_account(bitshares, default_account, unused_account):
+    account = await unused_account()
+    await bitshares.create_account(
+        account, referrer=default_account, registrar=default_account, password="test"
+    )
+    await bitshares.transfer(
+        account, 100000, "TEST", memo="xxx", account=default_account
+    )
+    await bitshares.upgrade_account(account=account)
+    return account
 
 
 @pytest.mark.asyncio
@@ -52,15 +67,9 @@ async def test_create_account(bitshares, default_account):
 
 
 @pytest.mark.asyncio
-async def test_upgrade_account(bitshares, default_account, unused_account):
-    account = await unused_account()
-    await bitshares.create_account(
-        account, referrer=default_account, registrar=default_account, password="test"
-    )
-    await bitshares.transfer(
-        account, 10000, "TEST", memo="xxx", account=default_account
-    )
-    await bitshares.upgrade_account(account=account)
+async def test_upgrade_account(ltm_account):
+    account = await Account(ltm_account)
+    assert account.is_ltm
 
 
 @pytest.mark.asyncio
@@ -178,12 +187,13 @@ async def test_update_cer(bitshares, default_account, bitasset):
 
 @pytest.mark.asyncio
 async def test_update_witness(bitshares, default_account):
-    pass
+    await bitshares.update_witness(default_account, url="https://foo.bar/")
 
 
 @pytest.mark.asyncio
 async def test_reserve(bitshares, default_account):
-    pass
+    amount = await Amount("10 TEST")
+    await bitshares.reserve(amount, account=default_account)
 
 
 @pytest.mark.asyncio
@@ -199,18 +209,18 @@ async def test_create_worker(testworker, default_account):
 
 
 @pytest.mark.asyncio
-async def test_fund_fee_pool(bitshares, default_account):
-    pass
+async def test_fund_fee_pool(bitshares, default_account, bitasset):
+    await bitshares.fund_fee_pool(bitasset.symbol, 100.0, account=default_account)
 
 
 @pytest.mark.asyncio
-async def test_create_committee_member(bitshares, default_account):
-    pass
+async def test_create_committee_member(bitshares, ltm_account):
+    await bitshares.create_committee_member(account=ltm_account)
 
 
 @pytest.mark.asyncio
 async def test_account_whitelist(bitshares, default_account):
-    pass
+    await bitshares.account_whitelist("init1", account=default_account)
 
 
 @pytest.mark.asyncio
