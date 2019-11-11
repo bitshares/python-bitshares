@@ -227,7 +227,7 @@ class Dex(SyncDex):
 
         # Verify that enough funds are available
         fundsNeeded = amount_of_collateral + float(
-            self.returnFees()["call_order_update"]["fee"]
+            (await self.returnFees())["call_order_update"]["fee"]
         )
         fundsHave = await account.balance(collateral_asset["symbol"]) or 0
         if fundsHave <= fundsNeeded:
