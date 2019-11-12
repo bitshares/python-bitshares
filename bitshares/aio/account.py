@@ -58,7 +58,7 @@ class Account(GrapheneAccount):
         await self.ensure_full()
         from .dex import Dex
 
-        dex = await Dex(blockchain_instance=self.blockchain)
+        dex = Dex(blockchain_instance=self.blockchain)
         return await dex.list_debt_positions(self)
 
     @property

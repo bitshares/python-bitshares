@@ -5,6 +5,8 @@ import logging
 
 from bitshares.aio.account import Account
 from bitshares.aio.market import Market
+from bitshares.aio.dex import Dex
+from bitshares.aio.amount import Amount
 
 log = logging.getLogger("grapheneapi")
 log.setLevel(logging.DEBUG)
@@ -26,10 +28,14 @@ async def account(default_account):
     return await Account(default_account)
 
 
-@pytest.mark.skip
 @pytest.mark.asyncio
-async def test_callpositions(account):
-    pass
+async def test_callpositions(bitshares, bitasset, account, default_account):
+    asset = bitasset
+    dex = Dex(blockchain_instance=bitshares)
+    to_borrow = await Amount(1000, asset)
+    await dex.borrow(to_borrow, collateral_ratio=2.1, account=default_account)
+    res = await account.callpositions
+    assert asset.symbol in res
 
 
 @pytest.mark.asyncio
