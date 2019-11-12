@@ -172,7 +172,7 @@ class Dex(BlockchainInstance):
 
             :param Amount delta: Delta amount of the debt (-10 means reduce
                 debt by 10, +10 means borrow another 10)
-                :param float new_collateral_ratio: collateral ratio to maintain
+            :param float new_collateral_ratio: collateral ratio to maintain
                 (optional, by default tries to maintain old ratio)
             :param float target_collateral_ratio: Tag the call order so that in
                 case of margin call, only enough debt is covered to get back to
@@ -270,7 +270,7 @@ class Dex(BlockchainInstance):
     ):
         """ Adjust the collataral ratio of a debt position
 
-            :param Asset amount: Amount to borrow (denoted in 'asset')
+            :param str symbol: Symbol to adjust collateral for
             :param float new_collateral_ratio: desired collateral ratio
             :param float target_collateral_ratio: Tag the call order so that in
                 case of margin call, only enough debt is covered to get back to
@@ -303,7 +303,7 @@ class Dex(BlockchainInstance):
         """ Borrow bitassets/smartcoins from the network by putting up
             collateral in a CFD at a given collateral ratio.
 
-            :param float amount: Amount to borrow (denoted in 'asset')
+            :param Amount amount: Amount to borrow (denoted in 'asset')
             :param float collateral_ratio: Collateral ratio to borrow at
             :param float target_collateral_ratio: Tag the call order so that in
                 case of margin call, only enough debt is covered to get back to
