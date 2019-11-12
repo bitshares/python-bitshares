@@ -282,10 +282,13 @@ async def test_asset_settle(bitshares, default_account, bitasset):
 
 
 @pytest.mark.asyncio
-async def test_htlc_create(bitshares, default_account):
-    pass
-
-
-@pytest.mark.asyncio
-async def test_htlc_redeem(bitshares, default_account):
-    pass
+async def test_htlc(bitshares, default_account):
+    """ Test both htlc_create and htlc_redeem
+    """
+    amount = await Amount("10 TEST")
+    bitshares.blocking = "head"
+    tx = await bitshares.htlc_create(
+        amount, default_account, "foobar", account=default_account
+    )
+    htlc_id = tx["operation_results"][0][1]
+    await bitshares.htlc_redeem(htlc_id, "foobar", account=default_account)

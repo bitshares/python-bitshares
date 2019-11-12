@@ -23,7 +23,7 @@ from .vesting import Vesting
 from .wallet import Wallet
 from .witness import Witness
 from .worker import Worker
-from ..htlc import Htlc
+from .htlc import Htlc
 from ..bitshares import BitShares as SyncBitShares
 
 
@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 
 class BitShares(AbstractGrapheneChain, SyncBitShares):
     def define_classes(self):
-        from ..blockchainobject import BlockchainObject
+        from .blockchainobject import BlockchainObject
 
         self.wallet_class = Wallet
         self.account_class = Account
@@ -1483,7 +1483,7 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
     async def htlc_redeem(self, htlc_id, preimage, account=None, **kwargs):
         from binascii import hexlify
 
-        htlc = await Htlc(htlc_id)
+        htlc = await Htlc(htlc_id, blockchain_instance=self)
         if not account:
             if "default_account" in self.config:
                 account = self.config["default_account"]
