@@ -17,7 +17,7 @@ from bitsharesbase.chains import known_chains
 # `bitshares.rpc.get_chain_properties()`
 known_chains["TEST"][
     "chain_id"
-] = "c74ddb39b3a233445dd95d7b6fc2d0fa4ba666698db26b53855d94fffcc460af"
+] = "569cba9a00ee6e807a62389ea67de7c6954835390be62371709ec804c6bfe1f2"
 
 
 @pytest.fixture(scope="session")
