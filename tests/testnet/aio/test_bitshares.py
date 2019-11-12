@@ -143,15 +143,16 @@ async def test_approve_disapprove_committee(bitshares, default_account):
 
 @pytest.mark.asyncio
 async def test_approve_proposal(bitshares, default_account):
+    bitshares.blocking = "head"
     parent = bitshares.new_tx()
     proposal = bitshares.new_proposal(parent=parent)
     await bitshares.transfer(
         "init1", 1, "TEST", append_to=proposal, account=default_account
     )
-    await proposal.broadcast()
-    proposals = await Proposals(default_account)
-    assert len(proposals) == 1
-    await bitshares.approveproposal(proposals[0]["id"], account=default_account)
+    tx = await proposal.broadcast()
+    proposal_id = tx["operation_results"][0][1]
+    await bitshares.approveproposal(proposal_id, account=default_account)
+    bitshares.blocking = None
 
 
 @pytest.mark.asyncio
@@ -167,19 +168,20 @@ async def test_disapprove_proposal(bitshares, default_account, unused_account):
     await bitshares.allow(account, weight=1, threshold=2, account=default_account)
 
     # Create proposal
+    bitshares.blocking = "head"
     parent = bitshares.new_tx()
     proposal = bitshares.new_proposal(parent=parent)
     await bitshares.transfer(
         "init1", 1, "TEST", append_to=proposal, account=default_account
     )
-    await proposal.broadcast()
-    proposals = await Proposals(default_account)
-    assert len(proposals) == 1
+    tx = await proposal.broadcast()
+    proposal_id = tx["operation_results"][0][1]
 
     # Approve proposal; 1/2 is not sufficient to completely approve, so proposal remains active
-    await bitshares.approveproposal(proposals[0]["id"], account=account)
+    await bitshares.approveproposal(proposal_id, account=account)
     # Revoke vote
-    await bitshares.disapproveproposal(proposals[0]["id"], account=account)
+    await bitshares.disapproveproposal(proposal_id, account=account)
+    bitshares.blocking = None
 
 
 @pytest.mark.asyncio
@@ -292,3 +294,4 @@ async def test_htlc(bitshares, default_account):
     )
     htlc_id = tx["operation_results"][0][1]
     await bitshares.htlc_redeem(htlc_id, "foobar", account=default_account)
+    bitshares.blocking = None
