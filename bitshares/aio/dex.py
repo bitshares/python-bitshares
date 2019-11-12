@@ -292,7 +292,7 @@ class Dex(BlockchainInstance):
             raise ValueError(
                 "No Call position available to adjust! Please borrow first!"
             )
-        return self.adjust_debt(
+        return await self.adjust_debt(
             await Amount(0, symbol),
             new_collateral_ratio,
             account,
