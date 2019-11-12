@@ -104,7 +104,7 @@ class Market(SyncMarket):
             cer, blockchain_instance=self.blockchain
         )
         if cer["base"]["asset_id"] == self["quote"]["id"]:
-            data["core_exchange_rate"] = data["core_exchange_rate"].invert()
+            data["core_exchange_rate"] = await data["core_exchange_rate"].invert()
 
         # smartcoin stuff
         if "bitasset_data_id" in self["quote"]:
