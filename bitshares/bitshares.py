@@ -1559,7 +1559,7 @@ class BitShares(AbstractGrapheneChain):
     def htlc_redeem(self, htlc_id, preimage, account=None, **kwargs):
         from binascii import hexlify
 
-        htlc = Htlc(htlc_id)
+        htlc = Htlc(htlc_id, blockchain_instance=self)
         if not account:
             if "default_account" in self.config:
                 account = self.config["default_account"]
