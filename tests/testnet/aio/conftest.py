@@ -9,6 +9,7 @@ from bitshares.aio.instance import set_shared_bitshares_instance
 from bitshares.aio.genesisbalance import GenesisBalance
 from bitshares.aio.asset import Asset
 from bitshares.aio.account import Account
+from bitshares.aio.price import Price
 from bitshares.exceptions import (
     AssetDoesNotExistsException,
     AccountDoesNotExistsException,
@@ -135,3 +136,34 @@ async def unused_account(bitshares):
                 return account
 
     return func
+
+
+@pytest.fixture(scope="session")
+async def base_bitasset(bitshares, unused_asset, default_account):
+    async def func():
+        bitasset_options = {
+            "feed_lifetime_sec": 86400,
+            "minimum_feeds": 1,
+            "force_settlement_delay_sec": 86400,
+            "force_settlement_offset_percent": 100,
+            "maximum_force_settlement_volume": 50,
+            "short_backing_asset": "1.3.0",
+            "extensions": [],
+        }
+        symbol = await unused_asset()
+        await bitshares.create_asset(
+            symbol, 5, 10000000000, is_bitasset=True, bitasset_options=bitasset_options
+        )
+        asset = await Asset(symbol)
+        await asset.update_feed_producers([default_account])
+        return asset
+
+    return func
+
+
+@pytest.fixture(scope="session")
+async def bitasset(bitshares, base_bitasset, default_account):
+    asset = await base_bitasset()
+    price = await Price(10.0, base=asset, quote=await Asset("TEST"))
+    await bitshares.publish_price_feed(asset.symbol, price, account=default_account)
+    return asset
