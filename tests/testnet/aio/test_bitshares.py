@@ -167,6 +167,7 @@ async def test_approve_disapprove_worker(bitshares, testworker, default_account)
 @pytest.mark.asyncio
 async def test_set_unset_proxy(bitshares, default_account):
     await bitshares.set_proxy("init1", account=default_account)
+    await asyncio.sleep(1.1)
     await bitshares.unset_proxy()
 
 
