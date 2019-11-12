@@ -109,13 +109,12 @@ class Dex(BlockchainInstance):
                 {"amount": debt["collateral"], "asset": base}
             )
             debt_amount = await Amount({"amount": debt["debt"], "asset": quote})
-            call_price = collateral_amount / (
-                debt_amount
+            call_price = float(collateral_amount) / (
+                float(debt_amount)
                 * (bitasset["current_feed"]["maintenance_collateral_ratio"] / 1000)
             )
-            latest = (
-                await Market("{}:{}".format(base["symbol"], quote["symbol"])).ticker()
-            )["latest"]
+            market = await Market("{}:{}".format(base["symbol"], quote["symbol"]))
+            latest = (await market.ticker())["latest"]
             r[quote["symbol"]] = {
                 "collateral": collateral_amount,
                 "debt": debt_amount,
