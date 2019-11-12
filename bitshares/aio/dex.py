@@ -5,12 +5,12 @@ from bitsharesbase import operations
 from .account import Account
 from .amount import Amount
 from .asset import Asset
+from .instance import BlockchainInstance
 from .price import Price
 from .market import Market
-from ..dex import Dex as SyncDex
 
 
-class Dex(SyncDex):
+class Dex(BlockchainInstance):
     """ This class simplifies interactions with the decentralized exchange.
 
         :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
@@ -20,6 +20,9 @@ class Dex(SyncDex):
                   please use :class:`bitshares.market.Market`.
 
     """
+
+    def __init__(self, *args, **kwargs):
+        BlockchainInstance.__init__(self, *args, **kwargs)
 
     async def returnFees(self):
         """ Returns a dictionary of all fees that apply through the
