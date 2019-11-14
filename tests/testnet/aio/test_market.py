@@ -32,7 +32,7 @@ async def cancel_all_orders(market):
         a = await Account(account)
         orders = [order["id"] for order in await a.openorders if "id" in order]
         await market.cancel(orders, account=account)
-        asyncio.sleep(1.1)
+        await asyncio.sleep(1.1)
 
     return func
 
@@ -41,6 +41,7 @@ async def cancel_all_orders(market):
 async def place_order(market, default_account, cancel_all_orders):
     await asyncio.sleep(1.1)
     await market.buy(1, 1, account=default_account)
+    await market.sell(10, 1, account=default_account)
     yield
     await cancel_all_orders(default_account)
 
@@ -58,9 +59,9 @@ async def test_market_ticker(market):
     assert "highestBid" in t
 
 
-@pytest.mark.xfail(reason="no volume reported by backend")
 @pytest.mark.asyncio
 async def test_volume24h(market, do_trade):
+    await asyncio.sleep(5)
     volume = await market.volume24h()
     assert market["base"]["symbol"] in volume
     assert market["quote"]["symbol"] in volume
@@ -83,7 +84,6 @@ async def test_get_limit_orders(market, place_order):
     assert isinstance(orderbook[0], Order)
 
 
-@pytest.mark.xfail(reason="no trades returned by backend")
 @pytest.mark.asyncio
 async def test_trades(market, do_trade):
     trades = [trade async for trade in market.trades()]
