@@ -94,17 +94,16 @@ class Asset(GrapheneAsset, SyncAsset):
                 },
                 blockchain_instance=self.blockchain,
             )
-            call_price = collateral_amount / (
-                debt_amount
+            call_price = float(collateral_amount) / (
+                float(debt_amount)
                 * (bitasset["current_feed"]["maintenance_collateral_ratio"] / 1000)
             )
-            latest = (
-                await Market(
-                    "{}:{}".format(
-                        bitasset["options"]["short_backing_asset"], self["symbol"]
-                    )
-                ).ticker()
-            )["latest"]
+            market = await Market(
+                "{}:{}".format(
+                    bitasset["options"]["short_backing_asset"], self["symbol"]
+                )
+            )
+            latest = (await market.ticker())["latest"]
             r.append(
                 {
                     "account": await Account(
@@ -128,7 +127,7 @@ class Asset(GrapheneAsset, SyncAsset):
     async def get_settle_orders(self, limit=100):
         from .account import Account
         from .amount import Amount
-        from .utils import formatTimeString
+        from ..utils import formatTimeString
 
         assert limit <= 100
         assert self.is_bitasset
