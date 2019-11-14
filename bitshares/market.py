@@ -283,16 +283,16 @@ class Market(dict):
 
             .. code-block:: js
 
-                {'bids': [0.003679 USD/BTS (1.9103 USD|519.29602 BTS),
+                [0.003679 USD/BTS (1.9103 USD|519.29602 BTS),
                 0.003676 USD/BTS (299.9997 USD|81606.16394 BTS),
                 0.003665 USD/BTS (288.4618 USD|78706.21881 BTS),
                 0.003665 USD/BTS (3.5285 USD|962.74409 BTS),
-                0.003665 USD/BTS (72.5474 USD|19794.41299 BTS)],
-                'asks': [0.003738 USD/BTS (36.4715 USD|9756.17339 BTS),
+                0.003665 USD/BTS (72.5474 USD|19794.41299 BTS),
+                [0.003738 USD/BTS (36.4715 USD|9756.17339 BTS),
                 0.003738 USD/BTS (18.6915 USD|5000.00000 BTS),
                 0.003742 USD/BTS (182.6881 USD|48820.22081 BTS),
                 0.003772 USD/BTS (4.5200 USD|1198.14798 BTS),
-                0.003799 USD/BTS (148.4975 USD|39086.59741 BTS)]}
+                0.003799 USD/BTS (148.4975 USD|39086.59741 BTS)]
 
 
             .. note:: Each bid is an instance of
