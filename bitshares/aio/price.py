@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from asyncinit import asyncinit
 from fractions import Fraction
 
 from .account import Account
@@ -288,6 +289,7 @@ class UpdateCallOrder(Price):
     __str__ = __repr__
 
 
+@asyncinit
 @BlockchainInstance.inject
 class PriceFeed(dict):
     """ This class is used to represent a price feed consisting of
