@@ -129,12 +129,16 @@ async def test_cancel(market, default_account):
 
 
 @pytest.mark.asyncio
-async def test_core_quote_market(market):
-    pass
-    # TODO
+async def test_core_quote_market(bitshares, assets, bitasset):
+    market = await Market(
+        "{}:USD".format(bitasset.symbol), blockchain_instance=bitshares
+    )
+    await market.core_quote_market()
 
 
 @pytest.mark.asyncio
-async def test_core_base_market(market):
-    pass
-    # TODO
+async def test_core_base_market(bitshares, assets, bitasset):
+    market = await Market(
+        "USD:{}".format(bitasset.symbol), blockchain_instance=bitshares
+    )
+    await market.core_base_market()
