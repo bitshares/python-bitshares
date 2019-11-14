@@ -6,6 +6,8 @@ import logging
 from bitshares.aio.asset import Asset
 from bitshares.aio.account import Account
 from bitshares.aio.amount import Amount
+from bitshares.aio.price import Price, PriceFeed
+from bitshares.aio.dex import Dex
 
 log = logging.getLogger("grapheneapi")
 log.setLevel(logging.DEBUG)
@@ -16,19 +18,36 @@ async def asset(bitshares):
     return await Asset("TEST", blockchain_instance=bitshares)
 
 
-@pytest.fixture(scope="session")
-async def create_testasset(create_asset):
-    """ Create some assets to use in tests
-    """
-    await create_asset("FOO", 4)
-
-
 @pytest.fixture
 async def testasset(bitshares, create_asset, unused_asset):
     asset = await unused_asset()
     log.info("Creating asset {}".format(asset))
     await create_asset(asset, 4)
     return await Asset(asset, blockchain_instance=bitshares)
+
+
+@pytest.fixture(scope="session")
+async def bitasset_local(bitshares, base_bitasset, default_account):
+    asset = await base_bitasset()
+    dex = Dex(blockchain_instance=bitshares)
+
+    # Set initial price feed
+    price = await Price(10.0, base=asset, quote=await Asset("TEST"))
+    await bitshares.publish_price_feed(asset.symbol, price, account=default_account)
+
+    # Borrow some amount
+    to_borrow = await Amount(100, asset)
+    await dex.borrow(to_borrow, collateral_ratio=2.1, account=default_account)
+
+    # Drop pricefeed to cause margin call
+    price = await Price(7.0, base=asset, quote=await Asset("TEST"))
+    await bitshares.publish_price_feed(asset.symbol, price, account=default_account)
+
+    # Settle some
+    to_settle = await Amount(5, asset)
+    await bitshares.asset_settle(to_settle, account=default_account)
+
+    return asset
 
 
 @pytest.mark.asyncio
@@ -64,46 +83,36 @@ async def test_max_market_fee(asset):
     await asset.max_market_fee
 
 
-@pytest.mark.skip
 @pytest.mark.asyncio
-async def test_feeds(bitshares):
-    # TODO
-    pass
+async def test_feeds(bitasset):
+    asset = bitasset
+    feeds = await asset.feeds
+    assert isinstance(feeds, list)
+    assert len(feeds) > 0
+    assert isinstance(feeds[0], PriceFeed)
 
 
-@pytest.mark.skip
 @pytest.mark.asyncio
-async def test_feed(bitshares):
-    # TODO
-    pass
+async def test_feed(bitasset):
+    asset = bitasset
+    feed = await asset.feed
+    assert isinstance(feed, PriceFeed)
 
 
-@pytest.mark.skip
 @pytest.mark.asyncio
-async def test_calls(bitshares):
-    # TODO
-    pass
+async def test_get_call_orders(bitasset_local):
+    asset = bitasset_local
+    call_orders = await asset.get_call_orders()
+    assert len(call_orders) > 0
+    assert "collateral" in call_orders[0]
 
 
-@pytest.mark.skip
 @pytest.mark.asyncio
-async def test_get_call_orders(bitshares):
-    # TODO
-    pass
-
-
-@pytest.mark.skip
-@pytest.mark.asyncio
-async def test_settlements(bitshares):
-    # TODO
-    pass
-
-
-@pytest.mark.skip
-@pytest.mark.asyncio
-async def test_get_settle_orders(bitshares):
-    # TODO
-    pass
+async def test_get_settle_orders(bitasset_local):
+    asset = bitasset_local
+    settle_orders = await asset.get_settle_orders()
+    assert len(settle_orders) > 0
+    assert "amount" in settle_orders[0]
 
 
 @pytest.mark.asyncio
@@ -175,11 +184,10 @@ async def test_set_market_fee(testasset):
     await testasset.set_market_fee(1, 1000)
 
 
-@pytest.mark.skip
 @pytest.mark.asyncio
-async def test_update_feed_producers(bitshares):
-    # TODO
-    pass
+async def test_update_feed_producers(base_bitasset, default_account):
+    asset = await base_bitasset()
+    await asset.update_feed_producers([default_account, "init1", "init2"])
 
 
 @pytest.mark.asyncio
