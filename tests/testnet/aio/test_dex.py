@@ -19,6 +19,7 @@ async def dex(bitshares):
 async def borrow_some(dex, bitasset, default_account):
     to_borrow = await Amount(1000, bitasset)
     await dex.borrow(to_borrow, collateral_ratio=2.1, account=default_account)
+    await asyncio.sleep(1.1)
     return bitasset
 
 
@@ -32,6 +33,11 @@ async def test_return_fees(dex):
     fees = await dex.returnFees()
     assert isinstance(fees, dict)
     assert "account_create" in fees
+
+
+@pytest.mark.asyncio
+async def test_borrow(borrow_some):
+    pass
 
 
 @pytest.mark.asyncio
@@ -58,8 +64,3 @@ async def test_adjust_debt(dex, borrow_some, default_account):
 async def test_adjust_collateral_ratio(dex, borrow_some, default_account):
     asset = borrow_some
     await dex.adjust_collateral_ratio(asset.symbol, 2.5, account=default_account)
-
-
-@pytest.mark.asyncio
-async def test_borrow(borrow_some):
-    pass

@@ -161,7 +161,7 @@ async def base_bitasset(bitshares, unused_asset, default_account):
     return func
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 async def bitasset(bitshares, base_bitasset, default_account):
     asset = await base_bitasset()
     price = await Price(10.0, base=asset, quote=await Asset("TEST"))

@@ -25,6 +25,8 @@ async def testworker(bitshares, default_account):
 
 @pytest.fixture(scope="module")
 async def gs_bitasset(bitshares, default_account, base_bitasset):
+    """ Create globally settled bitasset
+    """
     asset = await base_bitasset()
 
     price = await Price(10.0, base=asset, quote=await Asset("TEST"))
@@ -88,13 +90,14 @@ async def test_allow_disallow(bitshares, default_account):
 
 
 @pytest.mark.asyncio
-async def test_update_memo_key(bitshares, default_account):
+async def test_update_memo_key(bitshares, ltm_account, default_account):
     from bitsharesbase.account import PasswordKey
 
-    password = "test"
-    memo_key = PasswordKey(default_account, password, role="memo")
+    account = ltm_account
+    password = "test2"
+    memo_key = PasswordKey(account, password, role="memo")
     pubkey = memo_key.get_public_key()
-    await bitshares.update_memo_key(pubkey, account=default_account)
+    await bitshares.update_memo_key(pubkey, account=account)
 
 
 @pytest.mark.asyncio
@@ -185,15 +188,17 @@ async def test_vesting_balance_withdraw(bitshares, default_account):
 
 
 @pytest.mark.asyncio
-async def test_publish_price_feed(bitshares, default_account, bitasset):
-    price = await Price(1.1, base=bitasset, quote=await Asset("TEST"))
-    await bitshares.publish_price_feed(bitasset.symbol, price, account=default_account)
+async def test_publish_price_feed(bitshares, base_bitasset, default_account):
+    asset = await base_bitasset()
+    price = await Price(1.1, base=asset, quote=await Asset("TEST"))
+    await bitshares.publish_price_feed(asset.symbol, price, account=default_account)
 
 
 @pytest.mark.asyncio
-async def test_update_cer(bitshares, default_account, bitasset):
-    price = await Price(1.2, base=bitasset, quote=await Asset("TEST"))
-    await bitshares.update_cer(bitasset.symbol, price, account=default_account)
+async def test_update_cer(bitshares, base_bitasset, default_account):
+    asset = await base_bitasset()
+    price = await Price(1.2, base=asset, quote=await Asset("TEST"))
+    await bitshares.update_cer(asset.symbol, price, account=default_account)
 
 
 @pytest.mark.asyncio
