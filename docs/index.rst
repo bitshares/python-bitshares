@@ -50,6 +50,7 @@ General
    tutorials
    configuration
    faq
+   asyncio
    classes
    contribute
    support
