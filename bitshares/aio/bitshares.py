@@ -24,6 +24,7 @@ from .wallet import Wallet
 from .witness import Witness
 from .worker import Worker
 from .htlc import Htlc
+from .market import Market
 from ..bitshares import BitShares as SyncBitShares
 
 
@@ -1501,3 +1502,50 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
             }
         )
         return await self.finalizeOp(op, account, "active", **kwargs)
+
+    async def subscribe_to_blocks(self):
+        """ Activate subscription to block
+
+            Each time block is applied an event will occur in
+            self.notifications.
+        """
+        await self.rpc.set_block_applied_callback(2)
+
+    async def subscribe_to_pending_transactions(self):
+        """ Activate subscription to pending transactions
+
+            Each time transaction is pushed to database an event will occur in
+            self.notifications.
+        """
+        await self.rpc.set_pending_transaction_callback(0)
+
+    async def subscribe_to_accounts(self, accounts):
+        """ Activate subscription to account-related events
+
+            :param list accounts: account names or ids to subscribe
+        """
+        if isinstance(accounts, str):
+            accounts = [accounts]
+
+        # Set subscription, False means we're don't need ALL create/delete events
+        await self.rpc.set_subscribe_callback(1, False)
+        # True means we're activating subscription on account
+        await self.rpc.get_full_accounts(accounts, True)
+
+    async def subscribe_to_market(self, market, event_id=4):
+        """ Activate subscription on market events
+
+            :param str,bitshares.aio.Market market: market to set subscription
+                on
+        """
+        if isinstance(market, str):
+            market = await Market(market, blockchain_instance=self)
+
+        await self.rpc.subscribe_to_market(
+            event_id, market["base"]["id"], market["quote"]["id"]
+        )
+
+    async def cancel_subscriptions(self):
+        """ Cancel all active subscriptions
+        """
+        await self.rpc.cancel_all_subscriptions()

@@ -11,6 +11,7 @@ from bitshares.aio.price import Price
 from bitshares.aio.proposal import Proposals
 from bitshares.aio.worker import Workers
 from bitshares.aio.dex import Dex
+from bitshares.aio.market import Market
 
 log = logging.getLogger("grapheneapi")
 log.setLevel(logging.DEBUG)
@@ -271,3 +272,73 @@ async def test_htlc(bitshares, default_account):
     htlc_id = tx["operation_results"][0][1]
     await bitshares.htlc_redeem(htlc_id, "foobar", account=default_account)
     bitshares.blocking = None
+
+
+@pytest.mark.asyncio
+async def test_subscribe_to_pending_transactions(bitshares, default_account):
+    await bitshares.cancel_subscriptions()
+    await bitshares.subscribe_to_pending_transactions()
+
+    # Generate an event
+    await bitshares.transfer("init1", 10, "TEST", memo="xxx", account=default_account)
+
+    event_correct = False
+    for _ in range(0, 6):
+        event = await bitshares.notifications.get()
+        if event["params"][0] == 0:
+            event_correct = True
+            break
+    assert event_correct
+
+
+@pytest.mark.asyncio
+async def test_subscribe_to_blocks(bitshares):
+    await bitshares.cancel_subscriptions()
+    await bitshares.subscribe_to_blocks()
+    event_correct = False
+    for _ in range(0, 6):
+        event = await bitshares.notifications.get()
+        if event["params"][0] == 2:
+            event_correct = True
+            break
+    assert event_correct
+
+
+@pytest.mark.asyncio
+async def test_subscribe_to_accounts(bitshares, default_account):
+    await bitshares.cancel_subscriptions()
+    # Subscribe
+    await bitshares.subscribe_to_accounts([default_account])
+
+    # Generate an event
+    await bitshares.transfer("init1", 10, "TEST", memo="xxx", account=default_account)
+
+    # Check event
+    event_correct = False
+    for _ in range(0, 6):
+        event = await bitshares.notifications.get()
+        if event["params"][0] == 1:
+            event_correct = True
+            break
+    assert event_correct
+
+
+@pytest.mark.asyncio
+async def test_subscribe_to_market(bitshares, assets, default_account):
+    await bitshares.cancel_subscriptions()
+    await asyncio.sleep(1.1)
+    market = await Market("TEST/USD")
+    await bitshares.subscribe_to_market(market, event_id=4)
+
+    # Generate an event
+    await market.sell(1, 1, account=default_account)
+
+    # Check event
+    event_correct = False
+    for _ in range(0, 10):
+        event = await bitshares.notifications.get()
+        log.debug("getting event")
+        if event["params"][0] == 4:
+            event_correct = True
+            break
+    assert event_correct
