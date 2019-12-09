@@ -13,22 +13,18 @@ class Amount(GrapheneAmount):
         :param list args: Allows to deal with different representations of an amount
         :param float amount: Let's create an instance with a specific amount
         :param str asset: Let's you create an instance with a specific asset (symbol)
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
+        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
         :returns: All data required to represent an Amount/Asset
         :rtype: dict
         :raises ValueError: if the data provided is not recognized
 
         .. code-block:: python
 
-            from peerplays.amount import Amount
-            from peerplays.asset import Asset
-            a = Amount("1 USD")
-            b = Amount(1, "USD")
-            c = Amount("20", Asset("USD"))
-            a + b
-            a * 2
-            a += b
-            a /= 2.0
+            from bitshares.aio.amount import Amount
+            from bitshares.aio.asset import Asset
+            a = await Amount("1 USD")
+            b = await Amount(1, "USD")
+            c = await Amount("20", await Asset("USD"))
 
         Way to obtain a proper instance:
 
@@ -36,22 +32,14 @@ class Amount(GrapheneAmount):
             * ``args`` can be a dictionary containing ``amount`` and ``asset_id``
             * ``args`` can be a dictionary containing ``amount`` and ``asset``
             * ``args`` can be a list of a ``float`` and ``str`` (symbol)
-            * ``args`` can be a list of a ``float`` and a :class:`bitshares.asset.Asset`
+            * ``args`` can be a list of a ``float`` and a :class:`bitshares.aio.asset.Asset`
             * ``amount`` and ``asset`` are defined manually
 
         An instance is a dictionary and comes with the following keys:
 
             * ``amount`` (float)
             * ``symbol`` (str)
-            * ``asset`` (instance of :class:`bitshares.asset.Asset`)
-
-        Instances of this class can be used in regular mathematical expressions
-        (``+-*/%``) such as:
-
-        .. code-block:: python
-
-            Amount("1 USD") * 2
-            Amount("15 GOLD") + Amount("0.5 GOLD")
+            * ``asset`` (instance of :class:`bitshares.aio.asset.Asset`)
     """
 
     def define_classes(self):

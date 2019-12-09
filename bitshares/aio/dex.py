@@ -13,11 +13,11 @@ from .market import Market
 class Dex(BlockchainInstance):
     """ This class simplifies interactions with the decentralized exchange.
 
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
+        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
 
         .. note:: The methods of this class only deal with a single asset (at
                   most). If you are looking to deal with orders for trading,
-                  please use :class:`bitshares.market.Market`.
+                  please use :class:`bitshares.aio.market.Market`.
 
     """
 

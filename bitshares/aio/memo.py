@@ -10,11 +10,11 @@ from .instance import BlockchainInstance
 class Memo(GrapheneMemo):
     """ Deals with Memos that are attached to a transfer
 
-        :param bitshares.account.Account from_account: Account that has sent
+        :param bitshares.aio.account.Account from_account: Account that has sent
             the memo
-        :param bitshares.account.Account to_account: Account that has received
+        :param bitshares.aio.account.Account to_account: Account that has received
             the memo
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
+        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares
             instance
 
         A memo is encrypted with a shared secret derived from a private key of
@@ -25,8 +25,8 @@ class Memo(GrapheneMemo):
 
         .. code-block:: python
 
-            from bitshares.memo import Memo
-            m = Memo("bitshareseu", "wallet.xeroc")
+            from bitshares.aio.memo import Memo
+            m = await Memo("bitshareseu", "wallet.xeroc")
             m.unlock_wallet("secret")
             enc = (m.encrypt("foobar"))
             print(enc)
@@ -38,8 +38,8 @@ class Memo(GrapheneMemo):
 
         .. code-block:: python
 
-            from bitshares.memo import Memo
-            m = Memo()
+            from bitshares.aio.memo import Memo
+            m = await Memo()
             m.blockchain.wallet.unlock("secret")
             print(memo.decrypt(op_data["memo"]))
 

@@ -18,9 +18,9 @@ from ..market import Market as SyncMarket
 class Market(SyncMarket):
     """ This class allows to easily access Markets on the blockchain for trading, etc.
 
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
-        :param bitshares.asset.Asset base: Base asset
-        :param bitshares.asset.Asset quote: Quote asset
+        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
+        :param bitshares.aio.asset.Asset base: Base asset
+        :param bitshares.aio.asset.Asset quote: Quote asset
         :returns: Blockchain Market
         :rtype: dictionary with overloaded methods
 

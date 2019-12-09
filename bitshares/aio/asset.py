@@ -16,6 +16,11 @@ from ..asset import Asset as SyncAsset
 
 @BlockchainInstance.inject
 class Asset(GrapheneAsset, SyncAsset):
+    """ BitShares asset
+
+        Async version of :class:`bitshares.bitshares.Asset`
+    """
+
     async def __init__(self, *args, **kwargs):
         await super().__init__(*args, **kwargs)
 

@@ -27,23 +27,23 @@ class Price(GraphenePrice):
             The price (floating) is derived as ``base/quote``
 
         :param list args: Allows to deal with different representations of a price
-        :param bitshares.asset.Asset base: Base asset
-        :param bitshares.asset.Asset quote: Quote asset
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
+        :param bitshares.aio.asset.Asset base: Base asset
+        :param bitshares.aio.asset.Asset quote: Quote asset
+        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
         :returns: All data required to represent a price
         :rtype: dict
 
         Way to obtain a proper instance:
 
             * ``args`` is a str with a price and two assets
-            * ``args`` can be a floating number and ``base`` and ``quote`` being instances of :class:`bitshares.asset.Asset`
+            * ``args`` can be a floating number and ``base`` and ``quote`` being instances of :class:`bitshares.aio.asset.Asset`
             * ``args`` can be a floating number and ``base`` and ``quote`` being instances of ``str``
             * ``args`` can be dict with keys ``price``, ``base``, and ``quote`` (*graphene balances*)
             * ``args`` can be dict with keys ``base`` and ``quote``
             * ``args`` can be dict with key ``receives`` (filled orders)
-            * ``args`` being a list of ``[quote, base]`` both being instances of :class:`bitshares.amount.Amount`
+            * ``args`` being a list of ``[quote, base]`` both being instances of :class:`bitshares.aio.amount.Amount`
             * ``args`` being a list of ``[quote, base]`` both being instances of ``str`` (``amount symbol``)
-            * ``base`` and ``quote`` being instances of :class:`bitshares.asset.Amount`
+            * ``base`` and ``quote`` being instances of :class:`bitshares.aio.asset.Amount`
 
         This allows instanciations like:
 
@@ -62,8 +62,8 @@ class Price(GraphenePrice):
 
         .. code-block:: python
 
-            >>> from bitshares.price import Price
-            >>> Price("0.3314 USD/BTS") * 2
+            >>> from bitshares.aio.price import Price
+            >>> await Price("0.3314 USD/BTS") * 2
             0.662600000 USD/BTS
 
     """
@@ -76,7 +76,7 @@ class Price(GraphenePrice):
     async def market(self):
         """ Open the corresponding market
 
-            :returns: Instance of :class:`bitshares.market.Market` for the
+            :returns: Instance of :class:`bitshares.aio.market.Market` for the
                       corresponding pair of assets.
         """
         from .market import Market
@@ -89,12 +89,12 @@ class Price(GraphenePrice):
 
 
 class Order(Price):
-    """ This class inherits :class:`bitshares.price.Price` but has the ``base``
+    """ This class inherits :class:`bitshares.aio.price.Price` but has the ``base``
         and ``quote`` Amounts not only be used to represent the price (as a
         ratio of base and quote) but instead has those amounts represent the
         amounts of an actual order!
 
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
+        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
 
         .. note::
 
@@ -187,12 +187,12 @@ class Order(Price):
 
 
 class FilledOrder(Price):
-    """ This class inherits :class:`bitshares.price.Price` but has the ``base``
+    """ This class inherits :class:`bitshares.aio.price.Price` but has the ``base``
         and ``quote`` Amounts not only be used to represent the price (as a
         ratio of base and quote) but instead has those amounts represent the
         amounts of an actually filled order!
 
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
+        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
 
         .. note:: Instances of this class come with an additional ``time`` key
                   that shows when the order has been filled!
@@ -260,7 +260,7 @@ class UpdateCallOrder(Price):
         and ``quote`` Amounts not only be used to represent the **call
         price** (as a ratio of base and quote).
 
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
+        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
     """
 
     async def __init__(self, call, **kwargs):
@@ -302,7 +302,7 @@ class PriceFeed(dict):
         * a settlement price, and
         * a date
 
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
+        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
 
     """
 

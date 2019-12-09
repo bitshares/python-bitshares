@@ -32,6 +32,22 @@ log = logging.getLogger(__name__)
 
 
 class BitShares(AbstractGrapheneChain, SyncBitShares):
+    """ BitShares async client
+
+        This is an asyncio version of :class:`bitshares.BitShares`
+
+        :param object loop: asyncio event loop
+
+
+        Example usage:
+
+        .. code-block:: python
+
+            bitshares = BitShares(loop=loop)
+            await bitshares.connect()
+
+    """
+
     def define_classes(self):
         from .blockchainobject import BlockchainObject
 

@@ -12,7 +12,7 @@ class Block(GrapheneBlock, SyncBlock):
     """ Read a single block from the chain
 
         :param int block: block number
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
+        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares
             instance
         :param bool lazy: Use lazy loading
         :param loop: async event loop
@@ -26,10 +26,6 @@ class Block(GrapheneBlock, SyncBlock):
             from bitshares.aio.block import Block
             block = await Block(1)
             print(block)
-
-        .. note:: This class comes with its own caching function to reduce the
-                  load on the API server. Instances of this class can be
-                  refreshed with ``Account.refresh()``.
 
     """
 

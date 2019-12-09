@@ -13,7 +13,7 @@ class Account(GrapheneAccount):
     """ This class allows to easily access Account data
 
         :param str account_name: Name of the account
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
+        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares
                instance
         :param bool full: Obtain all account data including orders, positions, etc.
         :param bool lazy: Use lazy loading
@@ -30,13 +30,13 @@ class Account(GrapheneAccount):
 
         .. code-block:: python
 
-            from bitshares.account import Account
-            account = Account("init0")
+            from bitshares.aio.account import Account
+            account = await Account("init0")
             print(account)
 
         .. note:: This class comes with its own caching function to reduce the
                   load on the API server. Instances of this class can be
-                  refreshed with ``Account.refresh()``.
+                  refreshed with ``await Account.refresh()``.
 
     """
 
