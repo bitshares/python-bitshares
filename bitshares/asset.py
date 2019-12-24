@@ -540,8 +540,7 @@ class Asset(GrapheneAsset):
     def change_issuer(self, new_issuer, **kwargs):
         """ Change asset issuer (needs signing with owner key!)
 
-            :param str type: ``blacklist`` or ``whitelist``
-            :param list authorities: List of authorities (Accounts)
+            :param str new_issuer: account name
         """
         from .account import Account
 

@@ -1274,10 +1274,22 @@ class BitShares(AbstractGrapheneChain):
                         "base": {"amount": 1, "asset_id": "1.3.0"},
                         "quote": {"amount": 1, "asset_id": "1.3.1"},
                     },
-                    "whitelist_authorities": [Account(a, blockchain_instance=self)["id"] for a in whitelist_authorities],
-                    "blacklist_authorities": [Account(a, blockchain_instance=self)["id"] for a in blacklist_authorities],
-                    "whitelist_markets": [Asset(a, blockchain_instance=self)["id"] for a in whitelist_markets],
-                    "blacklist_markets": [Asset(a, blockchain_instance=self)["id"] for a in blacklist_markets],
+                    "whitelist_authorities": [
+                        Account(a, blockchain_instance=self)["id"]
+                        for a in whitelist_authorities
+                    ],
+                    "blacklist_authorities": [
+                        Account(a, blockchain_instance=self)["id"]
+                        for a in blacklist_authorities
+                    ],
+                    "whitelist_markets": [
+                        Asset(a, blockchain_instance=self)["id"]
+                        for a in whitelist_markets
+                    ],
+                    "blacklist_markets": [
+                        Asset(a, blockchain_instance=self)["id"]
+                        for a in blacklist_markets
+                    ],
                     "description": description,
                     "extensions": [],
                 },
@@ -1559,7 +1571,7 @@ class BitShares(AbstractGrapheneChain):
     def htlc_redeem(self, htlc_id, preimage, account=None, **kwargs):
         from binascii import hexlify
 
-        htlc = Htlc(htlc_id)
+        htlc = Htlc(htlc_id, blockchain_instance=self)
         if not account:
             if "default_account" in self.config:
                 account = self.config["default_account"]
