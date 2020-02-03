@@ -1,6 +1,6 @@
 # Unit testing
 pytest==5.3.5
-pytest-mock==1.11.2
+pytest-mock==2.0.0
 coverage==4.5.4
 mock==3.0.5
 
