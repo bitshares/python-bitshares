@@ -1,10 +1,10 @@
 # Unit testing
-pytest==5.3.5
+pytest
 pytest-mock
 pytest-asyncio
-coverage==4.5.4
-mock==3.0.5
-docker==4.0.1
+coverage
+mock
+docker
 
 # Code style
 flake8==3.7.9
