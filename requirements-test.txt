@@ -10,4 +10,4 @@ docker
 flake8==3.7.9
 # black
 isort==4.3.21
-pre-commit==1.20.0
+pre-commit==2.1.0
