@@ -7,7 +7,7 @@ mock
 docker
 
 # Code style
-flake8==3.7.9
+flake8
 # black
-isort==4.3.21
-pre-commit==2.1.0
+isort
+pre-commit
