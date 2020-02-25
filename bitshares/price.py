@@ -108,7 +108,9 @@ class Order(Price):
             """
             # Avoid reinitialization of blockchain_instance
             # Workaround for https://github.com/bitshares/python-bitshares/issues/234
-            instance = kwargs.get('blockchain_instance') or kwargs.get('bitshares_instance')
+            instance = kwargs.get("blockchain_instance") or kwargs.get(
+                "bitshares_instance"
+            )
             if instance:
                 order = instance.rpc.get_objects([args[0]])[0]
             else:
@@ -160,6 +162,27 @@ class Order(Price):
                 blockchain_instance=self.blockchain,
             )
 
+    @property
+    def for_sale(self):
+        if "for_sale" in self:
+            return Amount(
+                {"amount": self["for_sale"], "asset_id": self["base"]["asset"]["id"]},
+                blockchain_instance=self.blockchain,
+            )
+
+    @property
+    def price(self):
+        return self["price"]
+
+    @property
+    def to_buy(self):
+        if "for_sale" in self:
+            return Amount(
+                float(self["for_sale"]) / self["price"],
+                self["quote"]["asset"],
+                blockchain_instance=self.blockchain,
+            )
+
     def __repr__(self):
         if "deleted" in self and self["deleted"]:
             return "deleted order %s" % self["id"]
@@ -170,7 +193,7 @@ class Order(Price):
             if "type" in self and self["type"]:
                 t += "%s " % str(self["type"])
             if "for_sale" in self and self["for_sale"]:
-                t += "{} for {} ".format(
+                t += "buy {} for {} ".format(
                     str(
                         Amount(
                             float(self["for_sale"]) / self["price"],
@@ -181,7 +204,7 @@ class Order(Price):
                     str(self["for_sale"]),
                 )
             elif "amount_to_sell" in self:
-                t += "{} for {} ".format(
+                t += "sell {} for {} ".format(
                     str(
                         Amount(
                             self["amount_to_sell"], blockchain_instance=self.blockchain
