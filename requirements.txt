@@ -1,2 +1,3 @@
 graphenelib>=1.1.16
 Events==0.3
+websockets

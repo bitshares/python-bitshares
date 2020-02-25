@@ -3,6 +3,8 @@ pytest
 pytest-mock
 coverage
 mock
+pytest-asyncio
+docker
 
 # Code style
 flake8
