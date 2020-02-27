@@ -93,6 +93,8 @@ async def issue_asset(bitshares):
     """
 
     async def _issue_asset(asset, amount, to):
+        # Clear cache to make sure asset is reloaded from chain
+        Asset.clear_cache()
         asset = await Asset(asset, bitshares_instance=bitshares)
         await asset.issue(amount, to)
 
