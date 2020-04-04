@@ -103,18 +103,15 @@ class Order(Price):
     """
 
     def __init__(self, *args, **kwargs):
+        # This class does not have @BlockchainInstance.inject because of MRO, so we need
+        # to init BlockchainInstance manually! Fixes
+        # https://github.com/bitshares/python-bitshares/issues/234
+        BlockchainInstance.__init__(self, **kwargs)
+
         if len(args) == 1 and isinstance(args[0], str):
             """ Load from id
             """
-            # Avoid reinitialization of blockchain_instance
-            # Workaround for https://github.com/bitshares/python-bitshares/issues/234
-            instance = kwargs.get("blockchain_instance") or kwargs.get(
-                "bitshares_instance"
-            )
-            if instance:
-                order = instance.rpc.get_objects([args[0]])[0]
-            else:
-                order = self.blockchain.rpc.get_objects([args[0]])[0]
+            order = self.blockchain.rpc.get_objects([args[0]])[0]
             if order:
                 Price.__init__(
                     self, order["sell_price"], blockchain_instance=self.blockchain

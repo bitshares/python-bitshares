@@ -104,6 +104,11 @@ class Order(Price):
     """
 
     async def __init__(self, *args, **kwargs):
+        # This class does not have @BlockchainInstance.inject because of MRO, so we need
+        # to init BlockchainInstance manually! Fixes
+        # https://github.com/bitshares/python-bitshares/issues/234
+        BlockchainInstance.__init__(self, **kwargs)
+
         if len(args) == 1 and isinstance(args[0], str):
             """ Load from id
             """

@@ -5,7 +5,7 @@ import random
 import string
 
 from bitshares.aio import BitShares
-from bitshares.aio.instance import set_shared_bitshares_instance
+from bitshares.aio.instance import set_shared_bitshares_instance, SharedInstance
 from bitshares.aio.genesisbalance import GenesisBalance
 from bitshares.aio.asset import Asset
 from bitshares.aio.account import Account
@@ -61,6 +61,16 @@ def bitshares(bitshares_instance, claim_balance):
     """ Prepare the testnet and return BitShares instance
     """
     return bitshares_instance
+
+
+@pytest.fixture()
+async def not_shared_instance(bitshares):
+    """ Unsets shared instance
+    """
+    current_shared_instance = SharedInstance.instance
+    SharedInstance.instance = None
+    yield bitshares
+    set_shared_bitshares_instance(current_shared_instance)
 
 
 @pytest.fixture(scope="session")
