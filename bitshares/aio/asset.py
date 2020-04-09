@@ -504,7 +504,7 @@ class Asset(GrapheneAsset, SyncAsset):
                 },  # Will be filled in automatically
                 "issuer": account["id"],  # the Issuer account
                 "asset_to_issue": {
-                    "amount": int(amount * 10 ** self["precision"]),
+                    "amount": int(float(amount) * 10 ** self["precision"]),
                     "asset_id": self["id"],
                 },
                 "issue_to_account": to["id"],

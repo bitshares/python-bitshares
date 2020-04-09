@@ -197,4 +197,9 @@ async def test_change_issuer(testasset):
 
 @pytest.mark.asyncio
 async def test_issue(testasset):
+    # Normal invokation
     await testasset.issue(100, "init1")
+    # Amount as str
+    await testasset.issue("1", "init1")
+    # Amount < 1
+    await testasset.issue(0.01, "init1")
