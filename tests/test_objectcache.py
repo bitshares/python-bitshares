@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import time
 import unittest
 from bitshares import BitShares, exceptions
@@ -6,13 +7,10 @@ from bitshares.blockchainobject import ObjectCache
 
 
 class Testcases(unittest.TestCase):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.bts = BitShares(
-            nobroadcast=True,
-        )
+        self.bts = BitShares(nobroadcast=True,)
         set_shared_bitshares_instance(self.bts)
 
     def test_cache(self):

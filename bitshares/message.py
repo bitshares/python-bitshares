@@ -4,7 +4,11 @@ from bitsharesbase.account import PublicKey
 
 from .account import Account
 from .instance import BlockchainInstance
-from .exceptions import InvalidMemoKeyException, AccountDoesNotExistsException, WrongMemoKey
+from .exceptions import (
+    InvalidMemoKeyException,
+    AccountDoesNotExistsException,
+    WrongMemoKey,
+)
 
 
 @BlockchainInstance.inject

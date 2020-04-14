@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 from pprint import pprint
 from bitshares import BitShares
@@ -9,7 +10,6 @@ from .fixtures import fixture_data
 
 
 class Testcases(unittest.TestCase):
-
     def setUp(self):
         fixture_data()
         self.chain = Blockchain(mode="head")
@@ -24,7 +24,7 @@ class Testcases(unittest.TestCase):
             "dynamic_flags",
             "head_block_id",
             "head_block_number",
-            "last_budget_time"
+            "last_budget_time",
         ]:
             self.assertIn(i, info)
 

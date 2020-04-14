@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from graphenebase.bip38 import decrypt as GPHdecrypt
 from graphenebase.bip38 import encrypt as GPHencrypt
 

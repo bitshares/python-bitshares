@@ -1,4 +1,5 @@
-class BrokenBitsharesInstance():
+# -*- coding: utf-8 -*-
+class BrokenBitsharesInstance:
     def __init__(self, *args, **kwargs):
         pass
 
@@ -13,6 +14,7 @@ class BitsharesIsolator(object):
     def enable(self):
         if not self.enabled:
             from bitshares.instance import set_shared_bitshares_instance
+
             broken = BrokenBitsharesInstance()
             set_shared_bitshares_instance(broken)
             self.enabled = True

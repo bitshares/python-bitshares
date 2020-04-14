@@ -265,19 +265,19 @@ inaccurate in any respect.
 ### You
 
     ---------- --
-    Date:      
-    Name:      
-    Title:     
-    Address:   
+    Date:
+    Name:
+    Title:
+    Address:
     ---------- --
 
 ### Us
 
     ---------- --
-    Date:      
-    Name:      
-    Title:     
-    Address:   
+    Date:
+    Name:
+    Title:
+    Address:
     ---------- --
 
 #### Recreate this Contributor License Agreement

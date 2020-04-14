@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 asset_permissions = {}
 asset_permissions["charge_market_fee"] = 0x01
 asset_permissions["white_list"] = 0x02
