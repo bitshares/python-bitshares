@@ -172,7 +172,7 @@ class Testcases(unittest.TestCase):
 
         wifs = cycle([x[0] for x in test_shared_secrets])
 
-        for i in range(len(test_shared_secrets)):
+        for _ in range(len(test_shared_secrets)):
             sender_private_key = PrivateKey(next(wifs))
             sender_public_key = sender_private_key.pubkey
             receiver_private_key = PrivateKey(next(wifs))

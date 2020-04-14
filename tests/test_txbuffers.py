@@ -64,7 +64,7 @@ class Testcases(unittest.TestCase):
                 "prefix": "TEST",
             }
         )
-        for i in range(0, 3):
+        for _ in range(0, 3):
             proposal1.appendOps(op)
 
         # Proposal 1
@@ -78,7 +78,7 @@ class Testcases(unittest.TestCase):
                 "prefix": "TEST",
             }
         )
-        for i in range(0, 2):
+        for _ in range(0, 2):
             proposal2.appendOps(op)
         tx = tx1.json()
 

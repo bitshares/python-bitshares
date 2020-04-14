@@ -35,7 +35,7 @@ class BitSharesNodeRPC(Api):
         """
         props = self.get_chain_properties()
         chain_id = props["chain_id"]
-        for k, v in known_chains.items():
+        for _, v in known_chains.items():
             if v["chain_id"] == chain_id:
                 return v
         raise exceptions.UnknownNetworkException(
