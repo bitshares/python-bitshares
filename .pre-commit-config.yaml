@@ -23,6 +23,17 @@ repos:
   - id: black
     language_version: python3
 
+- repo: https://github.com/myint/docformatter
+  rev: v1.3.1
+  hooks:
+    - id: docformatter
+      args: [
+        -i,
+        --wrap-summaries=88,
+        --wrap-descriptions=88,
+        --pre-summary-newline,
+      ]
+
 - repo: https://gitlab.com/pycqa/flake8
   rev: 3.7.9
   hooks:
