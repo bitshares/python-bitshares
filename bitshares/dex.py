@@ -260,7 +260,7 @@ class Dex(BlockchainInstance):
         # Extension
         if target_collateral_ratio:
             payload["extensions"].update(
-                dict(target_collateral_ratio=int(target_collateral_ratio * 100))
+                {"target_collateral_ratio": int(target_collateral_ratio * 100)}
             )
 
         op = operations.Call_order_update(**payload)

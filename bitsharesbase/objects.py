@@ -351,7 +351,7 @@ class SpecialAuthority(Static_variant):
 
 class Extension(Array):
     def __init__(self, *args, **kwargs):
-        self.json = dict()
+        self.json = {}
         a = []
         for key, value in kwargs.items():
             self.json.update({key: value})

@@ -78,7 +78,7 @@ class Asset(GrapheneAsset, SyncAsset):
         assert limit <= 100
         assert self.is_bitasset
         await self.ensure_full()
-        r = list()
+        r = []
         bitasset = self["bitasset_data"]
         settlement_price = await Price(
             bitasset["current_feed"]["settlement_price"],
@@ -137,7 +137,7 @@ class Asset(GrapheneAsset, SyncAsset):
 
         assert limit <= 100
         assert self.is_bitasset
-        r = list()
+        r = []
         ret = await self.blockchain.rpc.get_settle_orders(self["id"], limit)
         for settle in ret[:limit]:
             r.append(
