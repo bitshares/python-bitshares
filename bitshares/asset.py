@@ -203,10 +203,10 @@ class Asset(GrapheneAsset):
 
     def release(
         self,
-        whitelist_authorities=[],
-        blacklist_authorities=[],
-        whitelist_markets=[],
-        blacklist_markets=[],
+        whitelist_authorities=None,
+        blacklist_authorities=None,
+        whitelist_markets=None,
+        blacklist_markets=None,
     ):
         """
         Release this asset and allow unrestricted transfer, trading, etc.
@@ -221,6 +221,15 @@ class Asset(GrapheneAsset):
             trading with
         """
         from .account import Account
+
+        if whitelist_authorities is None:
+            whitelist_authorities = []
+        if blacklist_authorities is None:
+            blacklist_authorities = []
+        if whitelist_markets is None:
+            whitelist_markets = []
+        if blacklist_markets is None:
+            blacklist_markets = []
 
         flags = {"white_list": False, "transfer_restricted": False}
         if whitelist_authorities or blacklist_authorities:
@@ -337,7 +346,7 @@ class Asset(GrapheneAsset):
             return op
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def add_authorities(self, type, authorities=[]):
+    def add_authorities(self, type, authorities=None):
         """
         Add authorities to an assets white/black list.
 
@@ -347,6 +356,9 @@ class Asset(GrapheneAsset):
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
         from .account import Account
+
+        if authorities is None:
+            authorities = []
 
         flags = {"white_list": True}
         options = self["options"]
@@ -379,7 +391,7 @@ class Asset(GrapheneAsset):
         )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def remove_authorities(self, type, authorities=[]):
+    def remove_authorities(self, type, authorities=None):
         """
         Remove authorities from an assets white/black list.
 
@@ -389,6 +401,9 @@ class Asset(GrapheneAsset):
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
         from .account import Account
+
+        if authorities is None:
+            authorities = []
 
         options = self["options"]
         if type == "whitelist":
@@ -412,7 +427,7 @@ class Asset(GrapheneAsset):
         )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def add_markets(self, type, authorities=[], force_enable=True):
+    def add_markets(self, type, authorities=None, force_enable=True):
         """
         Add markets to an assets white/black list.
 
@@ -422,6 +437,9 @@ class Asset(GrapheneAsset):
         """
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
+
+        if authorities is None:
+            authorities = []
 
         options = self["options"]
         if force_enable:
@@ -458,7 +476,7 @@ class Asset(GrapheneAsset):
         )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def remove_markets(self, type, authorities=[]):
+    def remove_markets(self, type, authorities=None):
         """
         Remove markets from an assets white/black list.
 
@@ -467,6 +485,9 @@ class Asset(GrapheneAsset):
         """
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
+
+        if authorities is None:
+            authorities = []
 
         options = self["options"]
         if type == "whitelist":

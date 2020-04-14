@@ -102,9 +102,9 @@ class BitSharesWebsocket(Events):
         user="",
         password="",
         *args,
-        accounts=[],
-        markets=[],
-        objects=[],
+        accounts=None,
+        markets=None,
+        objects=None,
         on_tx=None,
         on_object=None,
         on_block=None,
@@ -135,9 +135,9 @@ class BitSharesWebsocket(Events):
         self.events = Events()
 
         # Store the objects we are interested in
-        self.subscription_accounts = accounts
-        self.subscription_markets = markets
-        self.subscription_objects = objects
+        self.subscription_accounts = accounts or []
+        self.subscription_markets = markets or []
+        self.subscription_objects = objects or []
 
         if on_tx:
             self.on_tx += on_tx
@@ -169,10 +169,10 @@ class BitSharesWebsocket(Events):
         self.keepalive = threading.Thread(target=self._ping)
         self.keepalive.start()
 
-    def reset_subscriptions(self, accounts=[], markets=[], objects=[]):
-        self.subscription_accounts = accounts
-        self.subscription_markets = markets
-        self.subscription_objects = objects
+    def reset_subscriptions(self, accounts=None, markets=None, objects=None):
+        self.subscription_accounts = accounts or []
+        self.subscription_markets = markets or []
+        self.subscription_objects = objects or []
         self.__set_subscriptions()
 
     def __set_subscriptions(self):

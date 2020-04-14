@@ -50,9 +50,9 @@ class Notify(Events, BlockchainInstance):
 
     def __init__(
         self,
-        accounts=[],
-        markets=[],
-        objects=[],
+        accounts=None,
+        markets=None,
+        objects=None,
         on_tx=None,
         on_object=None,
         on_block=None,
@@ -104,10 +104,10 @@ class Notify(Events, BlockchainInstance):
             market_ids.append([market["base"]["id"], market["quote"]["id"]])
         return market_ids
 
-    def reset_subscriptions(self, accounts=[], markets=[], objects=[]):
+    def reset_subscriptions(self, accounts=None, markets=None, objects=None):
         """Change the subscriptions of a running Notify instance."""
         self.websocket.reset_subscriptions(
-            accounts, self.get_market_ids(markets), objects
+            accounts, self.get_market_ids(markets or []), objects
         )
 
     def close(self):

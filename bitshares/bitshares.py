@@ -187,10 +187,10 @@ class BitShares(AbstractGrapheneChain):
         owner_account=None,
         active_account=None,
         password=None,
-        additional_owner_keys=[],
-        additional_active_keys=[],
-        additional_owner_accounts=[],
-        additional_active_accounts=[],
+        additional_owner_keys=None,
+        additional_active_keys=None,
+        additional_owner_accounts=None,
+        additional_active_accounts=None,
         proxy_account="proxy-to-self",
         storekeys=True,
         **kwargs
@@ -248,6 +248,15 @@ class BitShares(AbstractGrapheneChain):
             )
         if password and (owner_key or active_key or memo_key):
             raise ValueError("You cannot use 'password' AND provide keys!")
+
+        if additional_owner_keys is None:
+            additional_owner_keys = []
+        if additional_active_keys is None:
+            additional_active_keys = []
+        if additional_owner_accounts is None:
+            additional_owner_accounts = []
+        if additional_active_accounts is None:
+            additional_active_accounts = []
 
         try:
             Account(account_name, blockchain_instance=self)
@@ -1180,41 +1189,13 @@ class BitShares(AbstractGrapheneChain):
         is_prediction_market=False,
         market_fee_percent=0,
         max_market_fee=None,
-        permissions={
-            "charge_market_fee": True,
-            "white_list": True,
-            "override_authority": True,
-            "transfer_restricted": True,
-            "disable_force_settle": True,
-            "global_settle": True,
-            "disable_confidential": True,
-            "witness_fed_asset": True,
-            "committee_fed_asset": True,
-        },
-        flags={
-            "charge_market_fee": False,
-            "white_list": False,
-            "override_authority": False,
-            "transfer_restricted": False,
-            "disable_force_settle": False,
-            "global_settle": False,
-            "disable_confidential": False,
-            "witness_fed_asset": False,
-            "committee_fed_asset": False,
-        },
-        whitelist_authorities=[],
-        blacklist_authorities=[],
-        whitelist_markets=[],
-        blacklist_markets=[],
-        bitasset_options={
-            "feed_lifetime_sec": 86400,
-            "minimum_feeds": 7,
-            "force_settlement_delay_sec": 86400,
-            "force_settlement_offset_percent": 100,
-            "maximum_force_settlement_volume": 50,
-            "short_backing_asset": "1.3.0",
-            "extensions": [],
-        },
+        permissions=None,
+        flags=None,
+        whitelist_authorities=None,
+        blacklist_authorities=None,
+        whitelist_markets=None,
+        blacklist_markets=None,
+        bitasset_options=None,
         account=None,
         **kwargs
     ):
@@ -1255,6 +1236,49 @@ class BitShares(AbstractGrapheneChain):
         if not account:
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
+
+        if permissions is None:
+            permissions = {
+                "charge_market_fee": True,
+                "white_list": True,
+                "override_authority": True,
+                "transfer_restricted": True,
+                "disable_force_settle": True,
+                "global_settle": True,
+                "disable_confidential": True,
+                "witness_fed_asset": True,
+                "committee_fed_asset": True,
+            }
+        if flags is None:
+            flags = {
+                "charge_market_fee": False,
+                "white_list": False,
+                "override_authority": False,
+                "transfer_restricted": False,
+                "disable_force_settle": False,
+                "global_settle": False,
+                "disable_confidential": False,
+                "witness_fed_asset": False,
+                "committee_fed_asset": False,
+            }
+        if whitelist_authorities is None:
+            whitelist_authorities = []
+        if blacklist_authorities is None:
+            blacklist_authorities = []
+        if whitelist_markets is None:
+            whitelist_markets = []
+        if blacklist_markets is None:
+            blacklist_markets = []
+        if bitasset_options is None:
+            bitasset_options = {
+                "feed_lifetime_sec": 86400,
+                "minimum_feeds": 7,
+                "force_settlement_delay_sec": 86400,
+                "force_settlement_offset_percent": 100,
+                "maximum_force_settlement_volume": 50,
+                "short_backing_asset": "1.3.0",
+                "extensions": [],
+            }
 
         if not is_bitasset:
             # Turn off bitasset-specific options
@@ -1444,7 +1468,7 @@ class BitShares(AbstractGrapheneChain):
     def account_whitelist(
         self,
         account_to_whitelist,
-        lists=["white"],  # set of 'white' and/or 'black'
+        lists=None,  # set of ['white'] and/or ['black']
         account=None,
         **kwargs
     ):
@@ -1466,6 +1490,9 @@ class BitShares(AbstractGrapheneChain):
             raise ValueError("You need to provide an account")
         account = Account(account, blockchain_instance=self)
         account_to_list = Account(account_to_whitelist, blockchain_instance=self)
+
+        if lists is None:
+            lists = ["white"]
 
         if not isinstance(lists, (set, list)):
             raise ValueError('"lists" must be of instance list()')
