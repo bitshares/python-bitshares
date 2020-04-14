@@ -33,8 +33,8 @@ async def bitshares_instance(bitshares_testnet, private_keys, event_loop):
         loop=event_loop,
     )
     await bitshares.connect()
-    # Shared instance allows to avoid any bugs when bitshares_instance is not passed explicitly when instantiating
-    # objects
+    # Shared instance allows to avoid any bugs when bitshares_instance is not passed
+    # explicitly when instantiating objects
     set_shared_bitshares_instance(bitshares)
     # Todo: show chain params when connectiong to unknown network
     # https://github.com/bitshares/python-bitshares/issues/221

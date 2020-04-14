@@ -13,8 +13,8 @@ from bitshares.asset import Asset
 
 from bitsharesbase.chains import known_chains
 
-# Note: chain_id is generated from genesis.json, every time it's changes you need to get new chain_id from
-# `bitshares.rpc.get_chain_properties()`
+# Note: chain_id is generated from genesis.json, every time it's changes you need to get
+# new chain_id from `bitshares.rpc.get_chain_properties()`
 known_chains["TEST"][
     "chain_id"
 ] = "569cba9a00ee6e807a62389ea67de7c6954835390be62371709ec804c6bfe1f2"
@@ -99,8 +99,8 @@ def bitshares_instance(bitshares_testnet, private_keys):
         keys=private_keys,
         num_retries=-1,
     )
-    # Shared instance allows to avoid any bugs when bitshares_instance is not passed explicitly when instantiating
-    # objects. Todo: remove this
+    # Shared instance allows to avoid any bugs when bitshares_instance is not passed
+    # explicitly when instantiating objects. Todo: remove this
     set_shared_bitshares_instance(bitshares)
 
     return bitshares
