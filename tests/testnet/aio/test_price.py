@@ -74,8 +74,8 @@ async def test_order_repr(bitshares, default_account, market):
 async def test_order_init_no_shared_instance(
     not_shared_instance, default_account, market
 ):
-    """ Test for correct Order init when providing blockchain_instance kwarg and no shared instance is set
-    """
+    """Test for correct Order init when providing blockchain_instance kwarg and no
+    shared instance is set."""
     bitshares = not_shared_instance
 
     # Load from id

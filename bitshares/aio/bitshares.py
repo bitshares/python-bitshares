@@ -32,20 +32,20 @@ log = logging.getLogger(__name__)
 
 
 class BitShares(AbstractGrapheneChain, SyncBitShares):
-    """ BitShares async client
+    """
+    BitShares async client.
 
-        This is an asyncio version of :class:`bitshares.BitShares`
+    This is an asyncio version of :class:`bitshares.BitShares`
 
-        :param object loop: asyncio event loop
+    :param object loop: asyncio event loop
 
 
-        Example usage:
+    Example usage:
 
-        .. code-block:: python
+    .. code-block:: python
 
-            bitshares = BitShares(loop=loop)
-            await bitshares.connect()
-
+        bitshares = BitShares(loop=loop)
+        await bitshares.connect()
     """
 
     def define_classes(self):
@@ -63,15 +63,16 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
     # Simple Transfer
     # -------------------------------------------------------------------------
     async def transfer(self, to, amount, asset, memo="", account=None, **kwargs):
-        """ Transfer an asset to another account.
+        """
+        Transfer an asset to another account.
 
-            :param str to: Recipient
-            :param float amount: Amount to transfer
-            :param str asset: Asset to transfer
-            :param str memo: (optional) Memo, may begin with `#` for encrypted
-                messaging
-            :param str account: (optional) the source account for the transfer
-                if not ``default_account``
+        :param str to: Recipient
+        :param float amount: Amount to transfer
+        :param str asset: Asset to transfer
+        :param str memo: (optional) Memo, may begin with `#` for encrypted
+            messaging
+        :param str account: (optional) the source account for the transfer
+            if not ``default_account``
         """
         from .memo import Memo
 
@@ -127,49 +128,49 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         storekeys=True,
         **kwargs
     ):
-        """ Create new account on BitShares
+        """
+        Create new account on BitShares.
 
-            The brainkey/password can be used to recover all generated keys
-            (see `bitsharesbase.account` for more details.
+        The brainkey/password can be used to recover all generated keys
+        (see `bitsharesbase.account` for more details.
 
-            By default, this call will use ``default_account`` to
-            register a new name ``account_name`` with all keys being
-            derived from a new brain key that will be returned. The
-            corresponding keys will automatically be installed in the
-            wallet.
+        By default, this call will use ``default_account`` to
+        register a new name ``account_name`` with all keys being
+        derived from a new brain key that will be returned. The
+        corresponding keys will automatically be installed in the
+        wallet.
 
-            .. warning:: Don't call this method unless you know what
-                          you are doing! Be sure to understand what this
-                          method does and where to find the private keys
-                          for your account.
+        .. warning:: Don't call this method unless you know what
+                      you are doing! Be sure to understand what this
+                      method does and where to find the private keys
+                      for your account.
 
-            .. note:: Please note that this imports private keys
-                      (if password is present) into the wallet by
-                      default. However, it **does not import the owner
-                      key** for security reasons. Do NOT expect to be
-                      able to recover it from the wallet if you lose
-                      your password!
+        .. note:: Please note that this imports private keys
+                  (if password is present) into the wallet by
+                  default. However, it **does not import the owner
+                  key** for security reasons. Do NOT expect to be
+                  able to recover it from the wallet if you lose
+                  your password!
 
-            :param str account_name: (**required**) new account name
-            :param str registrar: which account should pay the registration fee
-                                (defaults to ``default_account``)
-            :param str owner_key: Main owner key
-            :param str active_key: Main active key
-            :param str memo_key: Main memo_key
-            :param str password: Alternatively to providing keys, one
-                                 can provide a password from which the
-                                 keys will be derived
-            :param array additional_owner_keys:  Additional owner public keys
-            :param array additional_active_keys: Additional active public keys
-            :param array additional_owner_accounts: Additional owner account
-                names
-            :param array additional_active_accounts: Additional acctive account
-                names
-            :param bool storekeys: Store new keys in the wallet (default:
-                ``True``)
-            :raises AccountExistsException: if the account already exists on
-                the blockchain
-
+        :param str account_name: (**required**) new account name
+        :param str registrar: which account should pay the registration fee
+                            (defaults to ``default_account``)
+        :param str owner_key: Main owner key
+        :param str active_key: Main active key
+        :param str memo_key: Main memo_key
+        :param str password: Alternatively to providing keys, one
+                             can provide a password from which the
+                             keys will be derived
+        :param array additional_owner_keys:  Additional owner public keys
+        :param array additional_active_keys: Additional active public keys
+        :param array additional_owner_accounts: Additional owner account
+            names
+        :param array additional_active_accounts: Additional acctive account
+            names
+        :param bool storekeys: Store new keys in the wallet (default:
+            ``True``)
+        :raises AccountExistsException: if the account already exists on
+            the blockchain
         """
         if not registrar and self.config["default_account"]:
             registrar = self.config["default_account"]
@@ -285,10 +286,11 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         return await self.finalizeOp(op, registrar, "active", **kwargs)
 
     async def upgrade_account(self, account=None, **kwargs):
-        """ Upgrade an account to Lifetime membership
+        """
+        Upgrade an account to Lifetime membership.
 
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         if not account:
             if "default_account" in self.config:
@@ -315,20 +317,20 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         threshold=None,
         **kwargs
     ):
-        """ Give additional access to an account by some other public
-            key or account.
+        """
+        Give additional access to an account by some other public key or account.
 
-            :param str foreign: The foreign account that will obtain access
-            :param int weight: (optional) The weight to use. If not
-                define, the threshold will be used. If the weight is
-                smaller than the threshold, additional signatures will
-                be required. (defaults to threshold)
-            :param str permission: (optional) The actual permission to
-                modify (defaults to ``active``)
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
-            :param int threshold: The threshold that needs to be reached
-                by signatures to be able to interact
+        :param str foreign: The foreign account that will obtain access
+        :param int weight: (optional) The weight to use. If not
+            define, the threshold will be used. If the weight is
+            smaller than the threshold, additional signatures will
+            be required. (defaults to threshold)
+        :param str permission: (optional) The actual permission to
+            modify (defaults to ``active``)
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
+        :param int threshold: The threshold that needs to be reached
+            by signatures to be able to interact
         """
         from copy import deepcopy
 
@@ -376,16 +378,16 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
     async def disallow(
         self, foreign, permission="active", account=None, threshold=None, **kwargs
     ):
-        """ Remove additional access to an account by some other public
-            key or account.
+        """
+        Remove additional access to an account by some other public key or account.
 
-            :param str foreign: The foreign account that will obtain access
-            :param str permission: (optional) The actual permission to
-                modify (defaults to ``active``)
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
-            :param int threshold: The threshold that needs to be reached
-                by signatures to be able to interact
+        :param str foreign: The foreign account that will obtain access
+        :param str permission: (optional) The actual permission to
+            modify (defaults to ``active``)
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
+        :param int threshold: The threshold that needs to be reached
+            by signatures to be able to interact
         """
         if not account:
             if "default_account" in self.config:
@@ -457,14 +459,15 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
             return await self.finalizeOp(op, account["name"], "active", **kwargs)
 
     async def update_memo_key(self, key, account=None, **kwargs):
-        """ Update an account's memo public key
+        """
+        Update an account's memo public key.
 
-            This method does **not** add any private keys to your
-            wallet but merely changes the memo public key.
+        This method does **not** add any private keys to your
+        wallet but merely changes the memo public key.
 
-            :param str key: New memo public key
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param str key: New memo public key
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         if not account:
             if "default_account" in self.config:
@@ -491,11 +494,12 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
     #  Approval and Disapproval of witnesses, workers, committee, and proposals
     # -------------------------------------------------------------------------
     async def approvewitness(self, witnesses, account=None, **kwargs):
-        """ Approve a witness
+        """
+        Approve a witness.
 
-            :param list witnesses: list of Witness name or id
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param list witnesses: list of Witness name or id
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         if not account:
             if "default_account" in self.config:
@@ -530,11 +534,12 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         return await self.finalizeOp(op, account["name"], "active", **kwargs)
 
     async def disapprovewitness(self, witnesses, account=None, **kwargs):
-        """ Disapprove a witness
+        """
+        Disapprove a witness.
 
-            :param list witnesses: list of Witness name or id
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param list witnesses: list of Witness name or id
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         if not account:
             if "default_account" in self.config:
@@ -570,11 +575,12 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         return await self.finalizeOp(op, account["name"], "active", **kwargs)
 
     async def approvecommittee(self, committees, account=None, **kwargs):
-        """ Approve a committee
+        """
+        Approve a committee.
 
-            :param list committees: list of committee member name or id
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param list committees: list of committee member name or id
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         if not account:
             if "default_account" in self.config:
@@ -609,11 +615,12 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         return await self.finalizeOp(op, account["name"], "active", **kwargs)
 
     async def disapprovecommittee(self, committees, account=None, **kwargs):
-        """ Disapprove a committee
+        """
+        Disapprove a committee.
 
-            :param list committees: list of committee name or id
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param list committees: list of committee name or id
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         if not account:
             if "default_account" in self.config:
@@ -651,13 +658,14 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
     async def approveproposal(
         self, proposal_ids, account=None, approver=None, **kwargs
     ):
-        """ Approve Proposal
+        """
+        Approve Proposal.
 
-            :param list proposal_id: Ids of the proposals
-            :param str appprover: The account or key to use for approval
-                (defaults to ``account``)
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param list proposal_id: Ids of the proposals
+        :param str appprover: The account or key to use for approval
+            (defaults to ``account``)
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         from .proposal import Proposal
 
@@ -700,11 +708,12 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
     async def disapproveproposal(
         self, proposal_ids, account=None, approver=None, **kwargs
     ):
-        """ Disapprove Proposal
+        """
+        Disapprove Proposal.
 
-            :param list proposal_ids: Ids of the proposals
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param list proposal_ids: Ids of the proposals
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         from .proposal import Proposal
 
@@ -739,11 +748,12 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         return await self.finalizeOp(op, account["name"], "active", **kwargs)
 
     async def approveworker(self, workers, account=None, **kwargs):
-        """ Approve a worker
+        """
+        Approve a worker.
 
-            :param list workers: list of worker member name or id
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param list workers: list of worker member name or id
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         if not account:
             if "default_account" in self.config:
@@ -774,11 +784,12 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         return await self.finalizeOp(op, account["name"], "active", **kwargs)
 
     async def disapproveworker(self, workers, account=None, **kwargs):
-        """ Disapprove a worker
+        """
+        Disapprove a worker.
 
-            :param list workers: list of worker name or id
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param list workers: list of worker name or id
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         if not account:
             if "default_account" in self.config:
@@ -810,17 +821,17 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         return await self.finalizeOp(op, account["name"], "active", **kwargs)
 
     async def unset_proxy(self, account=None, **kwargs):
-        """ Unset the proxy account to start voting yourself
-        """
+        """Unset the proxy account to start voting yourself."""
         return await self.set_proxy("proxy-to-self", account=account, **kwargs)
 
     async def set_proxy(self, proxy_account, account=None, **kwargs):
-        """ Set a specific proxy for account
+        """
+        Set a specific proxy for account.
 
-            :param bitshares.account.Account proxy_account: Account to be
-                    proxied
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param bitshares.account.Account proxy_account: Account to be
+                proxied
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         if not account:
             if "default_account" in self.config:
@@ -844,12 +855,12 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         return await self.finalizeOp(op, account["name"], "active", **kwargs)
 
     async def cancel(self, orderNumbers, account=None, **kwargs):
-        """ Cancels an order you have placed in a given market. Requires
-            only the "orderNumbers". An order number takes the form
-            ``1.7.xxx``.
+        """
+        Cancels an order you have placed in a given market. Requires only the
+        "orderNumbers". An order number takes the form ``1.7.xxx``.
 
-            :param str orderNumbers: The Order Object ide of the form
-                ``1.7.xxxx``
+        :param str orderNumbers: The Order Object ide of the form
+            ``1.7.xxxx``
         """
         if not account:
             if "default_account" in self.config:
@@ -879,14 +890,14 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
     async def vesting_balance_withdraw(
         self, vesting_id, amount=None, account=None, **kwargs
     ):
-        """ Withdraw vesting balance
+        """
+        Withdraw vesting balance.
 
-            :param str vesting_id: Id of the vesting object
-            :param bitshares.amount.Amount Amount: to withdraw ("all" if not
-                provided")
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
-
+        :param str vesting_id: Id of the vesting object
+        :param bitshares.amount.Amount Amount: to withdraw ("all" if not
+            provided")
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         if not account:
             if "default_account" in self.config:
@@ -913,22 +924,23 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
     async def publish_price_feed(
         self, symbol, settlement_price, cer=None, mssr=110, mcr=200, account=None
     ):
-        """ Publish a price feed for a market-pegged asset
+        """
+        Publish a price feed for a market-pegged asset.
 
-            :param str symbol: Symbol of the asset to publish feed for
-            :param bitshares.price.Price settlement_price: Price for settlement
-            :param bitshares.price.Price cer: Core exchange Rate (default
-                ``settlement_price + 5%``)
-            :param float mssr: Percentage for max short squeeze ratio (default:
-                110%)
-            :param float mcr: Percentage for maintenance collateral ratio
-                (default: 200%)
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param str symbol: Symbol of the asset to publish feed for
+        :param bitshares.price.Price settlement_price: Price for settlement
+        :param bitshares.price.Price cer: Core exchange Rate (default
+            ``settlement_price + 5%``)
+        :param float mssr: Percentage for max short squeeze ratio (default:
+            110%)
+        :param float mcr: Percentage for maintenance collateral ratio
+            (default: 200%)
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
 
-            .. note:: The ``account`` needs to be allowed to produce a
-                      price feed for ``symbol``. For witness produced
-                      feeds this means ``account`` is a witness account!
+        .. note:: The ``account`` needs to be allowed to produce a
+                  price feed for ``symbol``. For witness produced
+                  feeds this means ``account`` is a witness account!
         """
         assert mcr > 100
         assert mssr > 100
@@ -992,13 +1004,13 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         return await self.finalizeOp(op, account["name"], "active")
 
     async def update_cer(self, symbol, cer, account=None):
-        """ Update the Core Exchange Rate (CER) of an asset
+        """
+        Update the Core Exchange Rate (CER) of an asset.
 
-            :param str symbol: Symbol of the asset to publish feed for
-            :param bitshares.price.Price cer: Core exchange Rate
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
-
+        :param str symbol: Symbol of the asset to publish feed for
+        :param bitshares.price.Price cer: Core exchange Rate
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         assert isinstance(
             cer, Price
@@ -1034,11 +1046,12 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         return await self.finalizeOp(op, account["name"], "active")
 
     async def update_witness(self, witness_identifier, url=None, key=None, **kwargs):
-        """ Upgrade a witness account
+        """
+        Upgrade a witness account.
 
-            :param str witness_identifier: Identifier for the witness
-            :param str url: New URL for the witness
-            :param str key: Public Key for the signing
+        :param str witness_identifier: Identifier for the witness
+        :param str url: New URL for the witness
+        :param str key: Public Key for the signing
         """
         witness = await Witness(witness_identifier)
         account = await witness.account
@@ -1055,13 +1068,14 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         return await self.finalizeOp(op, account["name"], "active", **kwargs)
 
     async def reserve(self, amount, account=None, **kwargs):
-        """ Reserve/Burn an amount of this shares
+        """
+        Reserve/Burn an amount of this shares.
 
-            This removes the shares from the supply
+        This removes the shares from the supply
 
-            :param bitshares.amount.Amount amount: The amount to be burned.
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param bitshares.amount.Amount amount: The amount to be burned.
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         assert isinstance(amount, Amount)
         if not account:
@@ -1131,34 +1145,35 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         account=None,
         **kwargs
     ):
-        """ Create a new asset
+        """
+        Create a new asset.
 
-            :param str symbol: Asset symbol
-            :param int precision: Asset precision
-            :param int max_supply: Asset max supply
-            :param str description: (optional) Asset description
-            :param bool is_bitasset: (optional) True = bitasset, False = UIA (default:
-                False)
-            :param bool is_prediction_market: (optional) True: PD, False = plain
-                smartcoin (default: False)
-            :param float market_fee_percent: (optional) Charge market fee (0-100)
-                (default: 0)
-            :param float max_market_fee: (optional) Absolute amount of max
-                market fee, value of this option should be a whole number (default:
-                same as max_supply)
-            :param dict permissions: (optional) Asset permissions
-            :param dict flags: (optional) Enabled asset flags
-            :param list whitelist_authorities: (optional) List of accounts that
-                serve as whitelist authorities
-            :param list blacklist_authorities: (optional) List of accounts that
-                serve as blacklist authorities
-            :param list whitelist_markets: (optional) List of assets to allow
-                trading with
-            :param list blacklist_markets: (optional) List of assets to prevent
-                trading with
-            :param dict bitasset_options: (optional) Bitasset settings
-            :param str account: (optional) the issuer account
-                to (defaults to ``default_account``)
+        :param str symbol: Asset symbol
+        :param int precision: Asset precision
+        :param int max_supply: Asset max supply
+        :param str description: (optional) Asset description
+        :param bool is_bitasset: (optional) True = bitasset, False = UIA (default:
+            False)
+        :param bool is_prediction_market: (optional) True: PD, False = plain
+            smartcoin (default: False)
+        :param float market_fee_percent: (optional) Charge market fee (0-100)
+            (default: 0)
+        :param float max_market_fee: (optional) Absolute amount of max
+            market fee, value of this option should be a whole number (default:
+            same as max_supply)
+        :param dict permissions: (optional) Asset permissions
+        :param dict flags: (optional) Enabled asset flags
+        :param list whitelist_authorities: (optional) List of accounts that
+            serve as whitelist authorities
+        :param list blacklist_authorities: (optional) List of accounts that
+            serve as blacklist authorities
+        :param list whitelist_markets: (optional) List of assets to allow
+            trading with
+        :param list blacklist_markets: (optional) List of assets to prevent
+            trading with
+        :param dict bitasset_options: (optional) Bitasset settings
+        :param str account: (optional) the issuer account
+            to (defaults to ``default_account``)
         """
 
         if not account:
@@ -1242,26 +1257,27 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         account=None,
         **kwargs
     ):
-        """ Create a worker
+        """
+        Create a worker.
 
-            This removes the shares from the supply
+        This removes the shares from the supply
 
-            **Required**
+        **Required**
 
-            :param str name: Name of the worker
-            :param bitshares.amount.Amount daily_pay: The amount to be paid
-                daily
-            :param datetime end: Date/time of end of the worker
+        :param str name: Name of the worker
+        :param bitshares.amount.Amount daily_pay: The amount to be paid
+            daily
+        :param datetime end: Date/time of end of the worker
 
-            **Optional**
+        **Optional**
 
-            :param str url: URL to read more about the worker
-            :param datetime begin: Date/time of begin of the worker
-            :param string payment_type: ["burn", "refund", "vesting"] (default:
-                "vesting")
-            :param int pay_vesting_period_days: Days of vesting (default: 0)
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param str url: URL to read more about the worker
+        :param datetime begin: Date/time of begin of the worker
+        :param string payment_type: ["burn", "refund", "vesting"] (default:
+            "vesting")
+        :param int pay_vesting_period_days: Days of vesting (default: 0)
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         from bitsharesbase.transactions import timeformat
 
@@ -1300,12 +1316,13 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         return await self.finalizeOp(op, account, "active", **kwargs)
 
     async def fund_fee_pool(self, symbol, amount, account=None, **kwargs):
-        """ Fund the fee pool of an asset
+        """
+        Fund the fee pool of an asset.
 
-            :param str symbol: The symbol to fund the fee pool of
-            :param float amount: The amount to be burned.
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param str symbol: The symbol to fund the fee pool of
+        :param float amount: The amount to be burned.
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         assert isinstance(amount, float)
         if not account:
@@ -1328,11 +1345,12 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         return await self.finalizeOp(op, account, "active", **kwargs)
 
     async def create_committee_member(self, url="", account=None, **kwargs):
-        """ Create a committee member
+        """
+        Create a committee member.
 
-            :param str url: URL to read more about the worker
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param str url: URL to read more about the worker
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         if not account:
             if "default_account" in self.config:
@@ -1357,15 +1375,16 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         account=None,
         **kwargs
     ):
-        """ Account whitelisting
+        """
+        Account whitelisting.
 
-            :param str account_to_whitelist: The account we want to add
-                to either the white- or the blacklist
-            :param set lists: (defaults to ``('white')``). Lists the
-                user should be added to. Either empty set, 'black',
-                'white' or both.
-            :param str account: (optional) the account to allow access
-                to (defaults to ``default_account``)
+        :param str account_to_whitelist: The account we want to add
+            to either the white- or the blacklist
+        :param set lists: (defaults to ``('white')``). Lists the
+            user should be added to. Either empty set, 'black',
+            'white' or both.
+        :param str account: (optional) the account to allow access
+            to (defaults to ``default_account``)
         """
         if not account:
             if "default_account" in self.config:
@@ -1520,25 +1539,27 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         return await self.finalizeOp(op, account, "active", **kwargs)
 
     async def subscribe_to_blocks(self):
-        """ Activate subscription to block
+        """
+        Activate subscription to block.
 
-            Each time block is applied an event will occur in
-            self.notifications.
+        Each time block is applied an event will occur in self.notifications.
         """
         await self.rpc.set_block_applied_callback(2)
 
     async def subscribe_to_pending_transactions(self):
-        """ Activate subscription to pending transactions
+        """
+        Activate subscription to pending transactions.
 
-            Each time transaction is pushed to database an event will occur in
-            self.notifications.
+        Each time transaction is pushed to database an event will occur in
+        self.notifications.
         """
         await self.rpc.set_pending_transaction_callback(0)
 
     async def subscribe_to_accounts(self, accounts):
-        """ Activate subscription to account-related events
+        """
+        Activate subscription to account-related events.
 
-            :param list accounts: account names or ids to subscribe
+        :param list accounts: account names or ids to subscribe
         """
         if isinstance(accounts, str):
             accounts = [accounts]
@@ -1549,10 +1570,11 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         await self.rpc.get_full_accounts(accounts, True)
 
     async def subscribe_to_market(self, market, event_id=4):
-        """ Activate subscription on market events
+        """
+        Activate subscription on market events.
 
-            :param str,bitshares.aio.Market market: market to set subscription
-                on
+        :param str,bitshares.aio.Market market: market to set subscription
+            on
         """
         if isinstance(market, str):
             market = await Market(market, blockchain_instance=self)
@@ -1562,6 +1584,5 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         )
 
     async def cancel_subscriptions(self):
-        """ Cancel all active subscriptions
-        """
+        """Cancel all active subscriptions."""
         await self.rpc.cancel_all_subscriptions()

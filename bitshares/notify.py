@@ -15,36 +15,35 @@ log = logging.getLogger(__name__)
 
 
 class Notify(Events, BlockchainInstance):
-    """ Notifications on Blockchain events.
+    """
+    Notifications on Blockchain events.
 
-        :param list accounts: Account names/ids to be notified about when changing
-        :param list markets: Instances of :class:`bitshares.market.Market` that identify markets to be monitored
-        :param list objects: Object ids to be notified about when changed
-        :param fnt on_tx: Callback that will be called for each transaction received
-        :param fnt on_block: Callback that will be called for each block received
-        :param fnt on_account: Callback that will be called for changes of the listed accounts
-        :param fnt on_market: Callback that will be called for changes of the listed markets
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
+    :param list accounts: Account names/ids to be notified about when changing
+    :param list markets: Instances of :class:`bitshares.market.Market` that identify markets to be monitored
+    :param list objects: Object ids to be notified about when changed
+    :param fnt on_tx: Callback that will be called for each transaction received
+    :param fnt on_block: Callback that will be called for each block received
+    :param fnt on_account: Callback that will be called for changes of the listed accounts
+    :param fnt on_market: Callback that will be called for changes of the listed markets
+    :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
 
-        **Example**
+    **Example**
 
-        .. code-block:: python
+    .. code-block:: python
 
-            from pprint import pprint
-            from bitshares.notify import Notify
-            from bitshares.market import Market
+        from pprint import pprint
+        from bitshares.notify import Notify
+        from bitshares.market import Market
 
-            notify = Notify(
-                markets=["TEST:GOLD"],
-                accounts=["xeroc"],
-                on_market=print,
-                on_account=print,
-                on_block=print,
-                on_tx=print
-            )
-            notify.listen()
-
-
+        notify = Notify(
+            markets=["TEST:GOLD"],
+            accounts=["xeroc"],
+            on_market=print,
+            on_account=print,
+            on_block=print,
+            on_tx=print
+        )
+        notify.listen()
     """
 
     __events__ = ["on_tx", "on_object", "on_block", "on_account", "on_market"]
@@ -106,27 +105,25 @@ class Notify(Events, BlockchainInstance):
         return market_ids
 
     def reset_subscriptions(self, accounts=[], markets=[], objects=[]):
-        """Change the subscriptions of a running Notify instance
-        """
+        """Change the subscriptions of a running Notify instance."""
         self.websocket.reset_subscriptions(
             accounts, self.get_market_ids(markets), objects
         )
 
     def close(self):
-        """Cleanly close the Notify instance
-        """
+        """Cleanly close the Notify instance."""
         self.websocket.close()
 
     def process_market(self, data):
-        """ This method is used for post processing of market
-            notifications. It will return instances of either
+        """
+        This method is used for post processing of market notifications. It will return
+        instances of either.
 
-            * :class:`bitshares.price.Order` or
-            * :class:`bitshares.price.FilledOrder` or
-            * :class:`bitshares.price.UpdateCallOrder`
+        * :class:`bitshares.price.Order` or
+        * :class:`bitshares.price.FilledOrder` or
+        * :class:`bitshares.price.UpdateCallOrder`
 
-            Also possible are limit order updates (margin calls)
-
+        Also possible are limit order updates (margin calls)
         """
         for d in data:
             if not d:
@@ -162,13 +159,18 @@ class Notify(Events, BlockchainInstance):
                                 log.error("Unknown market update type: %s" % i)
 
     def process_account(self, message):
-        """ This is used for processing of account Updates. It will
-            return instances of :class:bitshares.account.AccountUpdate`
+        """
+        This is used for processing of account Updates.
+
+        It will return instances of
+        :class:bitshares.account.AccountUpdate`
         """
         self.on_account(AccountUpdate(message, blockchain_instance=self.blockchain))
 
     def listen(self):
-        """ This call initiates the listening/notification process. It
-            behaves similar to ``run_forever()``.
+        """
+        This call initiates the listening/notification process.
+
+        It behaves similar to ``run_forever()``.
         """
         self.websocket.run_forever()

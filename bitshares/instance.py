@@ -3,17 +3,14 @@ from graphenecommon.instance import AbstractBlockchainInstanceProvider
 
 
 class SharedInstance:
-    """ This class merely offers a singelton for the Blockchain Instance
-    """
+    """This class merely offers a singelton for the Blockchain Instance."""
 
     instance = None
     config = {}
 
 
 class BlockchainInstance(AbstractBlockchainInstanceProvider):
-    """ This is a class that allows compatibility with previous
-        naming conventions
-    """
+    """This is a class that allows compatibility with previous naming conventions."""
 
     _sharedInstance = SharedInstance
 
@@ -24,16 +21,14 @@ class BlockchainInstance(AbstractBlockchainInstanceProvider):
         AbstractBlockchainInstanceProvider.__init__(self, *args, **kwargs)
 
     def get_instance_class(self):
-        """ Should return the Chain instance class, e.g. `bitshares.BitShares`
-        """
+        """Should return the Chain instance class, e.g. `bitshares.BitShares`"""
         import bitshares as bts
 
         return bts.BitShares
 
     @property
     def bitshares(self):
-        """ Alias for the specific blockchain
-        """
+        """Alias for the specific blockchain."""
         return self.blockchain
 
 

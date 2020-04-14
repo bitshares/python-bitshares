@@ -8,13 +8,13 @@ from .operations import Operation
 
 
 class Signed_Transaction(GrapheneSigned_Transaction):
-    """ Create a signed transaction and offer method to create the
-        signature
+    """
+    Create a signed transaction and offer method to create the signature.
 
-        :param num refNum: parameter ref_block_num (see ``getBlockParams``)
-        :param num refPrefix: parameter ref_block_prefix (see ``getBlockParams``)
-        :param str expiration: expiration date
-        :param Array operations:  array of operations
+    :param num refNum: parameter ref_block_num (see ``getBlockParams``)
+    :param num refPrefix: parameter ref_block_prefix (see ``getBlockParams``)
+    :param str expiration: expiration date
+    :param Array operations:  array of operations
     """
 
     known_chains = known_chains

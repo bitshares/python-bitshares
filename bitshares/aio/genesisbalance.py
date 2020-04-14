@@ -12,12 +12,12 @@ from bitsharesbase import operations
 
 @BlockchainInstance.inject
 class GenesisBalance(GrapheneGenesisBalance):
-    """ Read data about a Genesis Balances from the chain
+    """
+    Read data about a Genesis Balances from the chain.
 
-        :param str identifier: identifier of the balance
-        :param bitshares blockchain_instance: bitshares() instance to use when
-            accesing a RPC
-
+    :param str identifier: identifier of the balance
+    :param bitshares blockchain_instance: bitshares() instance to use when
+        accesing a RPC
     """
 
     type_id = 15
@@ -31,9 +31,7 @@ class GenesisBalance(GrapheneGenesisBalance):
 
 @BlockchainInstance.inject
 class GenesisBalances(GrapheneGenesisBalances):
-    """ List genesis balances that can be claimed from the
-        keys in the wallet
-    """
+    """List genesis balances that can be claimed from the keys in the wallet."""
 
     def define_classes(self):
         self.genesisbalance_class = GenesisBalance

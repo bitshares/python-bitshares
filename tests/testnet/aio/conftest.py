@@ -25,8 +25,7 @@ def event_loop():
 
 @pytest.fixture(scope="session")
 async def bitshares_instance(bitshares_testnet, private_keys, event_loop):
-    """ Initialize BitShares instance connected to a local testnet
-    """
+    """Initialize BitShares instance connected to a local testnet."""
     bitshares = BitShares(
         node="ws://127.0.0.1:{}".format(bitshares_testnet.service_port),
         keys=private_keys,
@@ -48,8 +47,7 @@ async def bitshares_instance(bitshares_testnet, private_keys, event_loop):
 
 @pytest.fixture(scope="session")
 async def claim_balance(bitshares_instance, default_account):
-    """ Transfer balance from genesis into actual account
-    """
+    """Transfer balance from genesis into actual account."""
     genesis_balance = await GenesisBalance(
         "1.15.0", bitshares_instance=bitshares_instance
     )
@@ -58,15 +56,13 @@ async def claim_balance(bitshares_instance, default_account):
 
 @pytest.fixture(scope="session")
 def bitshares(bitshares_instance, claim_balance):
-    """ Prepare the testnet and return BitShares instance
-    """
+    """Prepare the testnet and return BitShares instance."""
     return bitshares_instance
 
 
 @pytest.fixture()
 async def not_shared_instance(bitshares):
-    """ Unsets shared instance
-    """
+    """Unsets shared instance."""
     current_shared_instance = SharedInstance.instance
     SharedInstance.instance = None
     yield bitshares
@@ -75,8 +71,7 @@ async def not_shared_instance(bitshares):
 
 @pytest.fixture(scope="session")
 async def create_asset(bitshares, default_account):
-    """ Create a new asset
-    """
+    """Create a new asset."""
 
     async def _create_asset(asset, precision, is_bitasset=False):
         max_supply = (
@@ -95,11 +90,12 @@ async def create_asset(bitshares, default_account):
 
 @pytest.fixture(scope="session")
 async def issue_asset(bitshares):
-    """ Issue asset shares to specified account
+    """
+    Issue asset shares to specified account.
 
-        :param str asset: asset symbol to issue
-        :param float amount: amount to issue
-        :param str to: account name to receive new shares
+    :param str asset: asset symbol to issue
+    :param float amount: amount to issue
+    :param str to: account name to receive new shares
     """
 
     async def _issue_asset(asset, amount, to):
@@ -113,8 +109,7 @@ async def issue_asset(bitshares):
 
 @pytest.fixture(scope="session")
 async def assets(create_asset, issue_asset, default_account):
-    """ Create some assets to use in tests
-    """
+    """Create some assets to use in tests."""
     await create_asset("USD", 3)
     await create_asset("GOLD", 3)
     await issue_asset("USD", 1000, default_account)
@@ -135,8 +130,7 @@ async def unused_asset(bitshares):
 
 @pytest.fixture(scope="session")
 async def unused_account(bitshares):
-    """ Find unexistent account
-    """
+    """Find unexistent account."""
 
     async def func():
         _range = 100000

@@ -26,8 +26,7 @@ async def testworker(bitshares, default_account):
 
 @pytest.fixture(scope="module")
 async def gs_bitasset(bitshares, default_account, base_bitasset):
-    """ Create globally settled bitasset
-    """
+    """Create globally settled bitasset."""
     asset = await base_bitasset()
 
     price = await Price(10.0, base=asset, quote=await Asset("TEST"))
@@ -56,8 +55,7 @@ async def ltm_account(bitshares, default_account, unused_account):
 
 @pytest.mark.asyncio
 async def test_aio_chain_props(bitshares):
-    """ Test chain properties
-    """
+    """Test chain properties."""
     # Wait for several blcocks
     await asyncio.sleep(3)
     props = await bitshares.info()
@@ -262,8 +260,7 @@ async def test_asset_settle(bitshares, default_account, bitasset):
 
 @pytest.mark.asyncio
 async def test_htlc(bitshares, default_account):
-    """ Test both htlc_create and htlc_redeem
-    """
+    """Test both htlc_create and htlc_redeem."""
     amount = await Amount("10 TEST")
     bitshares.blocking = "head"
     tx = await bitshares.htlc_create(

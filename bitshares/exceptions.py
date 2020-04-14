@@ -26,28 +26,24 @@ from graphenecommon.exceptions import (
 
 
 class RPCConnectionRequired(Exception):
-    """ An RPC connection is required
-    """
+    """An RPC connection is required."""
 
     pass
 
 
 class AccountExistsException(Exception):
-    """ The requested account already exists
-    """
+    """The requested account already exists."""
 
     pass
 
 
 class ObjectNotInProposalBuffer(Exception):
-    """ Object was not found in proposal
-    """
+    """Object was not found in proposal."""
 
     pass
 
 
 class HtlcDoesNotExistException(Exception):
-    """ HTLC object does not exist
-    """
+    """HTLC object does not exist."""
 
     pass

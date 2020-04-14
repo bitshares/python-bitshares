@@ -14,8 +14,9 @@ from graphenecommon.aio.price import Price as GraphenePrice
 
 @BlockchainInstance.inject
 class Price(GraphenePrice):
-    """ This class deals with all sorts of prices of any pair of assets to
-        simplify dealing with the tuple::
+    """
+    This class deals with all sorts of prices of any pair of assets to simplify dealing
+    with the tuple::
 
             (quote, base)
 
@@ -65,7 +66,6 @@ class Price(GraphenePrice):
             >>> from bitshares.aio.price import Price
             >>> await Price("0.3314 USD/BTS") * 2
             0.662600000 USD/BTS
-
     """
 
     def define_classes(self):
@@ -74,10 +74,11 @@ class Price(GraphenePrice):
 
     @property
     async def market(self):
-        """ Open the corresponding market
+        """
+        Open the corresponding market.
 
-            :returns: Instance of :class:`bitshares.aio.market.Market` for the
-                      corresponding pair of assets.
+        :returns: Instance of :class:`bitshares.aio.market.Market` for the
+                  corresponding pair of assets.
         """
         from .market import Market
 
@@ -89,18 +90,18 @@ class Price(GraphenePrice):
 
 
 class Order(Price):
-    """ This class inherits :class:`bitshares.aio.price.Price` but has the ``base``
-        and ``quote`` Amounts not only be used to represent the price (as a
-        ratio of base and quote) but instead has those amounts represent the
-        amounts of an actual order!
+    """
+    This class inherits :class:`bitshares.aio.price.Price` but has the ``base`` and
+    ``quote`` Amounts not only be used to represent the price (as a ratio of base and
+    quote) but instead has those amounts represent the amounts of an actual order!
 
-        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
+    :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
 
-        .. note::
+    .. note::
 
-                If an order is marked as deleted, it will carry the
-                'deleted' key which is set to ``True`` and all other
-                data be ``None``.
+            If an order is marked as deleted, it will carry the
+            'deleted' key which is set to ``True`` and all other
+            data be ``None``.
     """
 
     async def __init__(self, *args, **kwargs):
@@ -110,8 +111,7 @@ class Order(Price):
         BlockchainInstance.__init__(self, **kwargs)
 
         if len(args) == 1 and isinstance(args[0], str):
-            """ Load from id
-            """
+            """Load from id."""
             result = await self.blockchain.rpc.get_objects([args[0]])
             order = result[0]
             if order:
@@ -128,8 +128,7 @@ class Order(Price):
                 self["price"] = None
                 self["seller"] = None
         elif len(args) == 1 and isinstance(args[0], dict) and "sell_price" in args[0]:
-            """ Load from object 1.7.xxx
-            """
+            """Load from object 1.7.xxx."""
             # Take all the arguments with us
             self.update(args[0])
             await Price.__init__(
@@ -142,8 +141,7 @@ class Order(Price):
             and "min_to_receive" in args[0]
             and "amount_to_sell" in args[0]
         ):
-            """ Load from an operation
-            """
+            """Load from an operation."""
             # Take all the arguments with us
             self.update(args[0])
             await Price.__init__(
@@ -166,8 +164,7 @@ class Order(Price):
             )
 
     def __repr__(self):
-        """ Asyncio version uses simplified mechanics to display details
-        """
+        """Asyncio version uses simplified mechanics to display details."""
         if "deleted" in self and self["deleted"]:
             return "deleted order %s" % self["id"]
         else:
@@ -192,15 +189,16 @@ class Order(Price):
 
 
 class FilledOrder(Price):
-    """ This class inherits :class:`bitshares.aio.price.Price` but has the ``base``
-        and ``quote`` Amounts not only be used to represent the price (as a
-        ratio of base and quote) but instead has those amounts represent the
-        amounts of an actually filled order!
+    """
+    This class inherits :class:`bitshares.aio.price.Price` but has the ``base`` and
+    ``quote`` Amounts not only be used to represent the price (as a ratio of base and
+    quote) but instead has those amounts represent the amounts of an actually filled
+    order!
 
-        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
+    :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
 
-        .. note:: Instances of this class come with an additional ``time`` key
-                  that shows when the order has been filled!
+    .. note:: Instances of this class come with an additional ``time`` key
+              that shows when the order has been filled!
     """
 
     async def copy(self):
@@ -297,18 +295,18 @@ class UpdateCallOrder(Price):
 @asyncinit
 @BlockchainInstance.inject
 class PriceFeed(dict):
-    """ This class is used to represent a price feed consisting of
+    """
+    This class is used to represent a price feed consisting of.
 
-        * a witness,
-        * a symbol,
-        * a core exchange rate,
-        * the maintenance collateral ratio,
-        * the max short squeeze ratio,
-        * a settlement price, and
-        * a date
+    * a witness,
+    * a symbol,
+    * a core exchange rate,
+    * the maintenance collateral ratio,
+    * the max short squeeze ratio,
+    * a settlement price, and
+    * a date
 
-        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
-
+    :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
     """
 
     async def __init__(self, feed, **kwargs):

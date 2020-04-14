@@ -9,24 +9,24 @@ from graphenecommon.aio.block import (
 
 @BlockchainInstance.inject
 class Block(GrapheneBlock, SyncBlock):
-    """ Read a single block from the chain
+    """
+    Read a single block from the chain.
 
-        :param int block: block number
-        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares
-            instance
-        :param bool lazy: Use lazy loading
-        :param loop: async event loop
+    :param int block: block number
+    :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares
+        instance
+    :param bool lazy: Use lazy loading
+    :param loop: async event loop
 
-        Instances of this class are dictionaries that come with additional
-        methods (see below) that allow dealing with a block and it's
-        corresponding functions.
+    Instances of this class are dictionaries that come with additional
+    methods (see below) that allow dealing with a block and it's
+    corresponding functions.
 
-        .. code-block:: python
+    .. code-block:: python
 
-            from bitshares.aio.block import Block
-            block = await Block(1)
-            print(block)
-
+        from bitshares.aio.block import Block
+        block = await Block(1)
+        print(block)
     """
 
     pass

@@ -16,9 +16,10 @@ from ..asset import Asset as SyncAsset
 
 @BlockchainInstance.inject
 class Asset(GrapheneAsset, SyncAsset):
-    """ BitShares asset
+    """
+    BitShares asset.
 
-        Async version of :class:`bitshares.bitshares.Asset`
+    Async version of :class:`bitshares.bitshares.Asset`
     """
 
     async def __init__(self, *args, **kwargs):
@@ -153,8 +154,7 @@ class Asset(GrapheneAsset, SyncAsset):
         return r
 
     async def halt(self):
-        """ Halt this asset from being moved or traded
-        """
+        """Halt this asset from being moved or traded."""
         from .account import Account
 
         nullaccount = await Account(
@@ -192,17 +192,17 @@ class Asset(GrapheneAsset, SyncAsset):
         whitelist_markets=[],
         blacklist_markets=[],
     ):
-        """ Release this asset and allow unrestricted transfer, trading,
-            etc.
+        """
+        Release this asset and allow unrestricted transfer, trading, etc.
 
-            :param list whitelist_authorities: List of accounts that
-                serve as whitelist authorities
-            :param list blacklist_authorities: List of accounts that
-                serve as blacklist authorities
-            :param list whitelist_markets: List of assets to allow
-                trading with
-            :param list blacklist_markets: List of assets to prevent
-                trading with
+        :param list whitelist_authorities: List of accounts that
+            serve as whitelist authorities
+        :param list blacklist_authorities: List of accounts that
+            serve as blacklist authorities
+        :param list whitelist_markets: List of assets to allow
+            trading with
+        :param list blacklist_markets: List of assets to prevent
+            trading with
         """
         from .account import Account
 
@@ -243,57 +243,62 @@ class Asset(GrapheneAsset, SyncAsset):
         return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     async def setoptions(self, flags):
-        """ Enable a certain flag.
+        """
+        Enable a certain flag.
 
-            Flags:
+        Flags:
 
-             * charge_market_fee
-             * white_list
-             * override_authority
-             * transfer_restricted
-             * disable_force_settle
-             * global_settle
-             * disable_confidential
-             * witness_fed_asset
-             * committee_fed_asset
+         * charge_market_fee
+         * white_list
+         * override_authority
+         * transfer_restricted
+         * disable_force_settle
+         * global_settle
+         * disable_confidential
+         * witness_fed_asset
+         * committee_fed_asset
 
-            :param dict flag: dictionary of flags and boolean
+        :param dict flag: dictionary of flags and boolean
         """
         op = super().setoptions(flags, return_op=True)
         return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     async def enableflag(self, flag):
-        """ Enable a certain flag.
+        """
+        Enable a certain flag.
 
-            :param str flag: Flag name
+        :param str flag: Flag name
         """
         return await self.setoptions({flag: True})
 
     async def disableflag(self, flag):
-        """ Enable a certain flag.
+        """
+        Enable a certain flag.
 
-            :param str flag: Flag name
+        :param str flag: Flag name
         """
         return await self.setoptions({flag: False})
 
     async def seize(self, *args):
-        """ Seize amount from an account and send to another
+        """
+        Seize amount from an account and send to another.
 
-            ... note:: This requires the ``override_authority`` to be
-                       set for this asset!
+        ... note:: This requires the ``override_authority`` to be
+                   set for this asset!
 
-            :param bitshares.account.Account from_account: From this account
-            :param bitshares.account.Account to_account: To this account
-            :param bitshares.amount.Amount amount: Amount to seize
+        :param bitshares.account.Account from_account: From this account
+        :param bitshares.account.Account to_account: To this account
+        :param bitshares.amount.Amount amount: Amount to seize
         """
         op = super().seize(*args, return_op=True)
         return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     async def add_authorities(self, type, authorities=[]):
-        """ Add authorities to an assets white/black list
+        """
+        Add authorities to an assets white/black list.
 
-            :param str type: ``blacklist`` or ``whitelist``
-            :param list authorities: List of authorities (Accounts)
+        :param str type: ``blacklist`` or ``whitelist``
+        :param list authorities: List of authorities (Accounts)
         """
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
@@ -327,10 +332,11 @@ class Asset(GrapheneAsset, SyncAsset):
         return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     async def remove_authorities(self, type, authorities=[]):
-        """ Remove authorities from an assets white/black list
+        """
+        Remove authorities from an assets white/black list.
 
-            :param str type: ``blacklist`` or ``whitelist``
-            :param list authorities: List of authorities (Accounts)
+        :param str type: ``blacklist`` or ``whitelist``
+        :param list authorities: List of authorities (Accounts)
         """
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
@@ -358,11 +364,12 @@ class Asset(GrapheneAsset, SyncAsset):
         return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     async def add_markets(self, type, authorities=[], force_enable=True):
-        """ Add markets to an assets white/black list
+        """
+        Add markets to an assets white/black list.
 
-            :param str type: ``blacklist`` or ``whitelist``
-            :param list markets: List of markets (assets)
-            :param bool force_enable: Force enable ``white_list`` flag
+        :param str type: ``blacklist`` or ``whitelist``
+        :param list markets: List of markets (assets)
+        :param bool force_enable: Force enable ``white_list`` flag
         """
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
@@ -398,10 +405,11 @@ class Asset(GrapheneAsset, SyncAsset):
         return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     async def remove_markets(self, type, authorities=[]):
-        """ Remove markets from an assets white/black list
+        """
+        Remove markets from an assets white/black list.
 
-            :param str type: ``blacklist`` or ``whitelist``
-            :param list markets: List of markets (assets)
+        :param str type: ``blacklist`` or ``whitelist``
+        :param list markets: List of markets (assets)
         """
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
@@ -427,20 +435,21 @@ class Asset(GrapheneAsset, SyncAsset):
         return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     async def set_market_fee(self, percentage_fee, max_market_fee):
-        """ Set trading percentage fee
+        """
+        Set trading percentage fee.
 
-            :param float percentage_fee: Percentage of fee
-            :param bitshares.amount.Amount max_market_fee: Max Fee
-
+        :param float percentage_fee: Percentage of fee
+        :param bitshares.amount.Amount max_market_fee: Max Fee
         """
         op = super().set_market_fee(percentage_fee, max_market_fee, return_op=True)
         return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     async def update_feed_producers(self, producers):
-        """ Update bitasset feed producers
+        """
+        Update bitasset feed producers.
 
-            :param list producers: List of accounts that are allowed to produce
-                 a feed
+        :param list producers: List of accounts that are allowed to produce
+             a feed
         """
         assert self.is_bitasset, "Asset needs to be a bitasset/market pegged asset"
         from .account import Account
@@ -461,9 +470,10 @@ class Asset(GrapheneAsset, SyncAsset):
         return await self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     async def change_issuer(self, new_issuer, **kwargs):
-        """ Change asset issuer (needs signing with owner key!)
+        """
+        Change asset issuer (needs signing with owner key!)
 
-            :param str new_issuer: account name
+        :param str new_issuer: account name
         """
         from .account import Account
 
@@ -480,11 +490,12 @@ class Asset(GrapheneAsset, SyncAsset):
         return await self.blockchain.finalizeOp(op, self["issuer"], "owner", **kwargs)
 
     async def issue(self, amount, to, memo=None, **kwargs):
-        """ Issue new shares of an asset
+        """
+        Issue new shares of an asset.
 
-            :param float amount: Amount to issue
-            :param str to: Recipient
-            :param str memo: (optional) Memo message
+        :param float amount: Amount to issue
+        :param str to: Recipient
+        :param str memo: (optional) Memo message
         """
         from .memo import Memo
         from .account import Account

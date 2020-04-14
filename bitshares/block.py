@@ -8,27 +8,27 @@ from graphenecommon.block import (
 
 @BlockchainInstance.inject
 class Block(GrapheneBlock):
-    """ Read a single block from the chain
+    """
+    Read a single block from the chain.
 
-        :param int block: block number
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
-            instance
-        :param bool lazy: Use lazy loading
+    :param int block: block number
+    :param bitshares.bitshares.BitShares blockchain_instance: BitShares
+        instance
+    :param bool lazy: Use lazy loading
 
-        Instances of this class are dictionaries that come with additional
-        methods (see below) that allow dealing with a block and it's
-        corresponding functions.
+    Instances of this class are dictionaries that come with additional
+    methods (see below) that allow dealing with a block and it's
+    corresponding functions.
 
-        .. code-block:: python
+    .. code-block:: python
 
-            from bitshares.block import Block
-            block = Block(1)
-            print(block)
+        from bitshares.block import Block
+        block = Block(1)
+        print(block)
 
-        .. note:: This class comes with its own caching function to reduce the
-                  load on the API server. Instances of this class can be
-                  refreshed with ``Account.refresh()``.
-
+    .. note:: This class comes with its own caching function to reduce the
+              load on the API server. Instances of this class can be
+              refreshed with ``Account.refresh()``.
     """
 
     pass

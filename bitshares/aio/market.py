@@ -16,34 +16,34 @@ from ..market import Market as SyncMarket
 @asyncinit
 @BlockchainInstance.inject
 class Market(SyncMarket):
-    """ This class allows to easily access Markets on the blockchain for trading, etc.
+    """
+    This class allows to easily access Markets on the blockchain for trading, etc.
 
-        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
-        :param bitshares.aio.asset.Asset base: Base asset
-        :param bitshares.aio.asset.Asset quote: Quote asset
-        :returns: Blockchain Market
-        :rtype: dictionary with overloaded methods
+    :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
+    :param bitshares.aio.asset.Asset base: Base asset
+    :param bitshares.aio.asset.Asset quote: Quote asset
+    :returns: Blockchain Market
+    :rtype: dictionary with overloaded methods
 
-        Instances of this class are dictionaries that come with additional
-        methods (see below) that allow dealing with a market and it's
-        corresponding functions.
+    Instances of this class are dictionaries that come with additional
+    methods (see below) that allow dealing with a market and it's
+    corresponding functions.
 
-        This class tries to identify **two** assets as provided in the
-        parameters in one of the following forms:
+    This class tries to identify **two** assets as provided in the
+    parameters in one of the following forms:
 
-        * ``base`` and ``quote`` are valid assets (according to :class:`bitshares.asset.Asset`)
-        * ``base:quote`` separated with ``:``
-        * ``base/quote`` separated with ``/``
-        * ``base-quote`` separated with ``-``
+    * ``base`` and ``quote`` are valid assets (according to :class:`bitshares.asset.Asset`)
+    * ``base:quote`` separated with ``:``
+    * ``base/quote`` separated with ``/``
+    * ``base-quote`` separated with ``-``
 
-        .. note:: Throughout this library, the ``quote`` symbol will be
-                  presented first (e.g. ``USD:BTS`` with ``USD`` being the
-                  quote), while the ``base`` only refers to a secondary asset
-                  for a trade. This means, if you call
-                  :func:`bitshares.market.Market.sell` or
-                  :func:`bitshares.market.Market.buy`, you will sell/buy **only
-                  quote** and obtain/pay **only base**.
-
+    .. note:: Throughout this library, the ``quote`` symbol will be
+              presented first (e.g. ``USD:BTS`` with ``USD`` being the
+              quote), while the ``base`` only refers to a secondary asset
+              for a trade. This means, if you call
+              :func:`bitshares.market.Market.sell` or
+              :func:`bitshares.market.Market.buy`, you will sell/buy **only
+              quote** and obtain/pay **only base**.
     """
 
     async def __init__(self, *args, **kwargs):
@@ -63,36 +63,36 @@ class Market(SyncMarket):
             raise ValueError("Unknown Market Format: %s" % str(args))
 
     async def ticker(self):
-        """ Returns the ticker for all markets.
+        """
+        Returns the ticker for all markets.
 
-            Output Parameters:
+        Output Parameters:
 
-            * ``last``: Price of the order last filled
-            * ``lowestAsk``: Price of the lowest ask
-            * ``highestBid``: Price of the highest bid
-            * ``baseVolume``: Volume of the base asset
-            * ``quoteVolume``: Volume of the quote asset
-            * ``percentChange``: 24h change percentage (in %)
-            * ``settlement_price``: Settlement Price for borrow/settlement
-            * ``core_exchange_rate``: Core exchange rate for payment of fee in non-BTS asset
-            * ``price24h``: the price 24h ago
+        * ``last``: Price of the order last filled
+        * ``lowestAsk``: Price of the lowest ask
+        * ``highestBid``: Price of the highest bid
+        * ``baseVolume``: Volume of the base asset
+        * ``quoteVolume``: Volume of the quote asset
+        * ``percentChange``: 24h change percentage (in %)
+        * ``settlement_price``: Settlement Price for borrow/settlement
+        * ``core_exchange_rate``: Core exchange rate for payment of fee in non-BTS asset
+        * ``price24h``: the price 24h ago
 
-            Sample Output:
+        Sample Output:
 
-            .. code-block:: js
+        .. code-block:: js
 
+            {
                 {
-                    {
-                        "quoteVolume": 48328.73333,
-                        "quoteSettlement_price": 332.3344827586207,
-                        "lowestAsk": 340.0,
-                        "baseVolume": 144.1862,
-                        "percentChange": -1.9607843231354893,
-                        "highestBid": 334.20000000000005,
-                        "latest": 333.33333330133934,
-                    }
+                    "quoteVolume": 48328.73333,
+                    "quoteSettlement_price": 332.3344827586207,
+                    "lowestAsk": 340.0,
+                    "baseVolume": 144.1862,
+                    "percentChange": -1.9607843231354893,
+                    "highestBid": 334.20000000000005,
+                    "latest": 333.33333330133934,
                 }
-
+            }
         """
         data = {}
         # Core Exchange rate
@@ -169,17 +169,17 @@ class Market(SyncMarket):
         return data
 
     async def volume24h(self):
-        """ Returns the 24-hour volume for all markets, plus totals for primary currencies.
+        """
+        Returns the 24-hour volume for all markets, plus totals for primary currencies.
 
-            Sample output:
+        Sample output:
 
-            .. code-block:: js
+        .. code-block:: js
 
-                {
-                    "BTS": 361666.63617,
-                    "USD": 1087.0
-                }
-
+            {
+                "BTS": 361666.63617,
+                "USD": 1087.0
+            }
         """
         volume = await self.blockchain.rpc.get_24_volume(
             self["base"]["id"], self["quote"]["id"]
@@ -196,35 +196,35 @@ class Market(SyncMarket):
         }
 
     async def orderbook(self, limit=25):
-        """ Returns the order book for a given market. You may also
-            specify "all" to get the orderbooks of all markets.
+        """
+        Returns the order book for a given market. You may also specify "all" to get the
+        orderbooks of all markets.
 
-            :param int limit: Limit the amount of orders (default: 25)
+        :param int limit: Limit the amount of orders (default: 25)
 
-            Sample output:
+        Sample output:
 
-            .. code-block:: js
+        .. code-block:: js
 
-                {'bids': [0.003679 USD/BTS (1.9103 USD|519.29602 BTS),
-                0.003676 USD/BTS (299.9997 USD|81606.16394 BTS),
-                0.003665 USD/BTS (288.4618 USD|78706.21881 BTS),
-                0.003665 USD/BTS (3.5285 USD|962.74409 BTS),
-                0.003665 USD/BTS (72.5474 USD|19794.41299 BTS)],
-                'asks': [0.003738 USD/BTS (36.4715 USD|9756.17339 BTS),
-                0.003738 USD/BTS (18.6915 USD|5000.00000 BTS),
-                0.003742 USD/BTS (182.6881 USD|48820.22081 BTS),
-                0.003772 USD/BTS (4.5200 USD|1198.14798 BTS),
-                0.003799 USD/BTS (148.4975 USD|39086.59741 BTS)]}
+            {'bids': [0.003679 USD/BTS (1.9103 USD|519.29602 BTS),
+            0.003676 USD/BTS (299.9997 USD|81606.16394 BTS),
+            0.003665 USD/BTS (288.4618 USD|78706.21881 BTS),
+            0.003665 USD/BTS (3.5285 USD|962.74409 BTS),
+            0.003665 USD/BTS (72.5474 USD|19794.41299 BTS)],
+            'asks': [0.003738 USD/BTS (36.4715 USD|9756.17339 BTS),
+            0.003738 USD/BTS (18.6915 USD|5000.00000 BTS),
+            0.003742 USD/BTS (182.6881 USD|48820.22081 BTS),
+            0.003772 USD/BTS (4.5200 USD|1198.14798 BTS),
+            0.003799 USD/BTS (148.4975 USD|39086.59741 BTS)]}
 
 
-            .. note:: Each bid is an instance of
-                class:`bitshares.price.Order` and thus carries the keys
-                ``base``, ``quote`` and ``price``. From those you can
-                obtain the actual amounts for sale
+        .. note:: Each bid is an instance of
+            class:`bitshares.price.Order` and thus carries the keys
+            ``base``, ``quote`` and ``price``. From those you can
+            obtain the actual amounts for sale
 
-            .. note:: This method does order consolidation and hides some
-                details of individual orders!
-
+        .. note:: This method does order consolidation and hides some
+            details of individual orders!
         """
         orders = await self.blockchain.rpc.get_order_book(
             self["base"]["id"], self["quote"]["id"], limit
@@ -259,25 +259,25 @@ class Market(SyncMarket):
         return data
 
     async def get_limit_orders(self, limit=25):
-        """ Returns the list of limit orders for a given market.
+        """
+        Returns the list of limit orders for a given market.
 
-            :param int limit: Limit the amount of orders (default: 25)
+        :param int limit: Limit the amount of orders (default: 25)
 
-            Sample output:
+        Sample output:
 
-            .. code-block:: js
+        .. code-block:: js
 
-                [0.003679 USD/BTS (1.9103 USD|519.29602 BTS),
-                0.003676 USD/BTS (299.9997 USD|81606.16394 BTS),
-                0.003665 USD/BTS (288.4618 USD|78706.21881 BTS),
-                0.003665 USD/BTS (3.5285 USD|962.74409 BTS),
-                0.003665 USD/BTS (72.5474 USD|19794.41299 BTS)],
+            [0.003679 USD/BTS (1.9103 USD|519.29602 BTS),
+            0.003676 USD/BTS (299.9997 USD|81606.16394 BTS),
+            0.003665 USD/BTS (288.4618 USD|78706.21881 BTS),
+            0.003665 USD/BTS (3.5285 USD|962.74409 BTS),
+            0.003665 USD/BTS (72.5474 USD|19794.41299 BTS)],
 
-            .. note:: Each bid is an instance of
-                class:`bitshares.price.Order` and thus carries the keys
-                ``base``, ``quote`` and ``price``. From those you can
-                obtain the actual amounts for sale
-
+        .. note:: Each bid is an instance of
+            class:`bitshares.price.Order` and thus carries the keys
+            ``base``, ``quote`` and ``price``. From those you can
+            obtain the actual amounts for sale
         """
         orders = await self.blockchain.rpc.get_limit_orders(
             self["base"]["id"], self["quote"]["id"], limit
@@ -285,12 +285,12 @@ class Market(SyncMarket):
         return [await Order(x, blockchain_instance=self.blockchain) for x in orders]
 
     async def trades(self, limit=25, start=None, stop=None):
-        """ Returns your trade history for a given market.
+        """
+        Returns your trade history for a given market.
 
-            :param int limit: Limit the amount of orders (default: 25)
-            :param datetime start: start time
-            :param datetime stop: stop time
-
+        :param int limit: Limit the amount of orders (default: 25)
+        :param datetime start: start time
+        :param datetime stop: stop time
         """
         # FIXME, this call should also return whether it was a buy or
         # sell
@@ -349,25 +349,24 @@ class Market(SyncMarket):
                 sequence = order.get("sequence")
 
     async def accounttrades(self, account=None, limit=25):
-        """ Returns your trade history for a given market, specified by
-            the "currencyPair" parameter. You may also specify "all" to
-            get the orderbooks of all markets.
+        """
+        Returns your trade history for a given market, specified by the "currencyPair"
+        parameter. You may also specify "all" to get the orderbooks of all markets.
 
-            :param str currencyPair: Return results for a particular market only (default: "all")
-            :param int limit: Limit the amount of orders (default: 25)
+        :param str currencyPair: Return results for a particular market only (default: "all")
+        :param int limit: Limit the amount of orders (default: 25)
 
-            Output Parameters:
+        Output Parameters:
 
-                - `type`: sell or buy
-                - `rate`: price for `quote` denoted in `base` per `quote`
-                - `amount`: amount of quote
-                - `total`: amount of base at asked price (amount/price)
+            - `type`: sell or buy
+            - `rate`: price for `quote` denoted in `base` per `quote`
+            - `amount`: amount of quote
+            - `total`: amount of base at asked price (amount/price)
 
-            .. note:: This call goes through the trade history and
-                      searches for your account, if there are no orders
-                      within ``limit`` trades, this call will return an
-                      empty array.
-
+        .. note:: This call goes through the trade history and
+                  searches for your account, if there are no orders
+                  within ``limit`` trades, this call will return an
+                  empty array.
         """
         if not account:
             if "default_account" in self.blockchain.config:
@@ -393,9 +392,10 @@ class Market(SyncMarket):
         return trades
 
     async def accountopenorders(self, account=None):
-        """ Returns open Orders
+        """
+        Returns open Orders.
 
-            :param bitshares.account.Account account: Account name or instance of Account to show orders for in this market
+        :param bitshares.account.Account account: Account name or instance of Account to show orders for in this market
         """
         if not account:
             if "default_account" in self.blockchain.config:
@@ -428,39 +428,40 @@ class Market(SyncMarket):
         returnOrderId=False,
         **kwargs
     ):
-        """ Places a buy order in a given market
+        """
+        Places a buy order in a given market.
 
-            :param float price: price denoted in ``base``/``quote``
-            :param number amount: Amount of ``quote`` to buy
-            :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
-            :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
-            :param string account: Account name that executes that order
-            :param string returnOrderId: If set to "head" or "irreversible" the call will wait for the tx to appear in
-                                        the head/irreversible block and add the key "orderid" to the tx output
+        :param float price: price denoted in ``base``/``quote``
+        :param number amount: Amount of ``quote`` to buy
+        :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
+        :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
+        :param string account: Account name that executes that order
+        :param string returnOrderId: If set to "head" or "irreversible" the call will wait for the tx to appear in
+                                    the head/irreversible block and add the key "orderid" to the tx output
 
-            Prices/Rates are denoted in 'base', i.e. the USD_BTS market
-            is priced in BTS per USD.
+        Prices/Rates are denoted in 'base', i.e. the USD_BTS market
+        is priced in BTS per USD.
 
-            **Example:** in the USD_BTS market, a price of 300 means
-            a USD is worth 300 BTS
+        **Example:** in the USD_BTS market, a price of 300 means
+        a USD is worth 300 BTS
 
-            .. note::
+        .. note::
 
-                All prices returned are in the **reversed** orientation as the
-                market. I.e. in the BTC/BTS market, prices are BTS per BTC.
-                That way you can multiply prices with `1.05` to get a +5%.
+            All prices returned are in the **reversed** orientation as the
+            market. I.e. in the BTC/BTS market, prices are BTS per BTC.
+            That way you can multiply prices with `1.05` to get a +5%.
 
-            .. warning::
+        .. warning::
 
-                Since buy orders are placed as
-                limit-sell orders for the base asset,
-                you may end up obtaining more of the
-                buy asset than you placed the order
-                for. Example:
+            Since buy orders are placed as
+            limit-sell orders for the base asset,
+            you may end up obtaining more of the
+            buy asset than you placed the order
+            for. Example:
 
-                    * You place and order to buy 10 USD for 100 BTS/USD
-                    * This means that you actually place a sell order for 1000 BTS in order to obtain **at least** 10 USD
-                    * If an order on the market exists that sells USD for cheaper, you will end up with more than 10 USD
+                * You place and order to buy 10 USD for 100 BTS/USD
+                * This means that you actually place a sell order for 1000 BTS in order to obtain **at least** 10 USD
+                * If an order on the market exists that sells USD for cheaper, you will end up with more than 10 USD
         """
         if not expiration:
             expiration = (
@@ -536,27 +537,28 @@ class Market(SyncMarket):
         returnOrderId=False,
         **kwargs
     ):
-        """ Places a sell order in a given market
+        """
+        Places a sell order in a given market.
 
-            :param float price: price denoted in ``base``/``quote``
-            :param number amount: Amount of ``quote`` to sell
-            :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
-            :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
-            :param string account: Account name that executes that order
-            :param string returnOrderId: If set to "head" or "irreversible" the call will wait for the tx to appear in
-                                        the head/irreversible block and add the key "orderid" to the tx output
+        :param float price: price denoted in ``base``/``quote``
+        :param number amount: Amount of ``quote`` to sell
+        :param number expiration: (optional) expiration time of the order in seconds (defaults to 7 days)
+        :param bool killfill: flag that indicates if the order shall be killed if it is not filled (defaults to False)
+        :param string account: Account name that executes that order
+        :param string returnOrderId: If set to "head" or "irreversible" the call will wait for the tx to appear in
+                                    the head/irreversible block and add the key "orderid" to the tx output
 
-            Prices/Rates are denoted in 'base', i.e. the USD_BTS market
-            is priced in BTS per USD.
+        Prices/Rates are denoted in 'base', i.e. the USD_BTS market
+        is priced in BTS per USD.
 
-            **Example:** in the USD_BTS market, a price of 300 means
-            a USD is worth 300 BTS
+        **Example:** in the USD_BTS market, a price of 300 means
+        a USD is worth 300 BTS
 
-            .. note::
+        .. note::
 
-                All prices returned are in the **reversed** orientation as the
-                market. I.e. in the BTC/BTS market, prices are BTS per BTC.
-                That way you can multiply prices with `1.05` to get a +5%.
+            All prices returned are in the **reversed** orientation as the
+            market. I.e. in the BTC/BTS market, prices are BTS per BTC.
+            That way you can multiply prices with `1.05` to get a +5%.
         """
         if not expiration:
             expiration = self.blockchain.config["order-expiration"]
@@ -619,18 +621,21 @@ class Market(SyncMarket):
         return tx
 
     async def cancel(self, orderNumber, account=None, **kwargs):
-        """ Cancels an order you have placed in a given market. Requires
-            only the "orderNumber". An order number takes the form
-            ``1.7.xxx``.
+        """
+        Cancels an order you have placed in a given market. Requires only the
+        "orderNumber". An order number takes the form ``1.7.xxx``.
 
-            :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
+        :param str orderNumber: The Order Object ide of the form ``1.7.xxxx``
         """
         return await self.blockchain.cancel(orderNumber, account=account, **kwargs)
 
     async def core_quote_market(self):
-        """ This returns an instance of the market that has the core market of the quote asset.
-            It means that quote needs to be a market pegged asset and returns a
-            market to it's collateral asset.
+        """
+        This returns an instance of the market that has the core market of the quote
+        asset.
+
+        It means that quote needs to be a market pegged asset and returns a market to
+        it's collateral asset.
         """
         if not self["quote"].is_bitasset:
             raise ValueError("Quote (%s) is not a bitasset!" % self["quote"]["symbol"])
@@ -643,9 +648,12 @@ class Market(SyncMarket):
         return await Market(quote=self["quote"], base=collateral)
 
     async def core_base_market(self):
-        """ This returns an instance of the market that has the core market of the base asset.
-            It means that base needs to be a market pegged asset and returns a
-            market to it's collateral asset.
+        """
+        This returns an instance of the market that has the core market of the base
+        asset.
+
+        It means that base needs to be a market pegged asset and returns a market to
+        it's collateral asset.
         """
         if not self["base"].is_bitasset:
             raise ValueError("base (%s) is not a bitasset!" % self["base"]["symbol"])

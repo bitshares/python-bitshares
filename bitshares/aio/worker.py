@@ -9,12 +9,12 @@ from graphenecommon.aio.worker import (
 
 @BlockchainInstance.inject
 class Worker(GrapheneWorker):
-    """ Read data about a worker in the chain
+    """
+    Read data about a worker in the chain.
 
-        :param str id: id of the worker
-        :param bitshares blockchain_instance: BitShares() instance to use when
-            accesing a RPC
-
+    :param str id: id of the worker
+    :param bitshares blockchain_instance: BitShares() instance to use when
+        accesing a RPC
     """
 
     def define_classes(self):
@@ -24,11 +24,12 @@ class Worker(GrapheneWorker):
 
 @BlockchainInstance.inject
 class Workers(GrapheneWorkers):
-    """ Obtain a list of workers for an account
+    """
+    Obtain a list of workers for an account.
 
-        :param str account_name/id: Name/id of the account (optional)
-        :param bitshares blockchain_instance: BitShares() instance to use when
-            accesing a RPC
+    :param str account_name/id: Name/id of the account (optional)
+    :param bitshares blockchain_instance: BitShares() instance to use when
+        accesing a RPC
     """
 
     def define_classes(self):

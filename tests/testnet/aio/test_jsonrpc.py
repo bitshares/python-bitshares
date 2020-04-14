@@ -14,8 +14,8 @@ log.setLevel(logging.DEBUG)
 
 @pytest.mark.asyncio
 async def test_parallel_queries(event_loop, bitshares, assets):
-    """ When performing multiple calls at once from different coroutines, responses should correctly match with queries
-    """
+    """When performing multiple calls at once from different coroutines, responses
+    should correctly match with queries."""
 
     async def get_asset(asset):
         a = await Asset(asset, blockchain_instance=bitshares)

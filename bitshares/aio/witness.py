@@ -9,12 +9,12 @@ from graphenecommon.aio.witness import (
 
 @BlockchainInstance.inject
 class Witness(GrapheneWitness):
-    """ Read data about a witness in the chain
+    """
+    Read data about a witness in the chain.
 
-        :param str account_name: Name of the witness
-        :param bitshares blockchain_instance: BitShares() instance to use when
-               accesing a RPC
-
+    :param str account_name: Name of the witness
+    :param bitshares blockchain_instance: BitShares() instance to use when
+           accesing a RPC
     """
 
     def define_classes(self):
@@ -24,12 +24,13 @@ class Witness(GrapheneWitness):
 
 @BlockchainInstance.inject
 class Witnesses(GrapheneWitnesses):
-    """ Obtain a list of **active** witnesses and the current schedule
+    """
+    Obtain a list of **active** witnesses and the current schedule.
 
-        :param bool only_active: (False) Only return witnesses that are
-            actively producing blocks
-        :param bitshares blockchain_instance: BitShares() instance to use when
-            accesing a RPC
+    :param bool only_active: (False) Only return witnesses that are
+        actively producing blocks
+    :param bitshares blockchain_instance: BitShares() instance to use when
+        accesing a RPC
     """
 
     def define_classes(self):

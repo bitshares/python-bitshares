@@ -11,38 +11,37 @@ from .market import Market
 
 
 class Dex(BlockchainInstance):
-    """ This class simplifies interactions with the decentralized exchange.
+    """
+    This class simplifies interactions with the decentralized exchange.
 
-        :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
+    :param bitshares.aio.bitshares.BitShares blockchain_instance: BitShares instance
 
-        .. note:: The methods of this class only deal with a single asset (at
-                  most). If you are looking to deal with orders for trading,
-                  please use :class:`bitshares.aio.market.Market`.
-
+    .. note:: The methods of this class only deal with a single asset (at
+              most). If you are looking to deal with orders for trading,
+              please use :class:`bitshares.aio.market.Market`.
     """
 
     def __init__(self, *args, **kwargs):
         BlockchainInstance.__init__(self, *args, **kwargs)
 
     async def returnFees(self):
-        """ Returns a dictionary of all fees that apply through the
-            network
+        """
+        Returns a dictionary of all fees that apply through the network.
 
-            Example output:
+        Example output:
 
-            .. code-block:: js
+        .. code-block:: js
 
-                {'proposal_create': {'fee': 400000.0},
-                'asset_publish_feed': {'fee': 1000.0}, 'account_create':
-                {'basic_fee': 950000.0, 'price_per_kbyte': 20000.0,
-                'premium_fee': 40000000.0}, 'custom': {'fee': 20000.0},
-                'asset_fund_fee_pool': {'fee': 20000.0},
-                'override_transfer': {'fee': 400000.0}, 'fill_order':
-                {}, 'asset_update': {'price_per_kbyte': 20000.0, 'fee':
-                200000.0}, 'asset_update_feed_producers': {'fee':
-                10000000.0}, 'assert': {'fee': 20000.0},
-                'committee_member_create': {'fee': 100000000.0}}
-
+            {'proposal_create': {'fee': 400000.0},
+            'asset_publish_feed': {'fee': 1000.0}, 'account_create':
+            {'basic_fee': 950000.0, 'price_per_kbyte': 20000.0,
+            'premium_fee': 40000000.0}, 'custom': {'fee': 20000.0},
+            'asset_fund_fee_pool': {'fee': 20000.0},
+            'override_transfer': {'fee': 400000.0}, 'fill_order':
+            {}, 'asset_update': {'price_per_kbyte': 20000.0, 'fee':
+            200000.0}, 'asset_update_feed_producers': {'fee':
+            10000000.0}, 'assert': {'fee': 20000.0},
+            'committee_member_create': {'fee': 100000000.0}}
         """
         from bitsharesbase.operations import operations
 
@@ -62,19 +61,19 @@ class Dex(BlockchainInstance):
         return r
 
     async def list_debt_positions(self, account=None):
-        """ List Call Positions (borrowed assets and amounts)
+        """
+        List Call Positions (borrowed assets and amounts)
 
-            :return: Struct of assets with amounts and call price
-            :rtype: dict
+        :return: Struct of assets with amounts and call price
+        :rtype: dict
 
-            **Example**:
+        **Example**:
 
-            .. code-block: js
+        .. code-block: js
 
-                {'USD': {'collateral': '865893.75000',
-                         'collateral_asset': 'BTS',
-                         'debt': 120.00000}
-
+            {'USD': {'collateral': '865893.75000',
+                     'collateral_asset': 'BTS',
+                     'debt': 120.00000}
         """
         if not account:
             if "default_account" in self.blockchain.config:
@@ -125,10 +124,11 @@ class Dex(BlockchainInstance):
         return r
 
     async def close_debt_position(self, symbol, account=None):
-        """ Close a debt position and reclaim the collateral
+        """
+        Close a debt position and reclaim the collateral.
 
-            :param str symbol: Symbol to close debt position for
-            :raises ValueError: if symbol has no open call position
+        :param str symbol: Symbol to close debt position for
+        :raises ValueError: if symbol has no open call position
         """
         if not account:
             if "default_account" in self.blockchain.config:
@@ -168,19 +168,20 @@ class Dex(BlockchainInstance):
         account=None,
         target_collateral_ratio=None,
     ):
-        """ Adjust the amount of debt for an asset
+        """
+        Adjust the amount of debt for an asset.
 
-            :param Amount delta: Delta amount of the debt (-10 means reduce
-                debt by 10, +10 means borrow another 10)
-            :param float new_collateral_ratio: collateral ratio to maintain
-                (optional, by default tries to maintain old ratio)
-            :param float target_collateral_ratio: Tag the call order so that in
-                case of margin call, only enough debt is covered to get back to
-                this ratio
-            :raises ValueError: if symbol is not a bitasset
-            :raises ValueError: if collateral ratio is smaller than maintenance
-                collateral ratio
-            :raises ValueError: if required amounts of collateral are not available
+        :param Amount delta: Delta amount of the debt (-10 means reduce
+            debt by 10, +10 means borrow another 10)
+        :param float new_collateral_ratio: collateral ratio to maintain
+            (optional, by default tries to maintain old ratio)
+        :param float target_collateral_ratio: Tag the call order so that in
+            case of margin call, only enough debt is covered to get back to
+            this ratio
+        :raises ValueError: if symbol is not a bitasset
+        :raises ValueError: if collateral ratio is smaller than maintenance
+            collateral ratio
+        :raises ValueError: if required amounts of collateral are not available
         """
         if not account:
             if "default_account" in self.blockchain.config:
@@ -270,16 +271,17 @@ class Dex(BlockchainInstance):
     async def adjust_collateral_ratio(
         self, symbol, new_collateral_ratio, account=None, target_collateral_ratio=None
     ):
-        """ Adjust the collataral ratio of a debt position
+        """
+        Adjust the collataral ratio of a debt position.
 
-            :param str symbol: Symbol to adjust collateral for
-            :param float new_collateral_ratio: desired collateral ratio
-            :param float target_collateral_ratio: Tag the call order so that in
-                case of margin call, only enough debt is covered to get back to
-                this ratio
-            :raises ValueError: if symbol is not a bitasset
-            :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
-            :raises ValueError: if required amounts of collateral are not available
+        :param str symbol: Symbol to adjust collateral for
+        :param float new_collateral_ratio: desired collateral ratio
+        :param float target_collateral_ratio: Tag the call order so that in
+            case of margin call, only enough debt is covered to get back to
+            this ratio
+        :raises ValueError: if symbol is not a bitasset
+        :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
+        :raises ValueError: if required amounts of collateral are not available
         """
         if not account:
             if "default_account" in self.blockchain.config:
@@ -302,18 +304,18 @@ class Dex(BlockchainInstance):
     async def borrow(
         self, amount, collateral_ratio=None, account=None, target_collateral_ratio=None
     ):
-        """ Borrow bitassets/smartcoins from the network by putting up
-            collateral in a CFD at a given collateral ratio.
+        """
+        Borrow bitassets/smartcoins from the network by putting up collateral in a CFD
+        at a given collateral ratio.
 
-            :param Amount amount: Amount to borrow (denoted in 'asset')
-            :param float collateral_ratio: Collateral ratio to borrow at
-            :param float target_collateral_ratio: Tag the call order so that in
-                case of margin call, only enough debt is covered to get back to
-                this ratio
-            :raises ValueError: if symbol is not a bitasset
-            :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
-            :raises ValueError: if required amounts of collateral are not available
-
+        :param Amount amount: Amount to borrow (denoted in 'asset')
+        :param float collateral_ratio: Collateral ratio to borrow at
+        :param float target_collateral_ratio: Tag the call order so that in
+            case of margin call, only enough debt is covered to get back to
+            this ratio
+        :raises ValueError: if symbol is not a bitasset
+        :raises ValueError: if collateral ratio is smaller than maintenance collateral ratio
+        :raises ValueError: if required amounts of collateral are not available
         """
         return await self.adjust_debt(
             amount,
