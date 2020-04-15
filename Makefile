@@ -67,7 +67,7 @@ semver-updates:
 	$(eval CURRENT_VERSION = $(shell semversioner current-version))
 	sed -i "s/^__version__.*/__version__ = \"$(CURRENT_VERSION)\"/" setup.py
 	-git add .changes setup.py CHANGELOG.md
-	-git commit -m "semverioner release updates" --no-verify
+	-git commit -m "semversioner release updates" --no-verify
 	-git flow release start $(CURRENT_VERSION)
 	git flow release finish $(CURRENT_VERSION)
 
