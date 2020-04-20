@@ -1,6 +1,10 @@
 # Changelog
 Note: version releases in the 0.x.y range may introduce breaking changes.
 
+## 0.5.1
+
+- patch: Add aio packages to setup.py
+
 ## 0.5.0
 
 - minor: Add asyncio support

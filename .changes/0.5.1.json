@@ -1,0 +1,6 @@
+[
+  {
+    "description": "Add aio packages to setup.py",
+    "type": "patch"
+  }
+]
