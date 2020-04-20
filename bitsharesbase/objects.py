@@ -36,18 +36,14 @@ BlockId = Ripemd160
 
 
 class Operation(GrapheneOperation):
-    """ Need to overwrite a few attributes to load proper operations from
-        bitshares
-    """
+    """Need to overwrite a few attributes to load proper operations from bitshares."""
 
     module = "bitsharesbase.operations"
     operations = operations
 
 
 class ObjectId(GPHObjectId):
-    """ Need to overwrite a few attributes to load proper object_types from
-        bitshares
-    """
+    """Need to overwrite a few attributes to load proper object_types from bitshares."""
 
     object_types = object_type
 
@@ -355,7 +351,7 @@ class SpecialAuthority(Static_variant):
 
 class Extension(Array):
     def __init__(self, *args, **kwargs):
-        self.json = dict()
+        self.json = {}
         a = []
         for key, value in kwargs.items():
             self.json.update({key: value})
@@ -372,9 +368,8 @@ class Extension(Array):
         super().__init__(a)
 
     def __str__(self):
-        """ We overload the __str__ function because the json
-            representation is different for extensions
-        """
+        """We overload the __str__ function because the json representation is different
+        for extensions."""
         return json.dumps(self.json)
 
 

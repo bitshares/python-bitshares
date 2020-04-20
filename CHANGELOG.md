@@ -1,6 +1,11 @@
 # Changelog
 Note: version releases in the 0.x.y range may introduce breaking changes.
 
+## 0.5.0
+
+- minor: Add asyncio support
+- minor: Fixes
+
 ## 0.4.0
 
 - minor: Ensure we can invert Order and FilledOrder too

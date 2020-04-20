@@ -7,12 +7,12 @@ from graphenecommon.vesting import Vesting as GrapheneVesting
 
 @BlockchainInstance.inject
 class Vesting(GrapheneVesting):
-    """ Read data about a Vesting Balance in the chain
+    """
+    Read data about a Vesting Balance in the chain.
 
-        :param str id: Id of the vesting balance
-        :param bitshares blockchain_instance: BitShares() instance to use when
-            accesing a RPC
-
+    :param str id: Id of the vesting balance
+    :param bitshares blockchain_instance: BitShares() instance to use when
+        accesing a RPC
     """
 
     def define_classes(self):

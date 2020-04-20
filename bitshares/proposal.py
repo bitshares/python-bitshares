@@ -9,11 +9,11 @@ from graphenecommon.proposal import (
 
 @BlockchainInstance.inject
 class Proposal(GrapheneProposal):
-    """ Read data about a Proposal Balance in the chain
+    """
+    Read data about a Proposal Balance in the chain.
 
-        :param str id: Id of the proposal
-        :param bitshares blockchain_instance: BitShares() instance to use when accesing a RPC
-
+    :param str id: Id of the proposal
+    :param bitshares blockchain_instance: BitShares() instance to use when accesing a RPC
     """
 
     def define_classes(self):
@@ -23,10 +23,11 @@ class Proposal(GrapheneProposal):
 
 @BlockchainInstance.inject
 class Proposals(GrapheneProposals):
-    """ Obtain a list of pending proposals for an account
+    """
+    Obtain a list of pending proposals for an account.
 
-        :param str account: Account name
-        :param bitshares blockchain_instance: BitShares() instance to use when accesing a RPC
+    :param str account: Account name
+    :param bitshares blockchain_instance: BitShares() instance to use when accesing a RPC
     """
 
     def define_classes(self):

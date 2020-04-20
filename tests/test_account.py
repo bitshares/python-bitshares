@@ -26,7 +26,7 @@ class Testcases(unittest.TestCase):
         self.assertIsInstance(account.balance("1.3.0"), Amount)
         # self.assertIsInstance(account.balance({"symbol": symbol}), Amount)
         self.assertIsInstance(account.balances, list)
-        for h in account.history(limit=1):
+        for _ in account.history(limit=1):
             pass
 
         # BlockchainObjects method

@@ -17,19 +17,20 @@ from graphenecommon.asset import Asset as GrapheneAsset
 
 @BlockchainInstance.inject
 class Asset(GrapheneAsset):
-    """ Deals with Assets of the network.
+    """
+    Deals with Assets of the network.
 
-        :param str Asset: Symbol name or object id of an asset
-        :param bool lazy: Lazy loading
-        :param bool full: Also obtain bitasset-data and dynamic asset data
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
-            instance
-        :returns: All data of an asset
-        :rtype: dict
+    :param str Asset: Symbol name or object id of an asset
+    :param bool lazy: Lazy loading
+    :param bool full: Also obtain bitasset-data and dynamic asset data
+    :param bitshares.bitshares.BitShares blockchain_instance: BitShares
+        instance
+    :returns: All data of an asset
+    :rtype: dict
 
-        .. note:: This class comes with its own caching function to reduce the
-                  load on the API server. Instances of this class can be
-                  refreshed with ``Asset.refresh()``.
+    .. note:: This class comes with its own caching function to reduce the
+              load on the API server. Instances of this class can be
+              refreshed with ``Asset.refresh()``.
     """
 
     def define_classes(self):
@@ -94,7 +95,7 @@ class Asset(GrapheneAsset):
         assert limit <= 100
         assert self.is_bitasset
         self.ensure_full()
-        r = list()
+        r = []
         bitasset = self["bitasset_data"]
         settlement_price = Price(
             bitasset["current_feed"]["settlement_price"],
@@ -152,7 +153,7 @@ class Asset(GrapheneAsset):
 
         assert limit <= 100
         assert self.is_bitasset
-        r = list()
+        r = []
         ret = self.blockchain.rpc.get_settle_orders(self["id"], limit)
         for settle in ret[:limit]:
             r.append(
@@ -169,8 +170,7 @@ class Asset(GrapheneAsset):
         return r
 
     def halt(self):
-        """ Halt this asset from being moved or traded
-        """
+        """Halt this asset from being moved or traded."""
         from .account import Account
 
         nullaccount = Account(
@@ -203,26 +203,37 @@ class Asset(GrapheneAsset):
 
     def release(
         self,
-        whitelist_authorities=[],
-        blacklist_authorities=[],
-        whitelist_markets=[],
-        blacklist_markets=[],
+        whitelist_authorities=None,
+        blacklist_authorities=None,
+        whitelist_markets=None,
+        blacklist_markets=None,
     ):
-        """ Release this asset and allow unrestricted transfer, trading,
-            etc.
+        """
+        Release this asset and allow unrestricted transfer, trading, etc.
 
-            :param list whitelist_authorities: List of accounts that
-                serve as whitelist authorities
-            :param list blacklist_authorities: List of accounts that
-                serve as blacklist authorities
-            :param list whitelist_markets: List of assets to allow
-                trading with
-            :param list blacklist_markets: List of assets to prevent
-                trading with
+        :param list whitelist_authorities: List of accounts that
+            serve as whitelist authorities
+        :param list blacklist_authorities: List of accounts that
+            serve as blacklist authorities
+        :param list whitelist_markets: List of assets to allow
+            trading with
+        :param list blacklist_markets: List of assets to prevent
+            trading with
         """
         from .account import Account
 
+        if whitelist_authorities is None:
+            whitelist_authorities = []
+        if blacklist_authorities is None:
+            blacklist_authorities = []
+        if whitelist_markets is None:
+            whitelist_markets = []
+        if blacklist_markets is None:
+            blacklist_markets = []
+
         flags = {"white_list": False, "transfer_restricted": False}
+        if whitelist_authorities or blacklist_authorities:
+            flags["white_list"] = True
         options = self["options"]
         test_permissions(options["issuer_permissions"], flags)
         flags_int = force_flag(options["flags"], flags)
@@ -252,22 +263,23 @@ class Asset(GrapheneAsset):
         )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def setoptions(self, flags):
-        """ Enable a certain flag.
+    def setoptions(self, flags, **kwargs):
+        """
+        Enable a certain flag.
 
-            Flags:
+        Flags:
 
-             * charge_market_fee
-             * white_list
-             * override_authority
-             * transfer_restricted
-             * disable_force_settle
-             * global_settle
-             * disable_confidential
-             * witness_fed_asset
-             * committee_fed_asset
+         * charge_market_fee
+         * white_list
+         * override_authority
+         * transfer_restricted
+         * disable_force_settle
+         * global_settle
+         * disable_confidential
+         * witness_fed_asset
+         * committee_fed_asset
 
-            :param dict flag: dictionary of flags and boolean
+        :param dict flag: dictionary of flags and boolean
         """
         assert set(flags.keys()).issubset(asset_permissions.keys()), "unknown flag"
 
@@ -284,31 +296,36 @@ class Asset(GrapheneAsset):
                 "extensions": [],
             }
         )
+        if kwargs.get("return_op") is True:
+            return op
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def enableflag(self, flag):
-        """ Enable a certain flag.
+        """
+        Enable a certain flag.
 
-            :param str flag: Flag name
+        :param str flag: Flag name
         """
         return self.setoptions({flag: True})
 
     def disableflag(self, flag):
-        """ Enable a certain flag.
+        """
+        Enable a certain flag.
 
-            :param str flag: Flag name
+        :param str flag: Flag name
         """
         return self.setoptions({flag: False})
 
-    def seize(self, from_account, to_account, amount):
-        """ Seize amount from an account and send to another
+    def seize(self, from_account, to_account, amount, **kwargs):
+        """
+        Seize amount from an account and send to another.
 
-            ... note:: This requires the ``override_authority`` to be
-                       set for this asset!
+        ... note:: This requires the ``override_authority`` to be
+                   set for this asset!
 
-            :param bitshares.account.Account from_account: From this account
-            :param bitshares.account.Account to_account: To this account
-            :param bitshares.amount.Amount amount: Amount to seize
+        :param bitshares.account.Account from_account: From this account
+        :param bitshares.account.Account to_account: To this account
+        :param bitshares.amount.Amount amount: Amount to seize
         """
 
         options = self["options"]
@@ -325,19 +342,30 @@ class Asset(GrapheneAsset):
                 "extensions": [],
             }
         )
+        if kwargs.get("return_op") is True:
+            return op
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def add_authorities(self, type, authorities=[]):
-        """ Add authorities to an assets white/black list
+    def add_authorities(self, type, authorities=None):
+        """
+        Add authorities to an assets white/black list.
 
-            :param str type: ``blacklist`` or ``whitelist``
-            :param list authorities: List of authorities (Accounts)
+        :param str type: ``blacklist`` or ``whitelist``
+        :param list authorities: List of authorities (Accounts)
         """
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
         from .account import Account
 
+        if authorities is None:
+            authorities = []
+
+        flags = {"white_list": True}
         options = self["options"]
+        test_permissions(options["issuer_permissions"], flags)
+        flags_int = force_flag(options["flags"], flags)
+        options.update({"flags": flags_int})
+
         if type == "whitelist":
             options["whitelist_authorities"].extend(
                 [
@@ -363,15 +391,19 @@ class Asset(GrapheneAsset):
         )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def remove_authorities(self, type, authorities=[]):
-        """ Remove authorities from an assets white/black list
+    def remove_authorities(self, type, authorities=None):
+        """
+        Remove authorities from an assets white/black list.
 
-            :param str type: ``blacklist`` or ``whitelist``
-            :param list authorities: List of authorities (Accounts)
+        :param str type: ``blacklist`` or ``whitelist``
+        :param list authorities: List of authorities (Accounts)
         """
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
         from .account import Account
+
+        if authorities is None:
+            authorities = []
 
         options = self["options"]
         if type == "whitelist":
@@ -395,15 +427,19 @@ class Asset(GrapheneAsset):
         )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def add_markets(self, type, authorities=[], force_enable=True):
-        """ Add markets to an assets white/black list
+    def add_markets(self, type, authorities=None, force_enable=True):
+        """
+        Add markets to an assets white/black list.
 
-            :param str type: ``blacklist`` or ``whitelist``
-            :param list markets: List of markets (assets)
-            :param bool force_enable: Force enable ``white_list`` flag
+        :param str type: ``blacklist`` or ``whitelist``
+        :param list markets: List of markets (assets)
+        :param bool force_enable: Force enable ``white_list`` flag
         """
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
+
+        if authorities is None:
+            authorities = []
 
         options = self["options"]
         if force_enable:
@@ -440,14 +476,18 @@ class Asset(GrapheneAsset):
         )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def remove_markets(self, type, authorities=[]):
-        """ Remove markets from an assets white/black list
+    def remove_markets(self, type, authorities=None):
+        """
+        Remove markets from an assets white/black list.
 
-            :param str type: ``blacklist`` or ``whitelist``
-            :param list markets: List of markets (assets)
+        :param str type: ``blacklist`` or ``whitelist``
+        :param list markets: List of markets (assets)
         """
         assert type in ["blacklist", "whitelist"]
         assert isinstance(authorities, (list, set))
+
+        if authorities is None:
+            authorities = []
 
         options = self["options"]
         if type == "whitelist":
@@ -471,12 +511,12 @@ class Asset(GrapheneAsset):
         )
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
-    def set_market_fee(self, percentage_fee, max_market_fee):
-        """ Set trading percentage fee
+    def set_market_fee(self, percentage_fee, max_market_fee, **kwargs):
+        """
+        Set trading percentage fee.
 
-            :param float percentage_fee: Percentage of fee
-            :param bitshares.amount.Amount max_market_fee: Max Fee
-
+        :param float percentage_fee: Percentage of fee
+        :param bitshares.amount.Amount max_market_fee: Max Fee
         """
         assert percentage_fee <= 100 and percentage_fee > 0
         flags = {"charge_market_fee": percentage_fee > 0}
@@ -499,13 +539,16 @@ class Asset(GrapheneAsset):
                 "extensions": [],
             }
         )
+        if kwargs.get("return_op") is True:
+            return op
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def update_feed_producers(self, producers):
-        """ Update bitasset feed producers
+        """
+        Update bitasset feed producers.
 
-            :param list producers: List of accounts that are allowed to produce
-                 a feed
+        :param list producers: List of accounts that are allowed to produce
+             a feed
         """
         assert self.is_bitasset, "Asset needs to be a bitasset/market pegged asset"
         from .account import Account
@@ -525,10 +568,10 @@ class Asset(GrapheneAsset):
         return self.blockchain.finalizeOp(op, self["issuer"], "active")
 
     def change_issuer(self, new_issuer, **kwargs):
-        """ Change asset issuer (needs signing with owner key!)
+        """
+        Change asset issuer (needs signing with owner key!)
 
-            :param str type: ``blacklist`` or ``whitelist``
-            :param list authorities: List of authorities (Accounts)
+        :param str new_issuer: account name
         """
         from .account import Account
 
@@ -545,11 +588,12 @@ class Asset(GrapheneAsset):
         return self.blockchain.finalizeOp(op, self["issuer"], "owner", **kwargs)
 
     def issue(self, amount, to, memo=None, **kwargs):
-        """ Issue new shares of an asset
+        """
+        Issue new shares of an asset.
 
-            :param float amount: Amount to issue
-            :param str to: Recipient
-            :param str memo: (optional) Memo message
+        :param float amount: Amount to issue
+        :param str to: Recipient
+        :param str memo: (optional) Memo message
         """
         from .memo import Memo
         from .account import Account
@@ -569,7 +613,7 @@ class Asset(GrapheneAsset):
                 },  # Will be filled in automatically
                 "issuer": account["id"],  # the Issuer account
                 "asset_to_issue": {
-                    "amount": int(amount * 10 ** self["precision"]),
+                    "amount": int(float(amount) * 10 ** self["precision"]),
                     "asset_id": self["id"],
                 },
                 "issue_to_account": to["id"],

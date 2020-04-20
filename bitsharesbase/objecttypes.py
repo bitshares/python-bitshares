@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #: Object types for object ids
 object_type = {}
 object_type["null"] = 0

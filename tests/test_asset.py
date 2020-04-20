@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 from bitshares import BitShares
 from bitshares.asset import Asset
@@ -7,7 +8,6 @@ from .fixtures import fixture_data
 
 
 class Testcases(unittest.TestCase):
-
     def setUp(self):
         fixture_data()
 

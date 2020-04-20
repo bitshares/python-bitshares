@@ -13,8 +13,9 @@ from graphenecommon.price import Price as GraphenePrice
 
 @BlockchainInstance.inject
 class Price(GraphenePrice):
-    """ This class deals with all sorts of prices of any pair of assets to
-        simplify dealing with the tuple::
+    """
+    This class deals with all sorts of prices of any pair of assets to simplify dealing
+    with the tuple::
 
             (quote, base)
 
@@ -64,7 +65,6 @@ class Price(GraphenePrice):
             >>> from bitshares.price import Price
             >>> Price("0.3314 USD/BTS") * 2
             0.662600000 USD/BTS
-
     """
 
     def define_classes(self):
@@ -73,10 +73,11 @@ class Price(GraphenePrice):
 
     @property
     def market(self):
-        """ Open the corresponding market
+        """
+        Open the corresponding market.
 
-            :returns: Instance of :class:`bitshares.market.Market` for the
-                      corresponding pair of assets.
+        :returns: Instance of :class:`bitshares.market.Market` for the
+                  corresponding pair of assets.
         """
         from .market import Market
 
@@ -88,24 +89,28 @@ class Price(GraphenePrice):
 
 
 class Order(Price):
-    """ This class inherits :class:`bitshares.price.Price` but has the ``base``
-        and ``quote`` Amounts not only be used to represent the price (as a
-        ratio of base and quote) but instead has those amounts represent the
-        amounts of an actual order!
+    """
+    This class inherits :class:`bitshares.price.Price` but has the ``base`` and
+    ``quote`` Amounts not only be used to represent the price (as a ratio of base and
+    quote) but instead has those amounts represent the amounts of an actual order!
 
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
+    :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
 
-        .. note::
+    .. note::
 
-                If an order is marked as deleted, it will carry the
-                'deleted' key which is set to ``True`` and all other
-                data be ``None``.
+            If an order is marked as deleted, it will carry the
+            'deleted' key which is set to ``True`` and all other
+            data be ``None``.
     """
 
     def __init__(self, *args, **kwargs):
+        # This class does not have @BlockchainInstance.inject because of MRO, so we need
+        # to init BlockchainInstance manually! Fixes
+        # https://github.com/bitshares/python-bitshares/issues/234
+        BlockchainInstance.__init__(self, **kwargs)
+
         if len(args) == 1 and isinstance(args[0], str):
-            """ Load from id
-            """
+            """Load from id."""
             order = self.blockchain.rpc.get_objects([args[0]])[0]
             if order:
                 Price.__init__(
@@ -121,8 +126,7 @@ class Order(Price):
                 self["price"] = None
                 self["seller"] = None
         elif len(args) == 1 and isinstance(args[0], dict) and "sell_price" in args[0]:
-            """ Load from object 1.7.xxx
-            """
+            """Load from object 1.7.xxx."""
             # Take all the arguments with us
             self.update(args[0])
             Price.__init__(
@@ -135,8 +139,7 @@ class Order(Price):
             and "min_to_receive" in args[0]
             and "amount_to_sell" in args[0]
         ):
-            """ Load from an operation
-            """
+            """Load from an operation."""
             # Take all the arguments with us
             self.update(args[0])
             Price.__init__(
@@ -154,6 +157,27 @@ class Order(Price):
                 blockchain_instance=self.blockchain,
             )
 
+    @property
+    def for_sale(self):
+        if "for_sale" in self:
+            return Amount(
+                {"amount": self["for_sale"], "asset_id": self["base"]["asset"]["id"]},
+                blockchain_instance=self.blockchain,
+            )
+
+    @property
+    def price(self):
+        return self["price"]
+
+    @property
+    def to_buy(self):
+        if "for_sale" in self:
+            return Amount(
+                float(self["for_sale"]) / self["price"],
+                self["quote"]["asset"],
+                blockchain_instance=self.blockchain,
+            )
+
     def __repr__(self):
         if "deleted" in self and self["deleted"]:
             return "deleted order %s" % self["id"]
@@ -164,7 +188,7 @@ class Order(Price):
             if "type" in self and self["type"]:
                 t += "%s " % str(self["type"])
             if "for_sale" in self and self["for_sale"]:
-                t += "{} for {} ".format(
+                t += "buy {} for {} ".format(
                     str(
                         Amount(
                             float(self["for_sale"]) / self["price"],
@@ -175,7 +199,7 @@ class Order(Price):
                     str(self["for_sale"]),
                 )
             elif "amount_to_sell" in self:
-                t += "{} for {} ".format(
+                t += "sell {} for {} ".format(
                     str(
                         Amount(
                             self["amount_to_sell"], blockchain_instance=self.blockchain
@@ -214,15 +238,16 @@ class Order(Price):
 
 
 class FilledOrder(Price):
-    """ This class inherits :class:`bitshares.price.Price` but has the ``base``
-        and ``quote`` Amounts not only be used to represent the price (as a
-        ratio of base and quote) but instead has those amounts represent the
-        amounts of an actually filled order!
+    """
+    This class inherits :class:`bitshares.price.Price` but has the ``base`` and
+    ``quote`` Amounts not only be used to represent the price (as a ratio of base and
+    quote) but instead has those amounts represent the amounts of an actually filled
+    order!
 
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
+    :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
 
-        .. note:: Instances of this class come with an additional ``time`` key
-                  that shows when the order has been filled!
+    .. note:: Instances of this class come with an additional ``time`` key
+              that shows when the order has been filled!
     """
 
     def copy(self):
@@ -318,18 +343,18 @@ class UpdateCallOrder(Price):
 
 @BlockchainInstance.inject
 class PriceFeed(dict):
-    """ This class is used to represent a price feed consisting of
+    """
+    This class is used to represent a price feed consisting of.
 
-        * a witness,
-        * a symbol,
-        * a core exchange rate,
-        * the maintenance collateral ratio,
-        * the max short squeeze ratio,
-        * a settlement price, and
-        * a date
+    * a witness,
+    * a symbol,
+    * a core exchange rate,
+    * the maintenance collateral ratio,
+    * the max short squeeze ratio,
+    * a settlement price, and
+    * a date
 
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
-
+    :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
     """
 
     def __init__(self, feed, **kwargs):

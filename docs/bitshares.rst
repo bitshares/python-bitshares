@@ -1,6 +1,13 @@
 bitshares package
 =================
 
+Subpackages
+-----------
+
+.. toctree::
+
+   bitshares.aio
+
 Submodules
 ----------
 

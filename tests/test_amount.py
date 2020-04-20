@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 from bitshares import BitShares
 from bitshares.amount import Amount
@@ -7,7 +8,6 @@ from .fixtures import fixture_data, bitshares
 
 
 class Testcases(unittest.TestCase):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.asset = Asset("BTS")
@@ -34,17 +34,15 @@ class Testcases(unittest.TestCase):
         self.dotest(amount, 1, self.symbol)
 
         # blockchain dict init
-        amount = Amount({
-            "amount": 1 * 10 ** self.precision,
-            "asset_id": self.asset["id"]
-        })
+        amount = Amount(
+            {"amount": 1 * 10 ** self.precision, "asset_id": self.asset["id"]}
+        )
         self.dotest(amount, 1, self.symbol)
 
         # API dict init
-        amount = Amount({
-            "amount": 1.3 * 10 ** self.precision,
-            "asset": self.asset["id"]
-        })
+        amount = Amount(
+            {"amount": 1.3 * 10 ** self.precision, "asset": self.asset["id"]}
+        )
         self.dotest(amount, 1.3, self.symbol)
 
         # Asset as symbol
@@ -80,33 +78,25 @@ class Testcases(unittest.TestCase):
 
     def test_tuple(self):
         amount = Amount("1", self.symbol)
-        self.assertEqual(
-            amount.tuple(),
-            (1.0, self.symbol))
+        self.assertEqual(amount.tuple(), (1.0, self.symbol))
 
     def test_json(self):
         amount = Amount("1", self.symbol)
         self.assertEqual(
             amount.json(),
-            {
-                "asset_id": self.asset["id"],
-                "amount": 1 * 10 ** self.precision
-            })
+            {"asset_id": self.asset["id"], "amount": 1 * 10 ** self.precision},
+        )
 
     def test_string(self):
         self.assertEqual(
-            str(Amount("1", self.symbol)),
-            "1.00000 {}".format(self.symbol))
+            str(Amount("1", self.symbol)), "1.00000 {}".format(self.symbol)
+        )
 
     def test_int(self):
-        self.assertEqual(
-            int(Amount("1", self.symbol)),
-            100000)
+        self.assertEqual(int(Amount("1", self.symbol)), 100000)
 
     def test_float(self):
-        self.assertEqual(
-            float(Amount("1", self.symbol)),
-            1.00000)
+        self.assertEqual(float(Amount("1", self.symbol)), 1.00000)
 
     def test_plus(self):
         a1 = Amount(1, self.symbol)

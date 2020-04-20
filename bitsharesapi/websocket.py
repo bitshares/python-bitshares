@@ -19,79 +19,79 @@ log = logging.getLogger(__name__)
 
 
 class BitSharesWebsocket(Events):
-    """ Create a websocket connection and request push notifications
+    """
+    Create a websocket connection and request push notifications.
 
-        :param str urls: Either a single Websocket URL, or a list of URLs
-        :param str user: Username for Authentication
-        :param str password: Password for Authentication
-        :param list accounts: list of account names or ids to get push notifications for
-        :param list markets: list of asset_ids, e.g. ``[['1.3.0', '1.3.121']]``
-        :param list objects: list of objects id's you'd like to be notified when changing
-        :param int keep_alive: seconds between a ping to the backend (defaults to 25seconds)
+    :param str urls: Either a single Websocket URL, or a list of URLs
+    :param str user: Username for Authentication
+    :param str password: Password for Authentication
+    :param list accounts: list of account names or ids to get push notifications for
+    :param list markets: list of asset_ids, e.g. ``[['1.3.0', '1.3.121']]``
+    :param list objects: list of objects id's you'd like to be notified when changing
+    :param int keep_alive: seconds between a ping to the backend (defaults to 25seconds)
 
-        After instanciating this class, you can add event slots for:
+    After instanciating this class, you can add event slots for:
 
-        * ``on_tx``
-        * ``on_object``
-        * ``on_block``
-        * ``on_account``
-        * ``on_market``
+    * ``on_tx``
+    * ``on_object``
+    * ``on_block``
+    * ``on_account``
+    * ``on_market``
 
-        which will be called accordingly with the notification
-        message received from the BitShares node:
+    which will be called accordingly with the notification
+    message received from the BitShares node:
 
-        .. code-block:: python
+    .. code-block:: python
 
-            ws = BitSharesWebsocket(
-                "wss://node.testnet.bitshares.eu",
-                objects=["2.0.x", "2.1.x", "1.3.x"]
-            )
-            ws.on_object += print
-            ws.run_forever()
+        ws = BitSharesWebsocket(
+            "wss://node.testnet.bitshares.eu",
+            objects=["2.0.x", "2.1.x", "1.3.x"]
+        )
+        ws.on_object += print
+        ws.run_forever()
 
-        Notices:
+    Notices:
 
-        * ``on_account``:
+    * ``on_account``:
 
-            .. code-block:: js
+        .. code-block:: js
 
-                {'id': '2.6.29',
-                 'lifetime_fees_paid': '44257768405',
-                 'most_recent_op': '2.9.1195638',
-                 'owner': '1.2.29',
-                 'pending_fees': 0,
-                 'pending_vested_fees': 100,
-                 'total_core_in_orders': '6788960277634',
-                 'total_ops': 505865}
+            {'id': '2.6.29',
+             'lifetime_fees_paid': '44257768405',
+             'most_recent_op': '2.9.1195638',
+             'owner': '1.2.29',
+             'pending_fees': 0,
+             'pending_vested_fees': 100,
+             'total_core_in_orders': '6788960277634',
+             'total_ops': 505865}
 
-        * ``on_block``:
+    * ``on_block``:
 
-            .. code-block:: js
+        .. code-block:: js
 
-                '0062f19df70ecf3a478a84b4607d9ad8b3e3b607'
+            '0062f19df70ecf3a478a84b4607d9ad8b3e3b607'
 
-        * ``on_tx``:
+    * ``on_tx``:
 
-            .. code-block:: js
+        .. code-block:: js
 
-                {'expiration': '2017-02-23T09:33:22',
-                 'extensions': [],
-                 'operations': [[0,
-                                 {'amount': {'amount': 100000, 'asset_id': '1.3.0'},
-                                  'extensions': [],
-                                  'fee': {'amount': 100, 'asset_id': '1.3.0'},
-                                  'from': '1.2.29',
-                                  'to': '1.2.17'}]],
-                 'ref_block_num': 62001,
-                 'ref_block_prefix': 390951726,
-                 'signatures': ['20784246dc1064ed5f87dbbb9aaff3fcce052135269a8653fb500da46e7068bec56e85ea997b8d250a9cc926777c700eed41e34ba1cabe65940965ebe133ff9098']}
+            {'expiration': '2017-02-23T09:33:22',
+             'extensions': [],
+             'operations': [[0,
+                             {'amount': {'amount': 100000, 'asset_id': '1.3.0'},
+                              'extensions': [],
+                              'fee': {'amount': 100, 'asset_id': '1.3.0'},
+                              'from': '1.2.29',
+                              'to': '1.2.17'}]],
+             'ref_block_num': 62001,
+             'ref_block_prefix': 390951726,
+             'signatures': ['20784246dc1064ed5f87dbbb9aaff3fcce052135269a8653fb500da46e7068bec56e85ea997b8d250a9cc926777c700eed41e34ba1cabe65940965ebe133ff9098']}
 
-        * ``on_market``:
+    * ``on_market``:
 
-            .. code-block:: js
+        .. code-block:: js
 
-                ['1.7.68612']
-
+            ['1.7.68612']
     """
 
     __events__ = ["on_tx", "on_object", "on_block", "on_account", "on_market"]
@@ -102,9 +102,9 @@ class BitSharesWebsocket(Events):
         user="",
         password="",
         *args,
-        accounts=[],
-        markets=[],
-        objects=[],
+        accounts=None,
+        markets=None,
+        objects=None,
         on_tx=None,
         on_object=None,
         on_block=None,
@@ -135,9 +135,9 @@ class BitSharesWebsocket(Events):
         self.events = Events()
 
         # Store the objects we are interested in
-        self.subscription_accounts = accounts
-        self.subscription_markets = markets
-        self.subscription_objects = objects
+        self.subscription_accounts = accounts or []
+        self.subscription_markets = markets or []
+        self.subscription_objects = objects or []
 
         if on_tx:
             self.on_tx += on_tx
@@ -154,13 +154,14 @@ class BitSharesWebsocket(Events):
         self.cancel_all_subscriptions()
 
     def on_open(self, *args, **kwargs):
-        """ This method will be called once the websocket connection is
-            established. It will
+        """
+        This method will be called once the websocket connection is established. It
+        will.
 
-            * login,
-            * register to the database api, and
-            * subscribe to the objects defined if there is a
-              callback/slot available for callbacks
+        * login,
+        * register to the database api, and
+        * subscribe to the objects defined if there is a
+          callback/slot available for callbacks
         """
         self.login(self.user, self.password, api_id=1)
         self.database(api_id=1)
@@ -168,10 +169,10 @@ class BitSharesWebsocket(Events):
         self.keepalive = threading.Thread(target=self._ping)
         self.keepalive.start()
 
-    def reset_subscriptions(self, accounts=[], markets=[], objects=[]):
-        self.subscription_accounts = accounts
-        self.subscription_markets = markets
-        self.subscription_objects = objects
+    def reset_subscriptions(self, accounts=None, markets=None, objects=None):
+        self.subscription_accounts = accounts or []
+        self.subscription_markets = markets or []
+        self.subscription_objects = objects or []
         self.__set_subscriptions()
 
     def __set_subscriptions(self):
@@ -209,8 +210,10 @@ class BitSharesWebsocket(Events):
             self.get_objects(["2.8.0"])
 
     def process_notice(self, notice):
-        """ This method is called on notices that need processing. Here,
-            we call ``on_object`` and ``on_account`` slots.
+        """
+        This method is called on notices that need processing.
+
+        Here, we call ``on_object`` and ``on_account`` slots.
         """
         id = notice["id"]
 
@@ -227,10 +230,12 @@ class BitSharesWebsocket(Events):
             self.on_account(notice)
 
     def on_message(self, reply, *args, **kwargs):
-        """ This method is called by the websocket connection on every
-            message that is received. If we receive a ``notice``, we
-            hand over post-processing and signalling of events to
-            ``process_notice``.
+        """
+        This method is called by the websocket connection on every message that is
+        received.
+
+        If we receive a ``notice``, we hand over post-processing and signalling of
+        events to ``process_notice``.
         """
         log.debug("Received message: %s" % str(reply))
         data = {}
@@ -276,19 +281,19 @@ class BitSharesWebsocket(Events):
                     )
 
     def on_error(self, error, *args, **kwargs):
-        """ Called on websocket errors
-        """
+        """Called on websocket errors."""
         log.exception(error)
 
     def on_close(self, *args, **kwargs):
-        """ Called when websocket connection is closed
-        """
+        """Called when websocket connection is closed."""
         log.debug("Closing WebSocket connection with {}".format(self.url))
 
     def run_forever(self, *args, **kwargs):
-        """ This method is used to run the websocket app continuously.
-            It will execute callbacks as defined and try to stay
-            connected with the provided APIs
+        """
+        This method is used to run the websocket app continuously.
+
+        It will execute callbacks as defined and try to stay connected with the provided
+        APIs
         """
         cnt = 0
         while not self.run_event.is_set():
@@ -326,8 +331,7 @@ class BitSharesWebsocket(Events):
                 log.critical("{}\n\n{}".format(str(e), traceback.format_exc()))
 
     def close(self, *args, **kwargs):
-        """ Closes the websocket connection and waits for the ping thread to close
-        """
+        """Closes the websocket connection and waits for the ping thread to close."""
         self.run_event.set()
         self.ws.close()
 
@@ -342,18 +346,18 @@ class BitSharesWebsocket(Events):
     """
 
     def rpcexec(self, payload):
-        """ Execute a call by sending the payload
+        """
+        Execute a call by sending the payload.
 
-            :param dict payload: Payload data
-            :raises ValueError: if the server does not respond in proper JSON format
-            :raises RPCError: if the server returns an error
+        :param dict payload: Payload data
+        :raises ValueError: if the server does not respond in proper JSON format
+        :raises RPCError: if the server returns an error
         """
         log.debug(json.dumps(payload))
         self.ws.send(json.dumps(payload, ensure_ascii=False).encode("utf8"))
 
     def __getattr__(self, name):
-        """ Map all methods to RPC calls and pass through the arguments
-        """
+        """Map all methods to RPC calls and pass through the arguments."""
         if name in self.__events__:
             return getattr(self.events, name)
 

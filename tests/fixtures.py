@@ -53,7 +53,7 @@ def fixture_data():
 
     proposals = []
     for proposal in data.get("proposals", []):
-        ops = list()
+        ops = []
         for _op in proposal["operations"]:
             for opName, op in _op.items():
                 ops.append([operations[opName], op])

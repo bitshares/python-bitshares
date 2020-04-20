@@ -14,43 +14,43 @@ from .exceptions import (
 
 @BlockchainInstance.inject
 class Memo(GrapheneMemo):
-    """ Deals with Memos that are attached to a transfer
+    """
+    Deals with Memos that are attached to a transfer.
 
-        :param bitshares.account.Account from_account: Account that has sent
-            the memo
-        :param bitshares.account.Account to_account: Account that has received
-            the memo
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares
-            instance
+    :param bitshares.account.Account from_account: Account that has sent
+        the memo
+    :param bitshares.account.Account to_account: Account that has received
+        the memo
+    :param bitshares.bitshares.BitShares blockchain_instance: BitShares
+        instance
 
-        A memo is encrypted with a shared secret derived from a private key of
-        the sender and a public key of the receiver. Due to the underlying
-        mathematics, the same shared secret can be derived by the private key
-        of the receiver and the public key of the sender. The encrypted message
-        is perturbed by a nonce that is part of the transmitted message.
+    A memo is encrypted with a shared secret derived from a private key of
+    the sender and a public key of the receiver. Due to the underlying
+    mathematics, the same shared secret can be derived by the private key
+    of the receiver and the public key of the sender. The encrypted message
+    is perturbed by a nonce that is part of the transmitted message.
 
-        .. code-block:: python
+    .. code-block:: python
 
-            from bitshares.memo import Memo
-            m = Memo("bitshareseu", "wallet.xeroc")
-            m.unlock_wallet("secret")
-            enc = (m.encrypt("foobar"))
-            print(enc)
-            >> {'nonce': '17329630356955254641', 'message': '8563e2bb2976e0217806d642901a2855'}
-            print(m.decrypt(enc))
-            >> foobar
+        from bitshares.memo import Memo
+        m = Memo("bitshareseu", "wallet.xeroc")
+        m.unlock_wallet("secret")
+        enc = (m.encrypt("foobar"))
+        print(enc)
+        >> {'nonce': '17329630356955254641', 'message': '8563e2bb2976e0217806d642901a2855'}
+        print(m.decrypt(enc))
+        >> foobar
 
-        To decrypt a memo, simply use
+    To decrypt a memo, simply use
 
-        .. code-block:: python
+    .. code-block:: python
 
-            from bitshares.memo import Memo
-            m = Memo()
-            m.blockchain.wallet.unlock("secret")
-            print(memo.decrypt(op_data["memo"]))
+        from bitshares.memo import Memo
+        m = Memo()
+        m.blockchain.wallet.unlock("secret")
+        print(memo.decrypt(op_data["memo"]))
 
-        if ``op_data`` being the payload of a transfer operation.
-
+    if ``op_data`` being the payload of a transfer operation.
     """
 
     def define_classes(self):

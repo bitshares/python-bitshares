@@ -4,7 +4,7 @@
 repos:
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v2.0.0
+  rev: v2.5.0
   hooks:
   - id: trailing-whitespace
   - id: check-docstring-first
@@ -13,12 +13,33 @@ repos:
   - id: check-yaml
   - id: end-of-file-fixer
   - id: fix-encoding-pragma
+  - id: check-merge-conflict
   - id: no-commit-to-branch
-    branch: master
-  - id: flake8
+    args: [--branch, master]
 
 - repo: https://github.com/ambv/black
-  rev: 18.9b0
+  rev: 19.10b0
   hooks:
   - id: black
     language_version: python3
+
+- repo: https://github.com/myint/docformatter
+  rev: v1.3.1
+  hooks:
+    - id: docformatter
+      args: [
+        -i,
+        --wrap-summaries=88,
+        --wrap-descriptions=88,
+        --pre-summary-newline,
+      ]
+
+- repo: https://gitlab.com/pycqa/flake8
+  rev: 3.7.9
+  hooks:
+    - id: flake8
+      additional_dependencies: [
+        'pep8-naming',
+        'flake8-comprehensions',
+        'flake8-bugbear',
+      ]

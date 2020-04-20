@@ -33,7 +33,7 @@ class Testcases(unittest.TestCase):
 
         self.assertEqual(test["symbol"], "TEST")
         self.assertEqual(bts["symbol"], "BTS")
-        
+
     def test_default_connection2(self):
         b1 = BitShares("wss://node.testnet.bitshares.eu", nobroadcast=True)
         test = Asset("1.3.0", blockchain_instance=b1)

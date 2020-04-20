@@ -1,11 +1,13 @@
 # Unit testing
-pytest==5.0.1
-pytest-mock==1.10.4
-coverage==4.5.4
-mock==3.0.5
+pytest
+pytest-mock
+coverage
+mock
+pytest-asyncio
+docker
 
 # Code style
-flake8==3.7.8
+flake8
 # black
-isort==4.3.21
-pre-commit==1.18.0
+isort
+pre-commit
