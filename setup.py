@@ -28,7 +28,13 @@ setup(
     maintainer_email="Fabian@chainsquad.com",
     url=URL,
     keywords=["bitshares", "library", "api", "rpc"],
-    packages=["bitshares", "bitsharesapi", "bitsharesbase"],
+    packages=[
+        "bitshares",
+        "bitsharesapi",
+        "bitsharesbase",
+        "bitshares.aio",
+        "bitsharesapi.aio",
+    ],
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
