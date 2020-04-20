@@ -307,7 +307,8 @@ class BitShares(AbstractGrapheneChain):
             active_accounts_authority = [[active_account["id"], 1]]
         else:
             raise ValueError(
-                "Call incomplete! Provide either a password, owner/active public keys or owner/active accounts + memo key!"
+                "Call incomplete! Provide either a password, owner/active public keys "
+                "or owner/active accounts + memo key!"
             )
 
         # additional authorities
