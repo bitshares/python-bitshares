@@ -1,0 +1,10 @@
+[
+  {
+    "description": "Fixes",
+    "type": "minor"
+  },
+  {
+    "description": "Add asyncio support",
+    "type": "minor"
+  }
+]
