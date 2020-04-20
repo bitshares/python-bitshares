@@ -13,7 +13,7 @@ except LookupError:
     ascii = codecs.lookup("ascii")
     codecs.register(lambda name, enc=ascii: {True: enc}.get(name == "mbcs"))
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 URL = "https://github.com/bitshares/python-bitshares"
 
 setup(
@@ -28,7 +28,13 @@ setup(
     maintainer_email="Fabian@chainsquad.com",
     url=URL,
     keywords=["bitshares", "library", "api", "rpc"],
-    packages=["bitshares", "bitsharesapi", "bitsharesbase"],
+    packages=[
+        "bitshares",
+        "bitsharesapi",
+        "bitsharesbase",
+        "bitshares.aio",
+        "bitsharesapi.aio",
+    ],
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
