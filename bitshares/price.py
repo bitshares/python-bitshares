@@ -373,8 +373,14 @@ class PriceFeed(dict):
                     "maximum_short_squeeze_ratio": feed[1][1][
                         "maximum_short_squeeze_ratio"
                     ],
-                    "settlement_price": Price(feed[1][1]["settlement_price"]),
-                    "core_exchange_rate": Price(feed[1][1]["core_exchange_rate"]),
+                    "settlement_price": Price(
+                        feed[1][1]["settlement_price"],
+                        blockchain_instance=self.blockchain,
+                    ),
+                    "core_exchange_rate": Price(
+                        feed[1][1]["core_exchange_rate"],
+                        blockchain_instance=self.blockchain,
+                    ),
                 },
             )
         else:
@@ -385,7 +391,11 @@ class PriceFeed(dict):
                         "maintenance_collateral_ratio"
                     ],
                     "maximum_short_squeeze_ratio": feed["maximum_short_squeeze_ratio"],
-                    "settlement_price": Price(feed["settlement_price"]),
-                    "core_exchange_rate": Price(feed["core_exchange_rate"]),
+                    "settlement_price": Price(
+                        feed["settlement_price"], blockchain_instance=self.blockchain
+                    ),
+                    "core_exchange_rate": Price(
+                        feed["core_exchange_rate"], blockchain_instance=self.blockchain
+                    ),
                 },
             )

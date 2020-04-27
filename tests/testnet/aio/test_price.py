@@ -6,7 +6,7 @@ import logging
 from bitshares.aio.asset import Asset
 from bitshares.aio.amount import Amount
 from bitshares.aio.account import Account
-from bitshares.aio.price import Price, Order, FilledOrder
+from bitshares.aio.price import Price, PriceFeed, Order, FilledOrder
 from bitshares.aio.market import Market
 
 log = logging.getLogger("grapheneapi")
@@ -111,3 +111,23 @@ async def test_filled_order(default_account, do_trade):
     log.info("Order from history: {}".format(order))
     # Test copy()
     await order.copy()
+
+
+@pytest.mark.asyncio
+async def test_pricefeed_init_no_shared_instance(not_shared_instance, bitasset):
+    bitshares = not_shared_instance
+    asset = await Asset(bitasset, blockchain_instance=bitshares)
+    await asset.ensure_full()
+
+    # Prevent using instantiated objects loaded to cache
+    Asset.clear_cache()
+    feed = await PriceFeed(
+        asset["bitasset_data"]["feeds"][0], blockchain_instance=bitshares
+    )
+    assert feed["settlement_price"] > 0
+
+    Asset.clear_cache()
+    feed = await PriceFeed(
+        asset["bitasset_data"]["current_feed"], blockchain_instance=bitshares
+    )
+    assert feed["settlement_price"] > 0
