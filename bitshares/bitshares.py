@@ -179,7 +179,7 @@ class BitShares(AbstractGrapheneChain):
         self,
         account_name,
         registrar=None,
-        referrer="1.2.35641",
+        referrer="temp-account",
         referrer_percent=50,
         owner_key=None,
         active_key=None,
