@@ -15,4 +15,9 @@ known_chains = {
         "core_symbol": "TEST",
         "prefix": "TEST",
     },
+    "DNATESTNET": {
+        "chain_id": "93b266081a68bea383ef613753a9cafaa01b3b7b04ed00a01e5dec5de8cb4983",
+        "core_symbol": "DNA",
+        "prefix": "DNA",
+    },
 }
