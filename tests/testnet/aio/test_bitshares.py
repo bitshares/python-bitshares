@@ -339,3 +339,14 @@ async def test_subscribe_to_market(bitshares, assets, default_account):
             event_correct = True
             break
     assert event_correct
+
+
+@pytest.mark.asyncio
+async def test_double_connect(bitshares_testnet):
+    from bitshares.aio import BitShares
+
+    bitshares = BitShares(
+        node="ws://127.0.0.1:{}".format(bitshares_testnet.service_port), num_retries=-1
+    )
+    await bitshares.connect()
+    await bitshares.connect()
