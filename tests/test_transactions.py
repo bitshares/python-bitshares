@@ -46,14 +46,14 @@ class Testcases(unittest.TestCase):
         # Test against Bitshares backened
         live = bitshares.rpc.get_transaction_hex(tx.json())
 
-        # Compare expected result with test unit
-        self.assertEqual(self.cm[:-130], txWire[:-130])
+        # Compare expected result with online backend
+        self.assertEqual(live[:-130], self.cm[:-130])
 
         # Compare expected result with online result
         self.assertEqual(live[:-130], txWire[:-130])
 
-        # Compare expected result with online backend
-        self.assertEqual(live[:-130], self.cm[:-130])
+        # Compare expected result with test unit
+        self.assertEqual(self.cm[:-130], txWire[:-130])
 
     def test_call_update(self):
         self.op = operations.Call_order_update(
@@ -241,9 +241,86 @@ class Testcases(unittest.TestCase):
         )
         self.doit()
 
+    def test_create_account(self):
+        self.maxDiff = None
+        self.op = operations.Account_create(
+            **{
+                "fee": {"amount": 1467634, "asset_id": "1.3.0"},
+                "registrar": "1.2.33",
+                "referrer": "1.2.27",
+                "referrer_percent": 3,
+                "name": "foobar-f124",
+                "owner": {
+                    "weight_threshold": 1,
+                    "account_auths": [],
+                    "key_auths": [
+                        [
+                            prefix
+                            + "6pbVDAjRFiw6fkiKYCrkz7PFeL7XNAfefrsREwg8MKpJ9VYV9x",
+                            1,
+                        ],
+                        [
+                            prefix
+                            + "6zLNtyFVToBsBZDsgMhgjpwysYVbsQD6YhP3kRkQhANUB4w7Qp",
+                            1,
+                        ],
+                    ],
+                    "address_auths": [],
+                },
+                "active": {
+                    "weight_threshold": 1,
+                    "account_auths": [],
+                    "key_auths": [
+                        [
+                            prefix
+                            + "6pbVDAjRFiw6fkiKYCrkz7PFeL7XNAfefrsREwg8MKpJ9VYV9x",
+                            1,
+                        ],
+                        [
+                            prefix
+                            + "6zLNtyFVToBsBZDsgMhgjpwysYVbsQD6YhP3kRkQhANUB4w7Qp",
+                            1,
+                        ],
+                        [
+                            prefix
+                            + "8CemMDjdUWSV5wKotEimhK6c4dY7p2PdzC2qM1HpAP8aLtZfE7",
+                            1,
+                        ],
+                    ],
+                    "address_auths": [],
+                },
+                "options": {
+                    "memo_key": prefix
+                    + "5TPTziKkLexhVKsQKtSpo4bAv5RnB8oXcG4sMHEwCcTf3r7dqE",
+                    "voting_account": "1.2.5",
+                    "num_witness": 0,
+                    "num_committee": 0,
+                    "votes": [],
+                    "extensions": [],
+                },
+                "extensions": {},
+                "prefix": prefix,
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c804570105f26416000000000000211b03000b666f"
+            "6f6261722d6631323401000000000202fe8cc11cc8251de6977636b5"
+            "5c1ab8a9d12b0b26154ac78e56e7c4257d8bcf6901000314aa202c91"
+            "58990b3ec51a1aa49b2ab5d300c97b391df3beb34bb74f3c62699e01"
+            "000001000000000303b453f46013fdbccb90b09ba169c388c34d8445"
+            "4a3b9fbec68d5a7819a734fca0010002fe8cc11cc8251de6977636b5"
+            "5c1ab8a9d12b0b26154ac78e56e7c4257d8bcf6901000314aa202c91"
+            "58990b3ec51a1aa49b2ab5d300c97b391df3beb34bb74f3c62699e01"
+            "0000024ab336b4b14ba6d881675d1c782912783c43dbbe31693aa710"
+            "ac1896bd7c3d61050000000000000000011f024373610743cab92abc"
+            "197cc69aa04c45e20a8c1c495629ca5765d8e458a18f0920bfaf9d0a"
+            "909c01819cf887a66d06903af71fb07f0aac34600c733590984e"
+        )
+        self.doit(1)
+
     """
     # TODO FIX THIS UNIT TEST
-    def test_create_account(self):
+    def test_create_account2(self):
         self.op = operations.Account_create(**{
             "fee": {"amount": 1467634,
                     "asset_id": "1.3.0"
