@@ -167,10 +167,9 @@ class AccountOptions(GrapheneObject):
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
             # remove dublicates
-            kwargs["votes"] = list(set(kwargs["votes"]))
             # Sort votes
             kwargs["votes"] = sorted(
-                kwargs["votes"], key=lambda x: float(x.split(":")[1])
+                kwargs["votes"], key=lambda x: float(x[0].split(":")[1])
             )
             super().__init__(
                 OrderedDict(
@@ -180,9 +179,13 @@ class AccountOptions(GrapheneObject):
                             "voting_account",
                             ObjectId(kwargs["voting_account"], "account"),
                         ),
-                        ("num_witness", Uint16(kwargs["num_witness"])),
                         ("num_committee", Uint16(kwargs["num_committee"])),
-                        ("votes", Array([VoteId(o) for o in kwargs["votes"]])),
+                        (
+                            "votes",
+                            Map(
+                                [[VoteId(o[0]), Uint16(o[1])] for o in kwargs["votes"]]
+                            ),
+                        ),
                         ("extensions", Set([])),
                     ]
                 )
