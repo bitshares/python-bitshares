@@ -21,7 +21,7 @@ known_chains = {
         "prefix": "DNA",
     },
     "UDRUR": {
-        "chain_id": "13ff0ef49d555cb7136586fe3c4a9d7ff0fefe6380ae36446135ebfad0af2e17",
+        "chain_id": "8278e1c46cffb419eca1f7032210be9ecc5eccebb30bed66b8aafaf431b04ce7",
         "core_symbol": "DNA",
         "prefix": "DNA",
     },
