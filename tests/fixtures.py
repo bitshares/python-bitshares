@@ -21,9 +21,7 @@ wifs = [
 wif = wifs[0]
 
 # bitshares instance
-bitshares = BitShares(
-    "wss://bitshares.openledger.info/ws", keys=wifs, nobroadcast=True, num_retries=1
-)
+bitshares = BitShares("ws://localhost:8090", keys=wifs, nobroadcast=True, num_retries=1)
 config = bitshares.config
 
 # Set defaults

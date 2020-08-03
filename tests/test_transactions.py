@@ -46,11 +46,11 @@ class Testcases(unittest.TestCase):
         # Test against Bitshares backened
         live = bitshares.rpc.get_transaction_hex(tx.json())
 
+        # Compare live result with test result
+        self.assertEqual(live[:-130], txWire[:-130])
+
         # Compare expected result with online backend
         self.assertEqual(live[:-130], self.cm[:-130])
-
-        # Compare expected result with online result
-        self.assertEqual(live[:-130], txWire[:-130])
 
         # Compare expected result with test unit
         self.assertEqual(self.cm[:-130], txWire[:-130])
@@ -1042,6 +1042,27 @@ class Testcases(unittest.TestCase):
             "38b422c3930cb5b703e8f3af06aa50fde004eb46a480846dd4"
             "4e01b0d4893934225befa42e1077ab2d71fc13fff5c6e0697c"
             "f103aec7dc8e7496"
+        )
+        self.doit(0)
+
+    def test_create_vesting_balance(self):
+        self.op = operations.Vesting_balance_create(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "creator": "1.2.6",
+                "owner": "1.2.10",
+                "amount": {"amount": 1000000000, "asset_id": "1.3.0"},
+                "policy": [3, {"duration": 60 * 60 * 24 * 365}],
+                "extensions": [],
+            }
+        )
+
+        self.cm = (
+            "f68585abf4dce7c804570120000000000000000000060a00ca"
+            "9a3b0000000000038033e10100011f4250927ce868f9d5cbf3"
+            "c6b465555fbede833151be85a0dd882728534574e8e27ce57f"
+            "f7c6e293eb475aead195618d2f3f28a1d94d95d10c07c81f98"
+            "0b338256"
         )
         self.doit(0)
 

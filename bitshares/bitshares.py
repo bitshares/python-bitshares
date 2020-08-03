@@ -605,11 +605,13 @@ class BitShares(AbstractGrapheneChain):
         if not isinstance(witnesses, (list, set, tuple)):
             witnesses = {witnesses}
 
+        total_num = len([x for x in options["votes"] if x[0].startswith("1:")])
+        # averages out over all voted witnesses
         for witness in witnesses:
             witness = Witness(witness, blockchain_instance=self)
             options["votes"].append(
-                [witness["vote_id"], 100 / (len(witnesses) + len(options["votes"]))]
-            )  # FIXME - shit dirty and wrong!
+                [witness["vote_id"], 100 / (len(witnesses) + total_num)]
+            )
 
         options["voting_account"] = "1.2.5"  # Account("proxy-to-self")["id"]
 
@@ -645,9 +647,9 @@ class BitShares(AbstractGrapheneChain):
 
         for witness in witnesses:
             witness = Witness(witness, blockchain_instance=self)
-            if witness["vote_id"] in options["votes"]:
-                # FIXME
-                options["votes"].remove(witness["vote_id"])
+            options["votes"] = [
+                [a, w] for a, w in options["votes"] if a != witness["vote_id"]
+            ]
 
         options["voting_account"] = "1.2.5"  # Account("proxy-to-self")["id"]
 

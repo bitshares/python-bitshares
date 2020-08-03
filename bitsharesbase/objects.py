@@ -459,3 +459,62 @@ class AssertPredicate(Static_variant):
         else:
             raise ValueError("Unknown {}".format(self.__class__.name))
         super().__init__(data, id)
+
+
+class VestingPolicyInitializer(Static_variant):
+    def __init__(self, o):
+        class linear_vesting_policy_initializer(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                kwargs.update(args[0])
+                super().__init__(
+                    OrderedDict(
+                        [
+                            ("begin_timestamp", PointInTime(kwargs["begin_timestamp"])),
+                            (
+                                "vesting_cliff_seconds",
+                                Uint32(kwargs["vesting_cliff_seconds"]),
+                            ),
+                            (
+                                "vesting_duration_seconds",
+                                Uint32(kwargs["vesting_duration_seconds"]),
+                            ),
+                        ]
+                    )
+                )
+
+        class cdd_vesting_policy_initializer(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                kwargs.update(args[0])
+                super().__init__(
+                    OrderedDict(
+                        [
+                            ("start_claim", PointInTime(kwargs["start_claim"])),
+                            ("vesting_seconds", Uint32(kwargs["vesting_seconds"])),
+                        ]
+                    )
+                )
+
+        class instant_vesting_policy_initializer(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                kwargs.update(args[0])
+                super().__init__(OrderedDict([]))
+
+        class cliff_vesting_policy_initializer(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                kwargs.update(args[0])
+                super().__init__(
+                    OrderedDict([("duration", Uint32(kwargs["duration"]))])
+                )
+
+        variants = [
+            linear_vesting_policy_initializer,
+            cdd_vesting_policy_initializer,
+            instant_vesting_policy_initializer,
+            cliff_vesting_policy_initializer,
+        ]
+        id = o[0]
+        try:
+            data = variants[id](o[1])
+        except Exception:
+            raise ValueError("Unknown {}".format(self.__class__.name))
+        super().__init__(data, id)

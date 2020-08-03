@@ -25,4 +25,9 @@ known_chains = {
         "core_symbol": "DNA",
         "prefix": "DNA",
     },
+    "developdna": {
+        "chain_id": "ab4a1353e1ed2eab06673ec55eeffb011b331cd6c45dc957176271ed36794541",
+        "core_symbol": "DNA",
+        "prefix": "DNA",
+    },
 }
