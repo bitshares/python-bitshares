@@ -55,6 +55,11 @@ ops = [
     "htlc_redeemed",
     "htlc_extend",
     "htlc_refund",
+    "custom_authority_create_operation",
+    "custom_authority_update_operation",
+    "custom_authority_delete_operation",
+    "ticket_create_operation",
+    "ticket_update_operation",
 ]
 operations = {o: ops.index(o) for o in ops}
 
