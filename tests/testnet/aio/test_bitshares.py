@@ -117,9 +117,9 @@ async def test_approve_disapprove_committee(bitshares, default_account):
 
 @pytest.mark.asyncio
 async def test_approve_proposal(bitshares, default_account):
+    # Set blocking to get "operation_results"
     bitshares.blocking = "head"
-    parent = bitshares.new_tx()
-    proposal = bitshares.new_proposal(parent=parent)
+    proposal = bitshares.new_proposal()
     await bitshares.transfer(
         "init1", 1, "TEST", append_to=proposal, account=default_account
     )
@@ -143,8 +143,7 @@ async def test_disapprove_proposal(bitshares, default_account, unused_account):
 
     # Create proposal
     bitshares.blocking = "head"
-    parent = bitshares.new_tx()
-    proposal = bitshares.new_proposal(parent=parent)
+    proposal = bitshares.new_proposal()
     await bitshares.transfer(
         "init1", 1, "TEST", append_to=proposal, account=default_account
     )
@@ -339,3 +338,14 @@ async def test_subscribe_to_market(bitshares, assets, default_account):
             event_correct = True
             break
     assert event_correct
+
+
+@pytest.mark.asyncio
+async def test_double_connect(bitshares_testnet):
+    from bitshares.aio import BitShares
+
+    bitshares = BitShares(
+        node="ws://127.0.0.1:{}".format(bitshares_testnet.service_port), num_retries=-1
+    )
+    await bitshares.connect()
+    await bitshares.connect()

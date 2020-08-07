@@ -240,7 +240,8 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
             active_accounts_authority = [[active_account["id"], 1]]
         else:
             raise ValueError(
-                "Call incomplete! Provide either a password, owner/active public keys or owner/active accounts + memo key!"
+                "Call incomplete! Provide either a password, owner/active public keys "
+                "or owner/active accounts + memo key!"
             )
 
         # additional authorities
@@ -1561,34 +1562,39 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
         )
         return await self.finalizeOp(op, account, "active", **kwargs)
 
-    async def subscribe_to_blocks(self):
+    async def subscribe_to_blocks(self, event_id=2):
         """
         Activate subscription to block.
 
         Each time block is applied an event will occur in self.notifications.
-        """
-        await self.rpc.set_block_applied_callback(2)
 
-    async def subscribe_to_pending_transactions(self):
+        :param int event_id: id of this subscription in upcoming notifications
+        """
+        await self.rpc.set_block_applied_callback(event_id)
+
+    async def subscribe_to_pending_transactions(self, event_id=0):
         """
         Activate subscription to pending transactions.
 
         Each time transaction is pushed to database an event will occur in
         self.notifications.
-        """
-        await self.rpc.set_pending_transaction_callback(0)
 
-    async def subscribe_to_accounts(self, accounts):
+        :param int event_id: id of this subscription in upcoming notifications
+        """
+        await self.rpc.set_pending_transaction_callback(event_id)
+
+    async def subscribe_to_accounts(self, accounts, event_id=1):
         """
         Activate subscription to account-related events.
 
         :param list accounts: account names or ids to subscribe
+        :param int event_id: id of this subscription in upcoming notifications
         """
         if isinstance(accounts, str):
             accounts = [accounts]
 
         # Set subscription, False means we're don't need ALL create/delete events
-        await self.rpc.set_subscribe_callback(1, False)
+        await self.rpc.set_subscribe_callback(event_id, False)
         # True means we're activating subscription on account
         await self.rpc.get_full_accounts(accounts, True)
 
@@ -1598,6 +1604,7 @@ class BitShares(AbstractGrapheneChain, SyncBitShares):
 
         :param str,bitshares.aio.Market market: market to set subscription
             on
+        :param int event_id: id of this subscription in upcoming notifications
         """
         if isinstance(market, str):
             market = await Market(market, blockchain_instance=self)

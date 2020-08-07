@@ -46,11 +46,14 @@ class Testcases(unittest.TestCase):
         # Test against Bitshares backened
         live = bitshares.rpc.get_transaction_hex(tx.json())
 
-        # Compare live result with test result
-        self.assertEqual(live[:-130], txWire[:-130])
-
         # Compare expected result with online backend
         self.assertEqual(live[:-130], self.cm[:-130])
+
+        # Compare expected result with online result
+        self.assertEqual(live[:-130], txWire[:-130])
+
+        # Compare expected result with test unit
+        self.assertEqual(self.cm[:-130], txWire[:-130])
 
         # Compare expected result with test unit
         self.assertEqual(self.cm[:-130], txWire[:-130])

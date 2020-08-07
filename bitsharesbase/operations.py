@@ -687,8 +687,13 @@ class Witness_update(GrapheneObject):
             else:
                 new_signing_key = Optional(None)
 
-            if "block_producer_reward_pct" in kwargs and kwargs["block_producer_reward_pct"]:
-                block_producer_reward_pct = Optional(Uint32(kwargs["block_producer_reward_pct"]))
+            if (
+                "block_producer_reward_pct" in kwargs
+                and kwargs["block_producer_reward_pct"]
+            ):
+                block_producer_reward_pct = Optional(
+                    Uint32(kwargs["block_producer_reward_pct"])
+                )
             else:
                 block_producer_reward_pct = Optional(None)
 
@@ -703,7 +708,7 @@ class Witness_update(GrapheneObject):
                         ),
                         ("new_url", new_url),
                         ("new_signing_key", new_signing_key),
-                        ("block_producer_reward_pct", block_producer_reward_pct)
+                        ("block_producer_reward_pct", block_producer_reward_pct),
                     ]
                 )
             )
@@ -1044,6 +1049,73 @@ class Assert(GrapheneObject):
                                 ]
                             ),
                         ),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+ticket_type_strings = [
+    "liquid",
+    "lock_180_days",
+    "lock_360_days",
+    "lock_720_days",
+    "lock_forever",
+]
+
+
+class Ticket_create_operation(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            if isinstance(kwargs["target_type"], int):
+                target_type = Varint32(kwargs["target_type"])
+            else:
+                target_type = Varint32(ticket_type_strings.index(kwargs["target_type"]))
+
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        ("target_type", target_type),
+                        ("amount", Asset(kwargs["amount"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Ticket_update_operation(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            if isinstance(kwargs["target_type"], int):
+                target_type = Varint32(kwargs["target_type"])
+            else:
+                target_type = Varint32(ticket_type_strings.index(kwargs["target_type"]))
+
+            if kwargs.get("amount_for_new_target"):
+                amount_for_new_target = Optional(Asset(kwargs["amount_for_new_target"]))
+            else:
+                amount_for_new_target = Optional(None)
+
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("ticket", ObjectId(kwargs["ticket"], "ticket")),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        ("target_type", target_type),
+                        ("amount_for_new_target", amount_for_new_target),
                         ("extensions", Set([])),
                     ]
                 )
