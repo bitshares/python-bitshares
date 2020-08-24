@@ -24,6 +24,7 @@ from graphenebase.types import (
     Ripemd160,
     Sha1,
     Sha256,
+    Hash160,
 )
 
 from .account import PublicKey
@@ -938,7 +939,7 @@ class Asset_settle(GrapheneObject):
 
 
 class HtlcHash(Static_variant):
-    elements = [Ripemd160, Sha1, Sha256]
+    elements = [Ripemd160, Sha1, Sha256, Hash160]
 
     def __init__(self, o):
         id = o[0]
