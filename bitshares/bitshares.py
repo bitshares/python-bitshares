@@ -1689,3 +1689,36 @@ class BitShares(AbstractGrapheneChain):
             }
         )
         return self.finalizeOp(op, account, "active", **kwargs)
+
+
+    def voting_ticket_create(self, target_type, amount_to_lock, account=None, **kwargs):
+        """ Create a voting ticket
+
+        :param int,str target_type: Lock period target. Should be a string from
+                    operations.ticket_type_strings or the index of the intended
+                    string.
+
+        :param Amount amount_to_lock: Amount to lock up for the duration
+                    selected in target_type.
+        """
+
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+
+        if not isinstance(amount_to_lock, (Amount)):
+            raise ValueError("'amount_to_lock' must be of type Amount")
+
+        op = operations.Ticket_create_operation(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": account["id"],
+                "target_type": target_type,
+                "amount": amount_to_lock.json(),
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
