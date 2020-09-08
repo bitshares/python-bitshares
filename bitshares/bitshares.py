@@ -1691,7 +1691,7 @@ class BitShares(AbstractGrapheneChain):
         return self.finalizeOp(op, account, "active", **kwargs)
 
 
-    def voting_ticket_create(self, target_type, amount_to_lock, account=None, **kwargs):
+    def create_voting_ticket(self, target_type, amount_to_lock, account=None, **kwargs):
         """ Create a voting ticket
 
         :param int,str target_type: Lock period target. Should be a string from
@@ -1724,7 +1724,7 @@ class BitShares(AbstractGrapheneChain):
         return self.finalizeOp(op, account, "active", **kwargs)
 
 
-    def voting_ticket_update(self, ticket_id, new_target_type, amount_to_update,
+    def update_voting_ticket(self, ticket_id, new_target_type, amount_to_update,
                              account=None, **kwargs):
         """Update a voting ticket
 
