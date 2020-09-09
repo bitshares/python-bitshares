@@ -1689,3 +1689,78 @@ class BitShares(AbstractGrapheneChain):
             }
         )
         return self.finalizeOp(op, account, "active", **kwargs)
+
+
+    def create_voting_ticket(self, target_type, amount_to_lock, account=None, **kwargs):
+        """ Create a voting ticket
+
+        :param int,str target_type: Lock period target. Should be a string from
+                    operations.ticket_type_strings or the index of the intended
+                    string.
+
+        :param Amount amount_to_lock: Amount to lock up for the duration
+                    selected in target_type.
+        """
+
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+
+        if not isinstance(amount_to_lock, (Amount)):
+            raise ValueError("'amount_to_lock' must be of type Amount")
+
+        op = operations.Ticket_create_operation(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": account["id"],
+                "target_type": target_type,
+                "amount": amount_to_lock.json(),
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
+
+
+    def update_voting_ticket(self, ticket_id, new_target_type, amount_to_update,
+                             account=None, **kwargs):
+        """Update a voting ticket
+
+        :param str ticket_id: Id (e.g. "1.18.xxx") of the ticket to update.
+
+        :param int,str target_type: New lock period target. Should be a string
+                    from operations.ticket_type_strings or the index of the
+                    intended string.
+
+        :param Amount,None amount_to_update: Amount to move over to the new
+                    lock-up target. (Optional - absence implies update whole
+                    amount.)
+        """
+
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+
+        if isinstance(amount_to_update, (Amount)):
+            amount_to_update = amount_to_update.json()
+        elif amount_to_update is not None:
+            raise ValueError("'amount_to_update' must be of type Amount or None")
+        else:
+            pass # None is a valid value for optional field
+
+        op = operations.Ticket_update_operation(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "ticket": ticket_id,
+                "account": account["id"],
+                "target_type": new_target_type,
+                "amount_for_new_target": amount_to_update,
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
