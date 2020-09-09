@@ -1,6 +1,10 @@
 # Changelog
 Note: version releases in the 0.x.y range may introduce breaking changes.
 
+## 0.6.0
+
+- minor: Add support for tickets
+
 ## 0.5.1
 
 - patch: Add aio packages to setup.py
