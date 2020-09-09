@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 6
 
    bitsharesapi.bitsharesnoderpc
    bitsharesapi.exceptions

@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 6
 
    bitshares.aio.account
    bitshares.aio.amount

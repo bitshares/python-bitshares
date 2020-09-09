@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 6
 
    bitsharesbase.account
    bitsharesbase.asset_permissions
