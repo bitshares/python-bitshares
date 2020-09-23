@@ -1764,3 +1764,58 @@ class BitShares(AbstractGrapheneChain):
             }
         )
         return self.finalizeOp(op, account, "active", **kwargs)
+
+
+    def create_liquidity_pool(self, asset_a, asset_b, share_asset,
+                              taker_fee_percent, withdrawal_fee_percent,
+                              account=None, **kwargs):
+        """Create a liquidity pool
+
+        :param str asset_a:  First asset in the pool pair.
+        :param str asset_b:  Second asset in the pool pair.
+        :param str asset_a:  The asset which represents shares in the pool.
+
+        For asset parameters, these can be either symbols or asset_id
+        strings. Note that network expects asset_a to have a lower-numbered
+        asset_id than asset_b.
+
+        :param float taker_fee_percent: The pool's taker fee percentage.
+        :param float withdrawal_fee_percent: The pool's withdrawal fee percent.
+
+        For percentages, meaningful range is [0.00, 100.00], where 1% is
+        represented as 1.0.  Smallest non-zero value recognized by BitShares
+        chain is 0.01 for 0.01%.
+
+        """
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+
+        asset_a = Asset(asset_a)["id"]
+        asset_b = Asset(asset_b)["id"]
+        share_asset = Asset(share_asset)["id"]
+
+        if not (taker_fee_percent >=0 and taker_fee_percent <= 100):
+            raise ValueError("Percentages must be in range [0.00, 100.00].")
+        if not (withdrawal_fee_percent >=0 and withdrawal_fee_percent <= 100):
+            raise ValueError("Percentages must be in range [0.00, 100.00].")
+        graphene_1_percent = 100
+        taker_fee_percent = int(taker_fee_percent * graphene_1_percent)
+        withdrawal_fee_percent = int(withdrawal_fee_percent * graphene_1_percent)
+
+        op = operations.Liquidity_pool_create(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": account["id"],
+                "asset_a": asset_a,
+                "asset_b": asset_b,
+                "share_asset": share_asset,
+                "taker_fee_percent": taker_fee_percent,
+                "withdrawal_fee_percent": withdrawal_fee_percent,
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
