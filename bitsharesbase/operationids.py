@@ -60,6 +60,11 @@ ops = [
     "custom_authority_delete_operation",
     "ticket_create_operation",
     "ticket_update_operation",
+    "liquidity_pool_create",
+    "liquidity_pool_delete",
+    "liquidity_pool_deposit",
+    "liquidity_pool_withdraw",
+    "liquidity_pool_exchange",
 ]
 operations = {o: ops.index(o) for o in ops}
 

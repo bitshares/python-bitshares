@@ -1102,4 +1102,113 @@ class Ticket_update_operation(GrapheneObject):
             )
 
 
+class Liquidity_pool_create(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        ("asset_a", ObjectId(kwargs["asset_a"], "asset")),
+                        ("asset_b", ObjectId(kwargs["asset_b"], "asset")),
+                        ("share_asset", ObjectId(kwargs["share_asset"], "asset")),
+                        ("taker_fee_percent", Uint16(kwargs["taker_fee_percent"])),
+                        ("withdrawal_fee_percent", Uint16(kwargs["withdrawal_fee_percent"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Liquidity_pool_delete(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        ("pool", ObjectId(kwargs["pool"], "liquidity_pool")),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Liquidity_pool_deposit(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        ("pool", ObjectId(kwargs["pool"], "liquidity_pool")),
+                        ("amount_a", Asset(kwargs["amount_a"])),
+                        ("amount_b", Asset(kwargs["amount_b"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Liquidity_pool_withdraw(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        ("pool", ObjectId(kwargs["pool"], "liquidity_pool")),
+                        ("share_amount", Asset(kwargs["share_amount"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Liquidity_pool_exchange(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        ("pool", ObjectId(kwargs["pool"], "liquidity_pool")),
+                        ("amount_to_sell", Asset(kwargs["amount_to_sell"])),
+                        ("min_to_receive", Asset(kwargs["min_to_receive"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
 fill_classmaps()
