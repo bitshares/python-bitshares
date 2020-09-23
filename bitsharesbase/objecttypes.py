@@ -20,4 +20,5 @@ object_type["balance"] = 15
 object_type["htlc"] = 16
 object_type["custom_authority"] = 17
 object_type["ticket"] = 18
-object_type["OBJECT_TYPE_COUNT"] = 18
+object_type["liquidity_pool"] = 19
+object_type["OBJECT_TYPE_COUNT"] = 19
