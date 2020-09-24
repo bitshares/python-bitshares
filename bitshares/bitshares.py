@@ -1819,3 +1819,53 @@ class BitShares(AbstractGrapheneChain):
             }
         )
         return self.finalizeOp(op, account, "active", **kwargs)
+
+
+    def _find_liquidity_pool(self, pool):
+        # Ad-hoc helper for the liquidity pool verbs. It locates a pool id
+        # irrespective of whether 'pool' is already a pool id, or perhaps an
+        # asset or asset_id of a share asset for a pool.  The approach is
+        # ad-hoc.  Would be better if there was a Pool class to represent pool
+        # objects like there is an Asset class to represent asset objects.
+        # Then locating a pool could happen in the initialization of the Pool
+        # object given either an id or asset/symbol. TBD someday.
+        if isinstance(pool, str) and pool.startswith("1.19."):
+            pool_id = pool
+        else:
+            try:
+                pool_asset = Asset(pool, blockchain_instance=self)
+            except:
+                raise ValueError("'pool' is neither a pool id nor share asset.")
+            if "for_liquidity_pool" in pool_asset:
+                pool_id = pool_asset["for_liquidity_pool"]
+            else:
+                raise ValueError("Asset is not a share asset for a pool.")
+        return pool_id
+
+
+    def delete_liquidity_pool(self, pool, account=None, **kwargs):
+        """Delete a liquidity pool
+
+        :param str,Asset pool: The liquidity pool to delete. Can be the pool id
+                as a string, or can be an Asset, asset_id, or symbol of the
+                share asset for the pool.
+
+        """
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+
+        pool_id = self._find_liquidity_pool(pool)
+
+        op = operations.Liquidity_pool_delete(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": account["id"],
+                "pool": pool_id,
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
