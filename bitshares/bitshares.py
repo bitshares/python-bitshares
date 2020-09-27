@@ -1909,6 +1909,38 @@ class BitShares(AbstractGrapheneChain):
         return self.finalizeOp(op, account, "active", **kwargs)
 
 
+    def withdraw_from_liquidity_pool(self, pool, share_amount, account=None, **kwargs):
+        """Withdraw stake from a liquidity pool
+
+        :param str,Asset pool: The liquidity pool to use. Can be the pool id
+                as a string, or can be an Asset, asset_id, or symbol of the
+                share asset for the pool.
+
+        :param Amount share_amount: Amount of share asset to redeem. Must be a
+                quantity of the pool's share_asset.
+
+        """
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+
+        pool_id = self._find_liquidity_pool(pool)
+
+        op = operations.Liquidity_pool_withdraw(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": account["id"],
+                "pool": pool_id,
+                "share_amount": share_amount.json(),
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
+
+
     def exchange_with_liquidity_pool(self, pool, amount_to_sell, min_to_receive, account=None, **kwargs):
         """Exchange assets against a liquidity pool
 
