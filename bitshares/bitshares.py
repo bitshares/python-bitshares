@@ -1871,6 +1871,44 @@ class BitShares(AbstractGrapheneChain):
         return self.finalizeOp(op, account, "active", **kwargs)
 
 
+    def deposit_into_liquidity_pool(self, pool, amount_a, amount_b, account=None, **kwargs):
+        """Deposit assets into a liquidity pool
+
+        :param str,Asset pool: The liquidity pool to use. Can be the pool id
+                as a string, or can be an Asset, asset_id, or symbol of the
+                share asset for the pool.
+
+        :param Amount amount_a:
+        :param Amount amount_b:
+
+        """
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+
+        pool_id = self._find_liquidity_pool(pool)
+
+        num_id_a = int(amount_a.asset["id"].split(".")[-1])
+        num_id_b = int(amount_b.asset["id"].split(".")[-1])
+        if(num_id_b < num_id_a):
+            amount_a, amount_b = amount_b, amount_a
+
+        op = operations.Liquidity_pool_deposit(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": account["id"],
+                "pool": pool_id,
+                "amount_a": amount_a.json(),
+                "amount_b": amount_b.json(),
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
+
+
     def exchange_with_liquidity_pool(self, pool, amount_to_sell, min_to_receive, account=None, **kwargs):
         """Exchange assets against a liquidity pool
 
