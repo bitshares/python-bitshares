@@ -1773,7 +1773,7 @@ class BitShares(AbstractGrapheneChain):
 
         :param str asset_a:  First asset in the pool pair.
         :param str asset_b:  Second asset in the pool pair.
-        :param str asset_a:  The asset which represents shares in the pool.
+        :param str share_asset:  The asset which represents shares in the pool.
 
         For asset parameters, these can be either symbols or asset_id
         strings. Note that network expects asset_a to have a lower-numbered
