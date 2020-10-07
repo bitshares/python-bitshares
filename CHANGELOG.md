@@ -1,6 +1,10 @@
 # Changelog
 Note: version releases in the 0.x.y range may introduce breaking changes.
 
+## 0.7.0
+
+- minor: Add liquidity pool support
+
 ## 0.6.0
 
 - minor: Add support for tickets

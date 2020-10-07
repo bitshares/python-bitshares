@@ -1764,3 +1764,211 @@ class BitShares(AbstractGrapheneChain):
             }
         )
         return self.finalizeOp(op, account, "active", **kwargs)
+
+
+    def create_liquidity_pool(self, asset_a, asset_b, share_asset,
+                              taker_fee_percent, withdrawal_fee_percent,
+                              account=None, **kwargs):
+        """Create a liquidity pool
+
+        :param str asset_a:  First asset in the pool pair.
+        :param str asset_b:  Second asset in the pool pair.
+        :param str share_asset:  The asset which represents shares in the pool.
+
+        For asset parameters, these can be either symbols or asset_id
+        strings. Note that network expects asset_a to have a lower-numbered
+        asset_id than asset_b.
+
+        :param float taker_fee_percent: The pool's taker fee percentage.
+        :param float withdrawal_fee_percent: The pool's withdrawal fee percent.
+
+        For percentages, meaningful range is [0.00, 100.00], where 1% is
+        represented as 1.0.  Smallest non-zero value recognized by BitShares
+        chain is 0.01 for 0.01%.
+
+        """
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+
+        asset_a = Asset(asset_a)["id"]
+        asset_b = Asset(asset_b)["id"]
+        share_asset = Asset(share_asset)["id"]
+
+        if not (taker_fee_percent >=0 and taker_fee_percent <= 100):
+            raise ValueError("Percentages must be in range [0.00, 100.00].")
+        if not (withdrawal_fee_percent >=0 and withdrawal_fee_percent <= 100):
+            raise ValueError("Percentages must be in range [0.00, 100.00].")
+        graphene_1_percent = 100
+        taker_fee_percent = int(taker_fee_percent * graphene_1_percent)
+        withdrawal_fee_percent = int(withdrawal_fee_percent * graphene_1_percent)
+
+        op = operations.Liquidity_pool_create(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": account["id"],
+                "asset_a": asset_a,
+                "asset_b": asset_b,
+                "share_asset": share_asset,
+                "taker_fee_percent": taker_fee_percent,
+                "withdrawal_fee_percent": withdrawal_fee_percent,
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
+
+
+    def _find_liquidity_pool(self, pool):
+        # Ad-hoc helper for the liquidity pool verbs. It locates a pool id
+        # irrespective of whether 'pool' is already a pool id, or perhaps an
+        # asset or asset_id of a share asset for a pool.  The approach is
+        # ad-hoc.  Would be better if there was a Pool class to represent pool
+        # objects like there is an Asset class to represent asset objects.
+        # Then locating a pool could happen in the initialization of the Pool
+        # object given either an id or asset/symbol. TBD someday.
+        if isinstance(pool, str) and pool.startswith("1.19."):
+            pool_id = pool
+        else:
+            try:
+                pool_asset = Asset(pool, blockchain_instance=self)
+            except:
+                raise ValueError("'pool' is neither a pool id nor share asset.")
+            if "for_liquidity_pool" in pool_asset:
+                pool_id = pool_asset["for_liquidity_pool"]
+            else:
+                raise ValueError("Asset is not a share asset for a pool.")
+        return pool_id
+
+
+    def delete_liquidity_pool(self, pool, account=None, **kwargs):
+        """Delete a liquidity pool
+
+        :param str,Asset pool: The liquidity pool to delete. Can be the pool id
+                as a string, or can be an Asset, asset_id, or symbol of the
+                share asset for the pool.
+
+        """
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+
+        pool_id = self._find_liquidity_pool(pool)
+
+        op = operations.Liquidity_pool_delete(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": account["id"],
+                "pool": pool_id,
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
+
+
+    def deposit_into_liquidity_pool(self, pool, amount_a, amount_b, account=None, **kwargs):
+        """Deposit assets into a liquidity pool
+
+        :param str,Asset pool: The liquidity pool to use. Can be the pool id
+                as a string, or can be an Asset, asset_id, or symbol of the
+                share asset for the pool.
+
+        :param Amount amount_a:
+        :param Amount amount_b:
+
+        """
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+
+        pool_id = self._find_liquidity_pool(pool)
+
+        num_id_a = int(amount_a.asset["id"].split(".")[-1])
+        num_id_b = int(amount_b.asset["id"].split(".")[-1])
+        if(num_id_b < num_id_a):
+            amount_a, amount_b = amount_b, amount_a
+
+        op = operations.Liquidity_pool_deposit(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": account["id"],
+                "pool": pool_id,
+                "amount_a": amount_a.json(),
+                "amount_b": amount_b.json(),
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
+
+
+    def withdraw_from_liquidity_pool(self, pool, share_amount, account=None, **kwargs):
+        """Withdraw stake from a liquidity pool
+
+        :param str,Asset pool: The liquidity pool to use. Can be the pool id
+                as a string, or can be an Asset, asset_id, or symbol of the
+                share asset for the pool.
+
+        :param Amount share_amount: Amount of share asset to redeem. Must be a
+                quantity of the pool's share_asset.
+
+        """
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+
+        pool_id = self._find_liquidity_pool(pool)
+
+        op = operations.Liquidity_pool_withdraw(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": account["id"],
+                "pool": pool_id,
+                "share_amount": share_amount.json(),
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
+
+
+    def exchange_with_liquidity_pool(self, pool, amount_to_sell, min_to_receive, account=None, **kwargs):
+        """Exchange assets against a liquidity pool
+
+        :param str,Asset pool: The liquidity pool to use. Can be the pool id
+                as a string, or can be an Asset, asset_id, or symbol of the
+                share asset for the pool.
+
+        :param Amount amount_to_sell:
+        :param Amount min_to_receive:
+
+        """
+        if not account:
+            if "default_account" in self.config:
+                account = self.config["default_account"]
+        if not account:
+            raise ValueError("You need to provide an account")
+        account = Account(account, blockchain_instance=self)
+
+        pool_id = self._find_liquidity_pool(pool)
+
+        op = operations.Liquidity_pool_exchange(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": account["id"],
+                "pool": pool_id,
+                "amount_to_sell": amount_to_sell.json(),
+                "min_to_receive": min_to_receive.json(),
+                "extensions": [],
+            }
+        )
+        return self.finalizeOp(op, account, "active", **kwargs)
