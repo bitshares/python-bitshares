@@ -60,5 +60,5 @@ A copy of the license is available in the repository's
 
 ### Bounties
 
-As part of [HackTheDex](https://hackthedex.io), security issues found in this
+Security issues found in this
 library are potentially eligible for a bounty.
