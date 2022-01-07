@@ -1043,7 +1043,15 @@ class Assert(GrapheneObject):
                 )
             )
 
-ticket_type_strings = ['liquid', 'lock_180_days', 'lock_360_days', 'lock_720_days', 'lock_forever']
+
+ticket_type_strings = [
+    "liquid",
+    "lock_180_days",
+    "lock_360_days",
+    "lock_720_days",
+    "lock_forever",
+]
+
 
 class Ticket_create_operation(GrapheneObject):
     def __init__(self, *args, **kwargs):
@@ -1069,6 +1077,7 @@ class Ticket_create_operation(GrapheneObject):
                     ]
                 )
             )
+
 
 class Ticket_update_operation(GrapheneObject):
     def __init__(self, *args, **kwargs):
@@ -1119,7 +1128,10 @@ class Liquidity_pool_create(GrapheneObject):
                         ("asset_b", ObjectId(kwargs["asset_b"], "asset")),
                         ("share_asset", ObjectId(kwargs["share_asset"], "asset")),
                         ("taker_fee_percent", Uint16(kwargs["taker_fee_percent"])),
-                        ("withdrawal_fee_percent", Uint16(kwargs["withdrawal_fee_percent"])),
+                        (
+                            "withdrawal_fee_percent",
+                            Uint16(kwargs["withdrawal_fee_percent"]),
+                        ),
                         ("extensions", Set([])),
                     ]
                 )
@@ -1209,6 +1221,123 @@ class Liquidity_pool_exchange(GrapheneObject):
                     ]
                 )
             )
+
+
+class Fill_order(GrapheneObject):
+    """Virtual operation."""
+
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Account_transfer(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Witness_create(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Proposal_delete(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Withdraw_permission_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Withdraw_permission_claim(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Withdraw_permission_delete(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Committee_member_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Committee_member_update_global_parameters(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Vesting_balance_create(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Transfer_to_blind(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Transfer_from_blind(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Blind_transfer(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Asset_settle_cancel(GrapheneObject):
+    """Virtual Operation."""
+
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Fba_distribute(GrapheneObject):
+    """Virtual Operation."""
+
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Execute_bid(GrapheneObject):
+    """Virtual Operation."""
+
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Htlc_redeemed(GrapheneObject):
+    """Virtual Operation."""
+
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Htlc_refund(GrapheneObject):
+    """Virtual Operation."""
+
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Custom_authority_create_operation(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Custom_authority_update_operation(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class Custom_authority_delete_operation(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
 
 
 fill_classmaps()
