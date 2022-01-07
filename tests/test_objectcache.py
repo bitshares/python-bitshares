@@ -15,7 +15,7 @@ class Testcases(unittest.TestCase):
 
     def test_cache(self):
         cache = ObjectCache(default_expiration=1)
-        self.assertEqual(str(cache), "ObjectCache(n=0, default_expiration=1)")
+        self.assertEqual(str(cache), "ObjectCacheInMemory(default_expiration=1)")
 
         # Data
         cache["foo"] = "bar"
