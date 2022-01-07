@@ -63,3 +63,8 @@ target/
 *.swp
 .ropeproject/
 */.ropeproject/
+grapheneapi
+graphenebase
+graphenecommon
+graphenestorage
+scripts
