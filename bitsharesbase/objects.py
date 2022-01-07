@@ -633,9 +633,64 @@ class ChainParameters(GrapheneObject):
             )
 
 
-class VestingPolicy(GrapheneObject):
-    def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+class VestingPolicy(Static_variant):
+    def __init__(self, o):
+        class Linear_vesting_policy_initializer(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                if isArgsThisClass(self, args):
+                    self.data = args[0].data
+                else:
+                    if len(args) == 1 and len(kwargs) == 0:
+                        kwargs = args[0]
+                    super().__init__(
+                        OrderedDict(
+                            [
+                                (
+                                    "begin_timestamp",
+                                    PointInTime(kwargs["begin_timestamp"]),
+                                ),
+                                (
+                                    "vesting_cliff_seconds",
+                                    Uint32(kwargs["vesting_cliff_seconds"]),
+                                ),
+                                (
+                                    "vesting_duration_seconds",
+                                    Uint32(kwargs["vesting_duration_seconds"]),
+                                ),
+                            ]
+                        )
+                    )
+
+        class Cdd_vesting_policy_initializer(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                if isArgsThisClass(self, args):
+                    self.data = args[0].data
+                else:
+                    if len(args) == 1 and len(kwargs) == 0:
+                        kwargs = args[0]
+                    super().__init__(
+                        OrderedDict(
+                            [
+                                ("start_claim", PointInTime(kwargs["start_claim"])),
+                                ("vesting_seconds", Uint32(kwargs["vesting_seconds"])),
+                            ]
+                        )
+                    )
+
+        class Instant_vesting_policy_initializer(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                super().__init__(OrderedDict([]))
+
+        id = o[0]
+        if id == 0:
+            data = Linear_vesting_policy_initializer(o[1])
+        elif id == 1:
+            data = Cdd_vesting_policy_initializer(o[1])
+        elif id == 2:
+            data = Instant_vesting_policy_initializer(o[1])
+        else:
+            raise ValueError("Unknown {}".format(self.__class__.name))
+        super().__init__(data, id)
 
 
 class CustomRestriction(GrapheneObject):
