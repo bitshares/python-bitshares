@@ -456,3 +456,18 @@ class AssertPredicate(Static_variant):
         else:
             raise ValueError("Unknown {}".format(self.__class__.name))
         super().__init__(data, id)
+
+
+class ChainParameters(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class VestingPolicy(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class CustomRestriction(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError

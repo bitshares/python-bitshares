@@ -45,6 +45,9 @@ from .objects import (
     Worker_initializer,
     isArgsThisClass,
     AssertPredicate,
+    ChainParameters,
+    VestingPolicy,
+    CustomRestriction,
 )
 from .operationids import operations
 
@@ -52,6 +55,10 @@ from .operationids import operations
 default_prefix = "BTS"
 class_idmap = {}
 class_namemap = {}
+
+
+class VirtualOperationException(Exception):
+    pass
 
 
 def fill_classmaps():
@@ -1227,52 +1234,253 @@ class Fill_order(GrapheneObject):
     """Virtual operation."""
 
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        raise VirtualOperationException()
 
 
 class Account_transfer(GrapheneObject):
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account_id", ObjectId(kwargs["account_id"], "account")),
+                        ("new_owner", ObjectId(kwargs["new_owner"], "account")),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
 
 
 class Witness_create(GrapheneObject):
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        prefix = kwargs.pop("prefix", default_prefix)
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        (
+                            "witness_account",
+                            ObjectId(kwargs["witness_account"], "account"),
+                        ),
+                        ("url", String(kwargs["url"])),
+                        (
+                            "block_signing_key",
+                            PublicKey(kwargs["block_signing_key"], prefix=prefix),
+                        ),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
 
 
 class Proposal_delete(GrapheneObject):
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        (
+                            "fee_paying_account",
+                            ObjectId(kwargs["fee_paying_account"], "account"),
+                        ),
+                        (
+                            "using_owner_authority",
+                            Bool(kwargs["using_owner_authority"]),
+                        ),
+                        ("fee", Asset(kwargs["fee"])),
+                        ("proposal", ObjectId(kwargs["proposal"], "proposal")),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
 
 
 class Withdraw_permission_update(GrapheneObject):
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        (
+                            "withdraw_from_account",
+                            ObjectId(kwargs["withdraw_from_account"], "account"),
+                        ),
+                        (
+                            "authorized_account",
+                            ObjectId(kwargs["authorized_account"], "account"),
+                        ),
+                        (
+                            "permission_to_update",
+                            ObjectId(
+                                kwargs["permission_to_update"], "withdraw_permission"
+                            ),
+                        ),
+                        ("withdrawal_limit", Asset(kwargs["withdrawal_limit"])),
+                        (
+                            "withdrawal_period_sec",
+                            Uint32(kwargs["withdrawal_period_sec"]),
+                        ),
+                        ("period_start_time", PointInTime(kwargs["period_start_time"])),
+                        (
+                            "periods_until_expiration",
+                            Uint32(kwargs["periods_until_expiration"]),
+                        ),
+                    ]
+                )
+            )
 
 
 class Withdraw_permission_claim(GrapheneObject):
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        prefix = kwargs.pop("prefix", default_prefix)
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            if "memo" in kwargs and kwargs["memo"]:
+                if isinstance(kwargs["memo"], dict):
+                    kwargs["memo"]["prefix"] = prefix
+                    memo = Optional(Memo(**kwargs["memo"]))
+                else:
+                    memo = Optional(Memo(kwargs["memo"]))
+            else:
+                memo = Optional(None)
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        (
+                            "permission_to_update",
+                            ObjectId(
+                                kwargs["permission_to_update"], "withdraw_permission"
+                            ),
+                        ),
+                        (
+                            "withdraw_from_account",
+                            ObjectId(kwargs["withdraw_from_account"], "account"),
+                        ),
+                        (
+                            "withdraw_to_account",
+                            ObjectId(kwargs["withdraw_to_account"], "account"),
+                        ),
+                        ("amount_to_withdraw", Asset(kwargs["amount_to_withdraw"])),
+                        ("memo", memo),
+                    ]
+                )
+            )
 
 
 class Withdraw_permission_delete(GrapheneObject):
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        (
+                            "withdraw_from_account",
+                            ObjectId(kwargs["withdraw_from_account"], "account"),
+                        ),
+                        (
+                            "authorized_account",
+                            ObjectId(kwargs["authorized_account"], "account"),
+                        ),
+                        (
+                            "withdrawal_permission",
+                            ObjectId(
+                                kwargs["withdrawal_permission"], "withdraw_permission"
+                            ),
+                        ),
+                    ]
+                )
+            )
 
 
 class Committee_member_update(GrapheneObject):
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        (
+                            "committee_member",
+                            ObjectId(kwargs["committee_member"], "committee_member"),
+                        ),
+                        (
+                            "committee_member_account",
+                            ObjectId(kwargs["committee_member_account"], "account"),
+                        ),
+                        ("new_url", String(kwargs["new_url"])),
+                    ]
+                )
+            )
 
 
 class Committee_member_update_global_parameters(GrapheneObject):
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("new_parameters", ChainParameters(kwargs["new_parameters"])),
+                    ]
+                )
+            )
 
 
 class Vesting_balance_create(GrapheneObject):
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("creator", ObjectId(kwargs["creator"], "account")),
+                        ("owner", ObjectId(kwargs["owner"], "account")),
+                        ("amount", Asset(kwargs["amount"])),
+                        ("policy", VestingPolicy(kwargs["policy"])),
+                    ]
+                )
+            )
 
 
 class Transfer_to_blind(GrapheneObject):
@@ -1294,50 +1502,127 @@ class Asset_settle_cancel(GrapheneObject):
     """Virtual Operation."""
 
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        raise VirtualOperationException()
 
 
 class Fba_distribute(GrapheneObject):
     """Virtual Operation."""
 
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        raise VirtualOperationException()
 
 
 class Execute_bid(GrapheneObject):
     """Virtual Operation."""
 
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        raise VirtualOperationException()
 
 
 class Htlc_redeemed(GrapheneObject):
     """Virtual Operation."""
 
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        raise VirtualOperationException()
 
 
 class Htlc_refund(GrapheneObject):
     """Virtual Operation."""
 
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        raise VirtualOperationException()
 
 
 class Custom_authority_create_operation(GrapheneObject):
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        ("enabled", Bool(kwargs["enabled"])),
+                        ("valid_from", PointInTime(kwargs["valid_from"])),
+                        ("valid_to", PointInTime(kwargs["valid_to"])),
+                        ("operation_type", Uint32(kwargs["operation_type"])),
+                        ("auth", Permission(kwargs["auth"])),
+                        (
+                            "restrictions",
+                            Array(
+                                [CustomRestriction(o) for o in kwargs["restrictions"]]
+                            ),
+                        ),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
 
 
 class Custom_authority_update_operation(GrapheneObject):
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        (
+                            "authority_to_update",
+                            ObjectId(kwargs["authority_to_update"], "custom_authority"),
+                        ),
+                        ("new_enabled", Bool(kwargs["enabled"])),
+                        ("new_valid_from", PointInTime(kwargs["valid_from"])),
+                        ("new_valid_to", PointInTime(kwargs["valid_to"])),
+                        ("new_auth", Permission(kwargs["auth"])),
+                        (
+                            "restrictions_to_remove",
+                            Array(
+                                [Uint16(o) for o in kwargs["restrictions_to_remove"]]
+                            ),
+                        ),
+                        (
+                            "restrictions_to_add",
+                            Array(
+                                [
+                                    CustomRestriction(o)
+                                    for o in kwargs["restrictions_to_add"]
+                                ]
+                            ),
+                        ),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
 
 
 class Custom_authority_delete_operation(GrapheneObject):
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        (
+                            "authority_to_delete",
+                            ObjectId(kwargs["authority_to_update"], "custom_authority"),
+                        ),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
 
 
 fill_classmaps()
