@@ -33,7 +33,6 @@ class Testcases(unittest.TestCase):
             expiration=expiration,
             operations=ops,
         )
-        pprint(tx.json())
         tx = tx.sign([wif], chain=prefix)
         tx.verify([PrivateKey(wif).pubkey], prefix)
         txWire = hexlify(bytes(tx)).decode("ascii")
@@ -54,6 +53,16 @@ class Testcases(unittest.TestCase):
 
         # Compare expected result with test unit
         self.assertEqual(self.cm[:-130], txWire[:-130])
+
+    def test_all_operations_implemented(self):
+        from bitsharesbase.operationids import ops, getClassForOperation
+
+        fail = False
+        for operation in ops:
+            if getClassForOperation(operation) is None:
+                print(f"Operation {operation} missing!")
+                fail = True
+        self.assertFalse(fail)
 
     def test_call_update(self):
         self.op = operations.Call_order_update(
@@ -316,7 +325,7 @@ class Testcases(unittest.TestCase):
             "197cc69aa04c45e20a8c1c495629ca5765d8e458a18f0920bfaf9d0a"
             "909c01819cf887a66d06903af71fb07f0aac34600c733590984e"
         )
-        self.doit(1)
+        self.doit(0)
 
     """
     # TODO FIX THIS UNIT TEST
