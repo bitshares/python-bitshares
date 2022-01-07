@@ -693,6 +693,83 @@ class VestingPolicy(Static_variant):
         super().__init__(data, id)
 
 
+class RestrictionArgument(Static_variant):
+    def __init__(self, o):
+        raise NotImplementedError()
+
+        # TODO: We need to implemented a class for each of these as the content
+        # of the static variant is the content of the restriction on this
+        # particular type - this will not produce nice code :-(
+        graphene_op_restriction_argument_variadic = {
+            "void_t",
+            "bool",
+            "int64_t",
+            "string",
+            "time_point_sec",
+            "public_key_type",
+            "fc::sha256",
+            "account_id_type",
+            "asset_id_type",
+            "force_settlement_id_type",
+            "committee_member_id_type",
+            "witness_id_type",
+            "limit_order_id_type",
+            "call_order_id_type",
+            "custom_id_type",
+            "proposal_id_type",
+            "withdraw_permission_id_type",
+            "vesting_balance_id_type",
+            "worker_id_type",
+            "balance_id_type",
+            "flat_set<bool>",
+            "flat_set<int64_t>",
+            "flat_set<string>",
+            "flat_set<time_point_sec>",
+            "flat_set<public_key_type>",
+            "flat_set<fc::sha256>",
+            "flat_set<account_id_type>",
+            "flat_set<asset_id_type>",
+            "flat_set<force_settlement_id_type>",
+            "flat_set<committee_member_id_type>",
+            "flat_set<witness_id_type>",
+            "flat_set<limit_order_id_type>",
+            "flat_set<call_order_id_type>",
+            "flat_set<custom_id_type>",
+            "flat_set<proposal_id_type>",
+            "flat_set<withdraw_permission_id_type>",
+            "flat_set<vesting_balance_id_type>",
+            "flat_set<worker_id_type>",
+            "flat_set<balance_id_type>",
+            "vector<restriction>",
+            "vector<vector<restriction>>",
+            "variant_assert_argument_type",
+        }
+
+        class Argument(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                super().__init__(OrderedDict([]))
+
+        id = o[0]
+        if len(graphene_op_restriction_argument_variadic) < id:
+            raise ValueError("Unknown {}".format(self.__class__.name))
+        data = graphene_op_restriction_argument_variadic(id)
+        super().__init__(data, id)
+
+
 class CustomRestriction(GrapheneObject):
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("member_index", Uint32(kwargs["member_index"])),
+                        ("restriction_type", Uint32(kwargs["restriction_type"])),
+                        ("argument", RestrictionArgument(kwargs["argument"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
