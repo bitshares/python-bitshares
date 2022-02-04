@@ -1535,6 +1535,7 @@ class Htlc_refund(GrapheneObject):
 
 class Custom_authority_create_operation(GrapheneObject):
     def __init__(self, *args, **kwargs):
+        raise NotImplementedError()
         if isArgsThisClass(self, args):
             self.data = args[0].data
         else:
@@ -1564,6 +1565,7 @@ class Custom_authority_create_operation(GrapheneObject):
 
 class Custom_authority_update_operation(GrapheneObject):
     def __init__(self, *args, **kwargs):
+        raise NotImplementedError()
         if isArgsThisClass(self, args):
             self.data = args[0].data
         else:
@@ -1605,6 +1607,7 @@ class Custom_authority_update_operation(GrapheneObject):
 
 class Custom_authority_delete_operation(GrapheneObject):
     def __init__(self, *args, **kwargs):
+        raise NotImplementedError()
         if isArgsThisClass(self, args):
             self.data = args[0].data
         else:
