@@ -89,3 +89,12 @@ def getOperationName(id: str):
         return getOperationNameForId(id)
     else:
         raise ValueError
+
+
+def getClassForOperation(operation_name: str):
+    classname = operation_name.lower().capitalize()
+    module = "bitsharesbase.operations"
+    fromlist = ["operations"]
+    module = __import__(module, fromlist=fromlist)
+    if hasattr(module, classname):
+        return getattr(module, classname)

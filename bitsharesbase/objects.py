@@ -456,3 +456,320 @@ class AssertPredicate(Static_variant):
         else:
             raise ValueError("Unknown {}".format(self.__class__.name))
         super().__init__(data, id)
+
+
+class ChainParameterExtension(Extension):
+    class Htlc_options(GrapheneObject):
+        def __init__(self, *args, **kwargs):
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("max_timeout_secs", Uint32(kwargs["max_timeout_secs"])),
+                        ("max_preimage_size", Uint32(kwargs["max_preimage_size"])),
+                    ]
+                )
+            )
+
+    class CustomAuthorityOptions(GrapheneObject):
+        def __init__(self, *args, **kwargs):
+            kwargs.update(args[0])
+            super().__init__(
+                OrderedDict(
+                    [
+                        (
+                            "max_custom_authority_lifetime_seconds",
+                            Uint32(kwargs["max_custom_authority_lifetime_seconds"]),
+                        ),
+                        (
+                            "max_custom_authorities_per_account",
+                            Uint32(kwargs["max_custom_authorities_per_account"]),
+                        ),
+                        (
+                            "max_custom_authorities_per_account_op",
+                            Uint32(kwargs["max_custom_authorities_per_account_op"]),
+                        ),
+                        (
+                            "max_custom_authority_restrictions",
+                            Uint32(kwargs["max_custom_authority_restrictions"]),
+                        ),
+                    ]
+                )
+            )
+
+    def optional_uint16(x):
+        if x:
+            return Uint16(x)
+
+    sorted_options = [
+        ("updatable_htlc_options", Htlc_options),
+        ("custom_authority_options", CustomAuthorityOptions),
+        ("market_fee_network_percent", optional_uint16),
+        ("maker_fee_discount_percent", optional_uint16),
+    ]
+
+
+class ChainParameters(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("block_interval", Uint8(kwargs["block_interval"])),
+                        (
+                            "maintenance_interval",
+                            Uint32(kwargs["maintenance_interval"]),
+                        ),  # uint32_t
+                        (
+                            "maintenance_skip_slots",
+                            Uint8(kwargs["maintenance_skip_slots"]),
+                        ),  # uint8_t
+                        (
+                            "committee_proposal_review_period",
+                            Uint32(kwargs["committee_proposal_review_period"]),
+                        ),  # uint32_t
+                        (
+                            "maximum_transaction_size",
+                            Uint32(kwargs["maximum_transaction_size"]),
+                        ),  # uint32_t
+                        (
+                            "maximum_block_size",
+                            Uint32(kwargs["maximum_block_size"]),
+                        ),  # uint32_t
+                        (
+                            "maximum_time_until_expiration",
+                            Uint32(kwargs["maximum_time_until_expiration"]),
+                        ),  # uint32_t
+                        (
+                            "maximum_proposal_lifetime",
+                            Uint32(kwargs["maximum_proposal_lifetime"]),
+                        ),  # uint32_t
+                        (
+                            "maximum_asset_whitelist_authorities",
+                            Uint8(kwargs["maximum_asset_whitelist_authorities"]),
+                        ),  # uint8_t
+                        (
+                            "maximum_asset_feed_publishers",
+                            Uint8(kwargs["maximum_asset_feed_publishers"]),
+                        ),  # uint8_t
+                        (
+                            "maximum_witness_count",
+                            Uint16(kwargs["maximum_witness_count"]),
+                        ),  # uint16_t
+                        (
+                            "maximum_committee_count",
+                            Uint16(kwargs["maximum_committee_count"]),
+                        ),  # uint16_t
+                        (
+                            "maximum_authority_membership",
+                            Uint16(kwargs["maximum_authority_membership"]),
+                        ),  # uint16_t
+                        (
+                            "reserve_percent_of_fee",
+                            Uint16(kwargs["reserve_percent_of_fee"]),
+                        ),  # uint16_t
+                        (
+                            "network_percent_of_fee",
+                            Uint16(kwargs["network_percent_of_fee"]),
+                        ),  # uint16_t
+                        (
+                            "lifetime_referrer_percent_of_fee",
+                            Uint16(kwargs["lifetime_referrer_percent_of_fee"]),
+                        ),  # uint16_t
+                        (
+                            "cashback_vesting_period_seconds",
+                            Uint32(kwargs["cashback_vesting_period_seconds"]),
+                        ),  # uint32_t
+                        (
+                            "cashback_vesting_threshold",
+                            Int64(kwargs["cashback_vesting_threshold"]),
+                        ),  # share_type
+                        (
+                            "count_non_member_votes",
+                            Bool(kwargs["count_non_member_votes"]),
+                        ),  # bool
+                        (
+                            "allow_non_member_whitelists",
+                            Bool(kwargs["allow_non_member_whitelists"]),
+                        ),  # bool
+                        (
+                            "witness_pay_per_block",
+                            Int64(kwargs["witness_pay_per_block"]),
+                        ),  # share_type
+                        (
+                            "witness_pay_vesting_seconds",
+                            Uint32(kwargs["witness_pay_vesting_seconds"]),
+                        ),  # uint32_t
+                        (
+                            "worker_budget_per_day",
+                            Int64(kwargs["worker_budget_per_day"]),
+                        ),  # share_type
+                        (
+                            "max_predicate_opcode",
+                            Uint16(kwargs["max_predicate_opcode"]),
+                        ),  # uint16_t
+                        (
+                            "fee_liquidation_threshold",
+                            Int64(kwargs["fee_liquidation_threshold"]),
+                        ),  # share_type
+                        (
+                            "accounts_per_fee_scale",
+                            Uint16(kwargs["accounts_per_fee_scale"]),
+                        ),  # uint16_t
+                        (
+                            "account_fee_scale_bitshifts",
+                            Uint8(kwargs["account_fee_scale_bitshifts"]),
+                        ),  # uint8_t
+                        (
+                            "max_authority_depth",
+                            Uint8(kwargs["max_authority_depth"]),
+                        ),  # uint8_t
+                        ("extensions", ChainParameterExtension(kwargs["extensions"])),
+                    ]
+                )
+            )
+
+
+class VestingPolicy(Static_variant):
+    def __init__(self, o):
+        class Linear_vesting_policy_initializer(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                if isArgsThisClass(self, args):
+                    self.data = args[0].data
+                else:
+                    if len(args) == 1 and len(kwargs) == 0:
+                        kwargs = args[0]
+                    super().__init__(
+                        OrderedDict(
+                            [
+                                (
+                                    "begin_timestamp",
+                                    PointInTime(kwargs["begin_timestamp"]),
+                                ),
+                                (
+                                    "vesting_cliff_seconds",
+                                    Uint32(kwargs["vesting_cliff_seconds"]),
+                                ),
+                                (
+                                    "vesting_duration_seconds",
+                                    Uint32(kwargs["vesting_duration_seconds"]),
+                                ),
+                            ]
+                        )
+                    )
+
+        class Cdd_vesting_policy_initializer(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                if isArgsThisClass(self, args):
+                    self.data = args[0].data
+                else:
+                    if len(args) == 1 and len(kwargs) == 0:
+                        kwargs = args[0]
+                    super().__init__(
+                        OrderedDict(
+                            [
+                                ("start_claim", PointInTime(kwargs["start_claim"])),
+                                ("vesting_seconds", Uint32(kwargs["vesting_seconds"])),
+                            ]
+                        )
+                    )
+
+        class Instant_vesting_policy_initializer(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                super().__init__(OrderedDict([]))
+
+        id = o[0]
+        if id == 0:
+            data = Linear_vesting_policy_initializer(o[1])
+        elif id == 1:
+            data = Cdd_vesting_policy_initializer(o[1])
+        elif id == 2:
+            data = Instant_vesting_policy_initializer(o[1])
+        else:
+            raise ValueError("Unknown {}".format(self.__class__.name))
+        super().__init__(data, id)
+
+
+class RestrictionArgument(Static_variant):
+    def __init__(self, o):
+        raise NotImplementedError()
+
+        # TODO: We need to implemented a class for each of these as the content
+        # of the static variant is the content of the restriction on this
+        # particular type - this will not produce nice code :-(
+        graphene_op_restriction_argument_variadic = {
+            "void_t",
+            "bool",
+            "int64_t",
+            "string",
+            "time_point_sec",
+            "public_key_type",
+            "fc::sha256",
+            "account_id_type",
+            "asset_id_type",
+            "force_settlement_id_type",
+            "committee_member_id_type",
+            "witness_id_type",
+            "limit_order_id_type",
+            "call_order_id_type",
+            "custom_id_type",
+            "proposal_id_type",
+            "withdraw_permission_id_type",
+            "vesting_balance_id_type",
+            "worker_id_type",
+            "balance_id_type",
+            "flat_set<bool>",
+            "flat_set<int64_t>",
+            "flat_set<string>",
+            "flat_set<time_point_sec>",
+            "flat_set<public_key_type>",
+            "flat_set<fc::sha256>",
+            "flat_set<account_id_type>",
+            "flat_set<asset_id_type>",
+            "flat_set<force_settlement_id_type>",
+            "flat_set<committee_member_id_type>",
+            "flat_set<witness_id_type>",
+            "flat_set<limit_order_id_type>",
+            "flat_set<call_order_id_type>",
+            "flat_set<custom_id_type>",
+            "flat_set<proposal_id_type>",
+            "flat_set<withdraw_permission_id_type>",
+            "flat_set<vesting_balance_id_type>",
+            "flat_set<worker_id_type>",
+            "flat_set<balance_id_type>",
+            "vector<restriction>",
+            "vector<vector<restriction>>",
+            "variant_assert_argument_type",
+        }
+
+        class Argument(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                super().__init__(OrderedDict([]))
+
+        id = o[0]
+        if len(graphene_op_restriction_argument_variadic) < id:
+            raise ValueError("Unknown {}".format(self.__class__.name))
+        data = graphene_op_restriction_argument_variadic(id)
+        super().__init__(data, id)
+
+
+class CustomRestriction(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("member_index", Uint32(kwargs["member_index"])),
+                        ("restriction_type", Uint32(kwargs["restriction_type"])),
+                        ("argument", RestrictionArgument(kwargs["argument"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )

@@ -11,6 +11,10 @@ log = logging.getLogger()
 
 
 class Testcases(unittest.TestCase):
+    """ Deprecated tests - API servers partily unavailable
+    """
+
+    """
     def test_bts1bts2(self):
         b1 = BitShares("wss://node.testnet.bitshares.eu", nobroadcast=True)
 
@@ -45,3 +49,4 @@ class Testcases(unittest.TestCase):
 
         self.assertEqual(test["symbol"], "TEST")
         self.assertEqual(bts["symbol"], "BTS")
+    """
