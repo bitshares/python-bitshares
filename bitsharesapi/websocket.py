@@ -237,6 +237,8 @@ class BitSharesWebsocket(Events):
         If we receive a ``notice``, we hand over post-processing and signalling of
         events to ``process_notice``.
         """
+        if isinstance(reply, websocket.WebSocketApp):
+            reply = args[0]
         log.debug("Received message: %s" % str(reply))
         data = {}
         try:
