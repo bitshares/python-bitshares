@@ -3,6 +3,17 @@ Note: version releases in the 0.x.y range may introduce breaking changes.
 
 <!--next-version-placeholder-->
 
+## v0.7.1 (2022-05-13)
+### Fix
+* Unitests now working ([`77716a6`](https://github.com/bitshares/python-bitshares/commit/77716a6dc7547a9e73577ce18b587388fd4e9ee5))
+* Linting via black ([`6b4ac7f`](https://github.com/bitshares/python-bitshares/commit/6b4ac7f085466ed13a4e9dabfd77bf81b905a841))
+* #303 ([`0eedb6d`](https://github.com/bitshares/python-bitshares/commit/0eedb6d2f42f78920eea1b4811d8bd12fb32e6bd))
+* #307 ([`a72ceee`](https://github.com/bitshares/python-bitshares/commit/a72ceee11aedcbe0c800b5c76543f39219324d41))
+* Fix #306 ([`3b38b99`](https://github.com/bitshares/python-bitshares/commit/3b38b9939175a3d67bad15091fa9c544ff9c4afc))
+
+### Documentation
+* Release flow and conventional commits ([`4958a6e`](https://github.com/bitshares/python-bitshares/commit/4958a6eab9cbf0ff930be7cb03545617e952ea29))
+
 ## 0.7.0
 
 - minor: Add liquidity pool support
