@@ -1,75 +1,54 @@
-.PHONY: clean-pyc clean-build docs
-
+.PHONY: clean
 clean: clean-build clean-pyc
 
+.PHONY: clean-build
 clean-build:
-	rm -fr build/
-	rm -fr dist/
-	rm -fr *.egg-info
-	rm -fr __pycache__/ .eggs/ .cache/ .tox/
+	rm -rf build/
+	rm -rf dist/
+	rm -rf *.egg-info
+	rm -rf __pycache__/ .eggs/ .cache/
+	rm -rf .tox/ .pytest_cache/ .benchmarks/
 
+.PHONY: clean-pyc
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
 
+.PHONY: lint
 lint:
-	flake8 bitsharesapi bitsharesbase examples
+	flake8 bitshares*
 
+.PHONY: test
 test:
 	python3 setup.py test
 
+.PHONY: tox
+tox:
+	tox
+
+.PHONY: build
 build:
 	python3 setup.py build
 
+.PHONY: install
 install: build
 	python3 setup.py install
 
+.PHONY: install-user
 install-user: build
 	python3 setup.py install --user
 
+.PHONY: git
 git:
 	git push --all
 	git push --tags
 
+.PHONY: check
 check:
 	python3 setup.py check
 
-dist:
-	python3 setup.py sdist bdist_wheel
-	python3 setup.py bdist_wheel
-
-upload:
-	twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
-
+.PHONY: docs
 docs:
-	SPHINX_APIDOC_OPTIONS="members,undoc-members,show-inheritance,inherited-members" sphinx-apidoc -d 6 -e -f -o docs . *.py tests
+	sphinx-apidoc -d 6 -e -f -o docs . *.py tests
 	make -C docs clean html
-
-docs_store:
-	git add docs
-	-git commit -m "Updating docs/"
-
-authors:
-	git shortlog -e -s -n > AUTHORS
-
-authors_store:
-	git add AUTHORS
-	-git commit -m "Updating Authors"
-
-semver: semver-release semver-updates
-
-semver-release:
-	-semversioner release
-
-semver-updates:
-	semversioner changelog > CHANGELOG.md
-	$(eval CURRENT_VERSION = $(shell semversioner current-version))
-	sed -i "s/^__version__.*/__version__ = \"$(CURRENT_VERSION)\"/" setup.py
-	-git add .changes setup.py CHANGELOG.md
-	-git commit -m "semversioner release updates" --no-verify
-	-git flow release start $(CURRENT_VERSION)
-	git flow release finish $(CURRENT_VERSION)
-
-prerelease: test docs docs_store authors authors_store
-release: prerelease semver clean build check dist upload git

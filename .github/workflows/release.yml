@@ -1,0 +1,51 @@
+name: Semantic Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+      - name: Install secp256k1
+        run: sudo apt-get install libsecp256k1-0 libsecp256k1-dev
+      - uses: actions/checkout@v1
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install tox tox-gh-actions
+      - name: Test with tox
+        run: tox
+
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    concurrency: push
+    needs:
+      - test
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.beautify.outputs.new_sha }}
+
+      - name: Fetch master
+        run: git fetch --prune origin +refs/heads/master:refs/remotes/origin/master
+
+      - name: Python Semantic Release
+        uses: relekang/python-semantic-release@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repository_username: ${{ secrets.PYPI_USERNAME }}
+          repository_password: ${{ secrets.PYPI_PASSWORD }}

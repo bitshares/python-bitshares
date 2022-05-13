@@ -1297,7 +1297,7 @@ class BitShares(AbstractGrapheneChain):
         permissions_int = toint(permissions)
         flags_int = toint(flags)
 
-        if not max_market_fee:
+        if max_market_fee is None:
             max_market_fee = max_supply
 
         op = operations.Asset_create(
@@ -1307,9 +1307,9 @@ class BitShares(AbstractGrapheneChain):
                 "symbol": symbol,
                 "precision": precision,
                 "common_options": {
-                    "max_supply": int(max_supply * 10 ** precision),
+                    "max_supply": int(max_supply * 10**precision),
                     "market_fee_percent": int(market_fee_percent * 100),
-                    "max_market_fee": int(max_market_fee * 10 ** precision),
+                    "max_market_fee": int(max_market_fee * 10**precision),
                     "issuer_permissions": permissions_int,
                     "flags": flags_int,
                     "core_exchange_rate": {
@@ -1566,7 +1566,7 @@ class BitShares(AbstractGrapheneChain):
         self,
         amount,
         to,
-        *args, # force remaining args to be named not positional
+        *args,  # force remaining args to be named not positional
         hash_type=None,
         hash_hex=None,
         expiration=60 * 60,
@@ -1575,7 +1575,8 @@ class BitShares(AbstractGrapheneChain):
         account=None,
         **kwargs
     ):
-        """Create an HTLC contract.
+        """
+        Create an HTLC contract.
 
         :param Amount amount: Amount to lock
         :param str to: Recipient
@@ -1634,9 +1635,9 @@ class BitShares(AbstractGrapheneChain):
             elif hash_type == "sha256":
                 preimage_hash = hashlib.sha256(bytes(preimage, "utf-8")).hexdigest()
             elif hash_type == "hash160":
-                preimage_hash = hexlify(ripemd160(
-                        hashlib.sha256(bytes(preimage, "utf-8")).hexdigest()
-                )).decode("ascii")
+                preimage_hash = hexlify(
+                    ripemd160(hashlib.sha256(bytes(preimage, "utf-8")).hexdigest())
+                ).decode("ascii")
         elif hash_hex is not None:
             preimage_hash = hexlify(bytes.fromhex(hash_hex)).decode("ascii")
             preimage_size = preimage_length
@@ -1657,9 +1658,9 @@ class BitShares(AbstractGrapheneChain):
         )
         return self.finalizeOp(op, account, "active", **kwargs)
 
-
     def htlc_redeem(self, htlc_id, preimage, encoding="utf-8", account=None, **kwargs):
-        """Redeem an htlc contract
+        """
+        Redeem an htlc contract.
 
         :param str preimage: The preimage that unlocks the htlc
         :param str encoding: "utf-8", ..., or "hex"
@@ -1674,7 +1675,7 @@ class BitShares(AbstractGrapheneChain):
             account = htlc["to"]
         account = Account(account, blockchain_instance=self)
 
-        if encoding=="hex":
+        if encoding == "hex":
             preimage_hex = hexlify(bytes.fromhex(preimage)).decode("ascii")
         else:
             preimage_hex = hexlify(bytes(preimage, encoding)).decode("ascii")
@@ -1690,9 +1691,9 @@ class BitShares(AbstractGrapheneChain):
         )
         return self.finalizeOp(op, account, "active", **kwargs)
 
-
     def create_voting_ticket(self, target_type, amount_to_lock, account=None, **kwargs):
-        """ Create a voting ticket
+        """
+        Create a voting ticket.
 
         :param int,str target_type: Lock period target. Should be a string from
                     operations.ticket_type_strings or the index of the intended
@@ -1723,10 +1724,11 @@ class BitShares(AbstractGrapheneChain):
         )
         return self.finalizeOp(op, account, "active", **kwargs)
 
-
-    def update_voting_ticket(self, ticket_id, new_target_type, amount_to_update,
-                             account=None, **kwargs):
-        """Update a voting ticket
+    def update_voting_ticket(
+        self, ticket_id, new_target_type, amount_to_update, account=None, **kwargs
+    ):
+        """
+        Update a voting ticket.
 
         :param str ticket_id: Id (e.g. "1.18.xxx") of the ticket to update.
 
@@ -1751,7 +1753,7 @@ class BitShares(AbstractGrapheneChain):
         elif amount_to_update is not None:
             raise ValueError("'amount_to_update' must be of type Amount or None")
         else:
-            pass # None is a valid value for optional field
+            pass  # None is a valid value for optional field
 
         op = operations.Ticket_update_operation(
             **{
@@ -1765,11 +1767,18 @@ class BitShares(AbstractGrapheneChain):
         )
         return self.finalizeOp(op, account, "active", **kwargs)
 
-
-    def create_liquidity_pool(self, asset_a, asset_b, share_asset,
-                              taker_fee_percent, withdrawal_fee_percent,
-                              account=None, **kwargs):
-        """Create a liquidity pool
+    def create_liquidity_pool(
+        self,
+        asset_a,
+        asset_b,
+        share_asset,
+        taker_fee_percent,
+        withdrawal_fee_percent,
+        account=None,
+        **kwargs
+    ):
+        """
+        Create a liquidity pool.
 
         :param str asset_a:  First asset in the pool pair.
         :param str asset_b:  Second asset in the pool pair.
@@ -1785,7 +1794,6 @@ class BitShares(AbstractGrapheneChain):
         For percentages, meaningful range is [0.00, 100.00], where 1% is
         represented as 1.0.  Smallest non-zero value recognized by BitShares
         chain is 0.01 for 0.01%.
-
         """
         if not account:
             if "default_account" in self.config:
@@ -1798,9 +1806,9 @@ class BitShares(AbstractGrapheneChain):
         asset_b = Asset(asset_b)["id"]
         share_asset = Asset(share_asset)["id"]
 
-        if not (taker_fee_percent >=0 and taker_fee_percent <= 100):
+        if not (taker_fee_percent >= 0 and taker_fee_percent <= 100):
             raise ValueError("Percentages must be in range [0.00, 100.00].")
-        if not (withdrawal_fee_percent >=0 and withdrawal_fee_percent <= 100):
+        if not (withdrawal_fee_percent >= 0 and withdrawal_fee_percent <= 100):
             raise ValueError("Percentages must be in range [0.00, 100.00].")
         graphene_1_percent = 100
         taker_fee_percent = int(taker_fee_percent * graphene_1_percent)
@@ -1819,7 +1827,6 @@ class BitShares(AbstractGrapheneChain):
             }
         )
         return self.finalizeOp(op, account, "active", **kwargs)
-
 
     def _find_liquidity_pool(self, pool):
         # Ad-hoc helper for the liquidity pool verbs. It locates a pool id
@@ -1842,14 +1849,13 @@ class BitShares(AbstractGrapheneChain):
                 raise ValueError("Asset is not a share asset for a pool.")
         return pool_id
 
-
     def delete_liquidity_pool(self, pool, account=None, **kwargs):
-        """Delete a liquidity pool
+        """
+        Delete a liquidity pool.
 
         :param str,Asset pool: The liquidity pool to delete. Can be the pool id
                 as a string, or can be an Asset, asset_id, or symbol of the
                 share asset for the pool.
-
         """
         if not account:
             if "default_account" in self.config:
@@ -1870,9 +1876,11 @@ class BitShares(AbstractGrapheneChain):
         )
         return self.finalizeOp(op, account, "active", **kwargs)
 
-
-    def deposit_into_liquidity_pool(self, pool, amount_a, amount_b, account=None, **kwargs):
-        """Deposit assets into a liquidity pool
+    def deposit_into_liquidity_pool(
+        self, pool, amount_a, amount_b, account=None, **kwargs
+    ):
+        """
+        Deposit assets into a liquidity pool.
 
         :param str,Asset pool: The liquidity pool to use. Can be the pool id
                 as a string, or can be an Asset, asset_id, or symbol of the
@@ -1880,7 +1888,6 @@ class BitShares(AbstractGrapheneChain):
 
         :param Amount amount_a:
         :param Amount amount_b:
-
         """
         if not account:
             if "default_account" in self.config:
@@ -1893,7 +1900,7 @@ class BitShares(AbstractGrapheneChain):
 
         num_id_a = int(amount_a.asset["id"].split(".")[-1])
         num_id_b = int(amount_b.asset["id"].split(".")[-1])
-        if(num_id_b < num_id_a):
+        if num_id_b < num_id_a:
             amount_a, amount_b = amount_b, amount_a
 
         op = operations.Liquidity_pool_deposit(
@@ -1908,9 +1915,9 @@ class BitShares(AbstractGrapheneChain):
         )
         return self.finalizeOp(op, account, "active", **kwargs)
 
-
     def withdraw_from_liquidity_pool(self, pool, share_amount, account=None, **kwargs):
-        """Withdraw stake from a liquidity pool
+        """
+        Withdraw stake from a liquidity pool.
 
         :param str,Asset pool: The liquidity pool to use. Can be the pool id
                 as a string, or can be an Asset, asset_id, or symbol of the
@@ -1918,7 +1925,6 @@ class BitShares(AbstractGrapheneChain):
 
         :param Amount share_amount: Amount of share asset to redeem. Must be a
                 quantity of the pool's share_asset.
-
         """
         if not account:
             if "default_account" in self.config:
@@ -1940,9 +1946,11 @@ class BitShares(AbstractGrapheneChain):
         )
         return self.finalizeOp(op, account, "active", **kwargs)
 
-
-    def exchange_with_liquidity_pool(self, pool, amount_to_sell, min_to_receive, account=None, **kwargs):
-        """Exchange assets against a liquidity pool
+    def exchange_with_liquidity_pool(
+        self, pool, amount_to_sell, min_to_receive, account=None, **kwargs
+    ):
+        """
+        Exchange assets against a liquidity pool.
 
         :param str,Asset pool: The liquidity pool to use. Can be the pool id
                 as a string, or can be an Asset, asset_id, or symbol of the
@@ -1950,7 +1958,6 @@ class BitShares(AbstractGrapheneChain):
 
         :param Amount amount_to_sell:
         :param Amount min_to_receive:
-
         """
         if not account:
             if "default_account" in self.config:

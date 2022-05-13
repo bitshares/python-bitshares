@@ -1043,7 +1043,15 @@ class Assert(GrapheneObject):
                 )
             )
 
-ticket_type_strings = ['liquid', 'lock_180_days', 'lock_360_days', 'lock_720_days', 'lock_forever']
+
+ticket_type_strings = [
+    "liquid",
+    "lock_180_days",
+    "lock_360_days",
+    "lock_720_days",
+    "lock_forever",
+]
+
 
 class Ticket_create_operation(GrapheneObject):
     def __init__(self, *args, **kwargs):
@@ -1069,6 +1077,7 @@ class Ticket_create_operation(GrapheneObject):
                     ]
                 )
             )
+
 
 class Ticket_update_operation(GrapheneObject):
     def __init__(self, *args, **kwargs):
@@ -1119,7 +1128,10 @@ class Liquidity_pool_create(GrapheneObject):
                         ("asset_b", ObjectId(kwargs["asset_b"], "asset")),
                         ("share_asset", ObjectId(kwargs["share_asset"], "asset")),
                         ("taker_fee_percent", Uint16(kwargs["taker_fee_percent"])),
-                        ("withdrawal_fee_percent", Uint16(kwargs["withdrawal_fee_percent"])),
+                        (
+                            "withdrawal_fee_percent",
+                            Uint16(kwargs["withdrawal_fee_percent"]),
+                        ),
                         ("extensions", Set([])),
                     ]
                 )

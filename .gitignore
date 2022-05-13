@@ -1,4 +1,5 @@
 .idea/
+venv/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -63,3 +64,8 @@ target/
 *.swp
 .ropeproject/
 */.ropeproject/
+grapheneapi
+graphenebase
+graphenecommon
+graphenestorage
+scripts

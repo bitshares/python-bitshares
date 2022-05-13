@@ -46,6 +46,10 @@ understand is that:
 
 **pull requests need to be made against the `develop` branch**!
 
+### Conventionall Commits
+
+We strictly use [connventional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary)!
+
 ### Contributor License Agreement
 
 Upon submission of a pull request, you will be asked to sign the
@@ -163,19 +167,6 @@ Any maintainer is allowed to merge a PR if all of these conditions are met.
 
 ### 9. Shipping a release (maintainers only)
 
-Maintainers need to do the following to push out a release:
-
-    git checkout develop
-    git fetch origin
-    git rebase origin/develop
-    # get latest tag
-    git tag -l
-    # git flow
-    git flow release start x.y.z
-    # bump version in setup.py
-    git add setup.py; git commit -m "version bump"
-    git flow release finish
-
-Bundling and pushing the release:
-
-    make release
+Create a new pull request with `release/<YYYYmmdd>`. Push the branch.
+When merged into master, release tagging and publishing will be triggered
+throught github actions.

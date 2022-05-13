@@ -66,15 +66,14 @@ ops = [
     "liquidity_pool_withdraw",
     "liquidity_pool_exchange",
 ]
-operations = {o: ops.index(o) for o in ops}
+operations = [x for x, _ in enumerate(ops)]
 
 
-def getOperationNameForId(i):
+def getOperationNameForId(i: int):
     """Convert an operation id into the corresponding string."""
-    for key in operations:
-        if int(operations[key]) is int(i):
-            return key
-    return "Unknown Operation ID %d" % i
+    if i < len(ops):
+        return ops[i]
+    return f"Unknown Operation ID {i}"
 
 
 def getOperationName(id: str):

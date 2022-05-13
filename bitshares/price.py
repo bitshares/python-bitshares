@@ -308,11 +308,11 @@ class FilledOrder(Price):
 
 
 class UpdateCallOrder(Price):
-    """ This class inherits :class:`bitshares.price.Price` but has the ``base``
-        and ``quote`` Amounts not only be used to represent the **call
-        price** (as a ratio of base and quote).
+    """This class inherits :class:`bitshares.price.Price` but has the ``base``
+    and ``quote`` Amounts not only be used to represent the **call
+    price** (as a ratio of base and quote).
 
-        :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
+    :param bitshares.bitshares.BitShares blockchain_instance: BitShares instance
     """
 
     def __init__(self, call, **kwargs):
