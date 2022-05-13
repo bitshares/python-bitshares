@@ -5,14 +5,10 @@ from bitshares.amount import Amount
 from bitshares.price import Price
 from bitshares.asset import Asset
 import unittest
+from .fixtures import bitshares
 
 
 class Testcases(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super(Testcases, self).__init__(*args, **kwargs)
-        bitshares = BitShares("wss://node.bitshares.eu", nobroadcast=True,)
-        set_shared_bitshares_instance(bitshares)
-
     def test_init(self):
         # self.assertEqual(1, 1)
 
