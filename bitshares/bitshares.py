@@ -1297,7 +1297,7 @@ class BitShares(AbstractGrapheneChain):
         permissions_int = toint(permissions)
         flags_int = toint(flags)
 
-        if not max_market_fee:
+        if max_market_fee is None:
             max_market_fee = max_supply
 
         op = operations.Asset_create(
