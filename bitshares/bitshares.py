@@ -1307,9 +1307,9 @@ class BitShares(AbstractGrapheneChain):
                 "symbol": symbol,
                 "precision": precision,
                 "common_options": {
-                    "max_supply": int(max_supply * 10 ** precision),
+                    "max_supply": int(max_supply * 10**precision),
                     "market_fee_percent": int(market_fee_percent * 100),
-                    "max_market_fee": int(max_market_fee * 10 ** precision),
+                    "max_market_fee": int(max_market_fee * 10**precision),
                     "issuer_permissions": permissions_int,
                     "flags": flags_int,
                     "core_exchange_rate": {
