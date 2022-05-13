@@ -10,12 +10,14 @@ class Testcases(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.bts = BitShares(nobroadcast=True,)
+        self.bts = BitShares(
+            nobroadcast=True,
+        )
         set_shared_bitshares_instance(self.bts)
 
     def test_cache(self):
         cache = ObjectCache(default_expiration=1)
-        self.assertEqual(str(cache), "ObjectCache(n=0, default_expiration=1)")
+        self.assertEqual(str(cache), "ObjectCacheInMemory(default_expiration=1)")
 
         # Data
         cache["foo"] = "bar"

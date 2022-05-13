@@ -22,7 +22,7 @@ wif = wifs[0]
 
 # bitshares instance
 bitshares = BitShares(
-    "wss://bitshares.openledger.info/ws", keys=wifs, nobroadcast=True, num_retries=1
+    "wss://eu.nodes.bitshares.ws", keys=wifs, nobroadcast=True, num_retries=1
 )
 config = bitshares.config
 
