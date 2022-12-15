@@ -1250,7 +1250,7 @@ class Credit_offer_create(GrapheneObject):
                             Optional(
                                 Map(
                                     [
-                                        [ObjectId(k[0], "asset"), Price(k[0])]
+                                        [ObjectId(k[0], "asset"), Price(k[1])]
                                         for k in kwargs["acceptable_collateral"]
                                     ]
                                 )
@@ -1261,7 +1261,7 @@ class Credit_offer_create(GrapheneObject):
                             Optional(
                                 Map(
                                     [
-                                        [ObjectId(k[0], "account"), Int64(k[0])]
+                                        [ObjectId(k[0], "account"), Int64(k[1])]
                                         for k in kwargs["acceptable_borrowers"]
                                     ]
                                 )
@@ -1322,7 +1322,7 @@ class Credit_offer_update(GrapheneObject):
                             Optional(
                                 Map(
                                     [
-                                        [ObjectId(k[0], "asset"), Price(k[0])]
+                                        [ObjectId(k[0], "asset"), Price(k[1])]
                                         for k in kwargs["acceptable_collateral"]
                                     ]
                                 )
@@ -1333,7 +1333,7 @@ class Credit_offer_update(GrapheneObject):
                             Optional(
                                 Map(
                                     [
-                                        [ObjectId(k[0], "account"), Int64(k[0])]
+                                        [ObjectId(k[0], "account"), Int64(k[1])]
                                         for k in kwargs["acceptable_borrowers"]
                                     ]
                                 )
