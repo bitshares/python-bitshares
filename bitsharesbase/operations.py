@@ -1226,4 +1226,294 @@ class Liquidity_pool_exchange(GrapheneObject):
             )
 
 
+class Samet_fund_create(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("owner_account", ObjectId(kwargs["owner_account"], "account")),
+                        ("asset_type", ObjectId(kwargs["asset_type"], "asset")),
+                        ("balance", Int64(kwargs["balance"])),
+                        ("fee_rate", Uint32(kwargs["fee_rate"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Samet_fund_delete(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("owner_account", ObjectId(kwargs["owner_account"], "account")),
+                        ("fund_id", ObjectId(kwargs["fund_id"], "samet_fund")),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Samet_fund_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("owner_account", ObjectId(kwargs["owner_account"], "account")),
+                        ("fund_id", ObjectId(kwargs["fund_id"], "samet_fund")),
+                        ("delta_amount", Optional(Asset(kwargs["delta_amount"]))),
+                        ("new_fee_rate", Optional(Uint32(kwargs["new_fee_rate"]))),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Samet_fund_borrow(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("borrower", ObjectId(kwargs["borrower"], "account")),
+                        ("fund_id", ObjectId(kwargs["fund_id"], "samet_fund")),
+                        ("borrow_amount", Asset(kwargs["borrow_amount"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Samet_fund_repay(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        ("fund_id", ObjectId(kwargs["fund_id"], "samet_fund")),
+                        ("repay_amount", Asset(kwargs["repay_amount"])),
+                        ("fund_fee", Asset(kwargs["fund_fee"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Credit_offer_create(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("owner_account", ObjectId(kwargs["owner_account"], "account")),
+                        ("asset_type", ObjectId(kwargs["asset_type"], "asset")),
+                        ("balance", Int64(kwargs["balance"])),
+                        ("fee_rate", Uint32(kwargs["fee_rate"])),
+                        (
+                            "max_duration_seconds",
+                            Uint32(kwargs["max_duration_seconds"]),
+                        ),
+                        ("min_deal_amount", Int64(kwargs["min_deal_amount"])),
+                        ("enabled", Bool(kwargs["enabled"])(kwargs["enabled"])),
+                        ("auto_disable_time", PointInTime(kwargs["auto_disable_time"])),
+                        (
+                            "acceptable_collateral",
+                            Map(
+                                [
+                                    [ObjectId(k[0], "asset"), Price(k[1])]
+                                    for k in kwargs["acceptable_collateral"]
+                                ]
+                            ),
+                        ),
+                        (
+                            "acceptable_borrowers",
+                            Map(
+                                [
+                                    [ObjectId(k[0], "account"), Int64(k[1])]
+                                    for k in kwargs["acceptable_borrowers"]
+                                ]
+                            ),
+                        ),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Credit_offer_delete(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("owner_account", ObjectId(kwargs["owner_account"], "account")),
+                        ("offer_id", ObjectId(kwargs["offer_id"], "credit_offer")),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Credit_offer_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("owner_account", ObjectId(kwargs["owner_account"], "account")),
+                        ("offer_id", ObjectId(kwargs["offer_id"], "credit_offer")),
+                        ("delta_amount", Optional(Asset(kwargs["fee"]))),
+                        ("fee_rate", Optional(Uint32(kwargs["fee_rate"]))),
+                        (
+                            "max_duration_seconds",
+                            Optional(Uint32(kwargs["max_duration_seconds"])),
+                        ),
+                        ("min_deal_amount", Optional(Int64(kwargs["min_deal_amount"]))),
+                        ("enabled", Optional(Bool(kwargs["enabled"]))),
+                        (
+                            "auto_disable_time",
+                            Optional(PointInTime(kwargs["auto_disable_time"])),
+                        ),
+                        (
+                            "acceptable_collateral",
+                            Optional(
+                                Map(
+                                    [
+                                        [ObjectId(k[0], "asset"), Price(k[1])]
+                                        for k in kwargs["acceptable_collateral"]
+                                    ]
+                                )
+                            ),
+                        ),
+                        (
+                            "acceptable_borrowers",
+                            Optional(
+                                Map(
+                                    [
+                                        [ObjectId(k[0], "account"), Int64(k[1])]
+                                        for k in kwargs["acceptable_borrowers"]
+                                    ]
+                                )
+                            ),
+                        ),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Credit_offer_accept(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("borrower", ObjectId(kwargs["borrower"], "account")),
+                        ("offer_id", ObjectId(kwargs["offer_id"], "credit_offer")),
+                        ("borrow_amount", Asset(kwargs["fee"])),
+                        ("collateral", Asset(kwargs["fee"])),
+                        ("max_fee_rate", Uint32(kwargs["max_fee_rate"])),
+                        (
+                            "min_duration_seconds",
+                            Uint32(kwargs["min_duration_seconds"]),
+                        ),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Credit_deal_repay(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        ("deal_id", ObjectId(kwargs["deal_id"], "credit_deal")),
+                        ("repay_amount", Asset(kwargs["fee"])),
+                        ("credit_fee", Asset(kwargs["fee"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Credit_deal_expired(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("deal_id", ObjectId(kwargs["deal_id"], "credit_deal")),
+                        ("offer_id", ObjectId(kwargs["offer_id"], "credit_offer")),
+                        ("offer_owner", ObjectId(kwargs["offer_owner"], "account")),
+                        ("borrower", ObjectId(kwargs["borrower"], "account")),
+                        ("unpaid_amount", Asset(kwargs["fee"])),
+                        ("collateral", Asset(kwargs["fee"])),
+                        ("fee_rate", Uint32(kwargs["fee_rate"])),
+                    ]
+                )
+            )
+
+
 fill_classmaps()
