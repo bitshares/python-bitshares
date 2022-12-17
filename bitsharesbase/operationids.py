@@ -65,6 +65,18 @@ ops = [
     "liquidity_pool_deposit",
     "liquidity_pool_withdraw",
     "liquidity_pool_exchange",
+    "samet_fund_create",
+    "samet_fund_delete",
+    "samet_fund_update",
+    "samet_fund_borrow",
+    "samet_fund_repay",
+    "credit_offer_create",
+    "credit_offer_delete",
+    "credit_offer_update",
+    "credit_offer_accept",
+    "credit_deal_repay",
+    "credit_deal_expired",    
+    
 ]
 operations = {o: ops.index(o) for o in ops}
 
