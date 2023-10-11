@@ -675,6 +675,7 @@ class Witness_update(GrapheneObject):
         if isArgsThisClass(self, args):
             self.data = args[0].data
         else:
+            prefix = kwargs.get("prefix", default_prefix)
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
             if "new_url" in kwargs and kwargs["new_url"]:
@@ -682,7 +683,6 @@ class Witness_update(GrapheneObject):
             else:
                 new_url = Optional(None)
 
-            prefix = kwargs.get("prefix", default_prefix)
             if "new_signing_key" in kwargs and kwargs["new_signing_key"]:
                 new_signing_key = Optional(
                     PublicKey(kwargs["new_signing_key"], prefix=prefix)
