@@ -1224,6 +1224,56 @@ class Liquidity_pool_exchange(GrapheneObject):
                     ]
                 )
             )
+
+class Liquidity_pool_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            if kwargs.get("taker_fee_percent"):
+                taker_fee_percent = Optional(Uint16(kwargs["taker_fee_percent"]))
+            else:
+                taker_fee_percent = Optional(None)
+
+            if kwargs.get("withdrawal_fee_percent"):
+                withdrawal_fee_percent = Optional(Uint16(kwargs["withdrawal_fee_percent"]))
+            else:
+                withdrawal_fee_percent = Optional(None)
+
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        ("pool", ObjectId(kwargs["pool"], "liquidity_pool")),
+                        ("taker_fee_percent", taker_fee_percent),
+                        ("withdrawal_fee_percent", withdrawal_fee_percent),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+class Credit_deal_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        ("deal_id", ObjectId(kwargs["deal_id"], "credit_deal")),
+                        ("auto_repay", Uint8(kwargs["auto_repay"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
             
 class Limit_order_update(GrapheneObject):
     def __init__(self, *args, **kwargs):
