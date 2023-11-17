@@ -1224,6 +1224,27 @@ class Liquidity_pool_exchange(GrapheneObject):
                     ]
                 )
             )
-
+            
+class Limit_order_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("seller", ObjectId(kwargs["seller"], "account")),
+                        ("order", ObjectId(kwargs["order"], "limit_order")),
+                        ("new_price", Optional(Price(kwargs["new_price"]))),
+                        ("delta_amount_to_sell", Optional(Asset(kwargs["delta_amount_to_sell"]))),
+                        ("new_expiration", Optional(None)),
+                        ("on_fill", Optional(None)),
+                        ("extensions", Optional(None)),
+                    ]
+                )
+            )
 
 fill_classmaps()
