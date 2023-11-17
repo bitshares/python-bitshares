@@ -1232,14 +1232,25 @@ class Limit_order_update(GrapheneObject):
         else:
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
+
+            if kwargs.get("new_price"):
+                new_price = Optional(Price(kwargs["new_price"]))
+            else:
+                new_price = Optional(None)
+
+            if kwargs.get("delta_amount_to_sell"):
+                delta_amount_to_sell = Optional(Asset(kwargs["delta_amount_to_sell"]))
+            else:
+                delta_amount_to_sell = Optional(None)
+
             super().__init__(
                 OrderedDict(
                     [
                         ("fee", Asset(kwargs["fee"])),
                         ("seller", ObjectId(kwargs["seller"], "account")),
                         ("order", ObjectId(kwargs["order"], "limit_order")),
-                        ("new_price", Optional(Price(kwargs["new_price"]))),
-                        ("delta_amount_to_sell", Optional(Asset(kwargs["delta_amount_to_sell"]))),
+                        ("new_price", new_price),
+                        ("delta_amount_to_sell", delta_amount_to_sell),
                         ("new_expiration", Optional(None)),
                         ("on_fill", Optional(None)),
                         ("extensions", Optional(None)),
