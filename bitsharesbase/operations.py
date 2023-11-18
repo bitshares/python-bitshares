@@ -1284,15 +1284,20 @@ class Limit_order_update(GrapheneObject):
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
 
+            if kwargs.get("new_price"):
+                new_price = Optional(Price(kwargs["new_price"]))
+            else:
+                new_price = Optional(None)
+
             if kwargs.get("delta_amount_to_sell"):
                 delta_amount_to_sell = Optional(Asset(kwargs["delta_amount_to_sell"]))
             else:
                 delta_amount_to_sell = Optional(None)
 
-            if kwargs.get("new_price"):
-                new_price = Optional(Price(kwargs["new_price"]))
+            if kwargs.get("new_expiration"):
+                new_expiration = Optional(PointInTime(kwargs["new_expiration"]))
             else:
-                new_price = Optional(None)   
+                new_expiration = Optional(None)
 
             if kwargs.get("on_fill"):
                 on_fill = Optional(Array([LimitOrderAutoAction(o) for o in kwargs["on_fill"]])),
@@ -1307,7 +1312,7 @@ class Limit_order_update(GrapheneObject):
                         ("order", ObjectId(kwargs["order"], "limit_order")),
                         ("new_price", new_price),
                         ("delta_amount_to_sell", delta_amount_to_sell),
-                        ("new_expiration", Optional(None)),
+                        ("new_expiration", new_expiration),
                         ("on_fill", on_fill),
                         ("extensions", Set([])),
                     ]
