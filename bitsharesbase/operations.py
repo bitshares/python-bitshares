@@ -45,6 +45,7 @@ from .objects import (
     Worker_initializer,
     isArgsThisClass,
     AssertPredicate,
+    LimitOrderAutoAction,
 )
 from .operationids import operations
 
@@ -1280,15 +1281,20 @@ class Limit_order_update(GrapheneObject):
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
 
-            if kwargs.get("new_price"):
-                new_price = Optional(Price(kwargs["new_price"]))
-            else:
-                new_price = Optional(None)
-
             if kwargs.get("delta_amount_to_sell"):
                 delta_amount_to_sell = Optional(Asset(kwargs["delta_amount_to_sell"]))
             else:
                 delta_amount_to_sell = Optional(None)
+
+            if kwargs.get("new_price"):
+                new_price = Optional(Price(kwargs["new_price"]))
+            else:
+                new_price = Optional(None)   
+
+            if kwargs.get("on_fill"):
+                on_fill = Optional(Array([LimitOrderAutoAction(o) for o in kwargs["on_fill"]])),
+            else:
+                on_fill = Optional(None)
 
             super().__init__(
                 OrderedDict(
@@ -1299,7 +1305,7 @@ class Limit_order_update(GrapheneObject):
                         ("new_price", new_price),
                         ("delta_amount_to_sell", delta_amount_to_sell),
                         ("new_expiration", Optional(None)),
-                        ("on_fill", Optional(None)),
+                        ("on_fill", on_fill),
                         ("extensions", Set([])),
                     ]
                 )
