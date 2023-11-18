@@ -1303,7 +1303,7 @@ class Limit_order_update(GrapheneObject):
                         ("delta_amount_to_sell", delta_amount_to_sell),
                         ("new_expiration", Optional(None)),
                         ("on_fill", Optional(None)),
-                        ("extensions", Optional(None)),
+                        ("extensions", Set([])),
                     ]
                 )
             )
