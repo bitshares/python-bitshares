@@ -454,7 +454,7 @@ class AssertPredicate(Static_variant):
         elif id == 2:
             data = Block_id_predicate(o[1])
         else:
-            raise ValueError("Unknown {}".format(self.__class__.name))
+            raise ValueError("Unknown {}".format(self.__class__.__name__))
         super().__init__(data, id)
 
 
@@ -480,5 +480,5 @@ class LimitOrderAutoAction(Static_variant):
         if id == 0:
             data = Create_take_profit_order_action(o[1])
         else:
-            raise ValueError("Unknown {}".format(self.__class__.name))
+            raise ValueError("Unknown {}".format(self.__class__.__name__))
         super().__init__(data, id)
