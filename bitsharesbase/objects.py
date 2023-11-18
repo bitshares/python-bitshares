@@ -456,3 +456,29 @@ class AssertPredicate(Static_variant):
         else:
             raise ValueError("Unknown {}".format(self.__class__.name))
         super().__init__(data, id)
+
+
+class LimitOrderAutoAction(Static_variant):
+    def __init__(self, o):
+        class Create_take_profit_order_action(GrapheneObject):
+            def __init__(self, *args, **kwargs):
+                kwargs.update(args[0])
+                super().__init__(
+                    OrderedDict(
+                        [
+                            ("fee_asset_id", ObjectId(kwargs["fee_asset_id"], "asset")),
+                            ("spread_percent", Uint16(kwargs["spread_percent"])),
+                            ("size_percent", Uint16(kwargs["size_percent"])),
+                            ("expiration_seconds", Uint32(kwargs["expiration_seconds"])),
+                            ("repeat", Bool(kwargs["repeat"])),
+                            ("extensions", Set([])),
+                        ]
+                    )
+                )
+
+        id = o[0]
+        if id == 0:
+            data = Create_take_profit_order_action(o[1])
+        else:
+            raise ValueError("Unknown {}".format(self.__class__.name))
+        super().__init__(data, id)
