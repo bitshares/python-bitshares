@@ -1300,7 +1300,7 @@ class Limit_order_update(GrapheneObject):
                 new_expiration = Optional(None)
 
             if kwargs.get("on_fill"):
-                on_fill = Optional(Array([LimitOrderAutoAction(o) for o in kwargs["on_fill"]])),
+                on_fill = Optional(Array([LimitOrderAutoAction(o) for o in kwargs["on_fill"]]))
             else:
                 on_fill = Optional(None)
 
