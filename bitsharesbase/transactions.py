@@ -19,5 +19,6 @@ from .operations import (
     Proposal_create,
     Proposal_update,
     Transfer,
+    Limit_order_update,
 )
 from .signedtransactions import Signed_Transaction
