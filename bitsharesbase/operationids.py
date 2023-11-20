@@ -75,7 +75,7 @@ ops = [
     "credit_offer_update",
     "credit_offer_accept",
     "credit_deal_repay",
-    "credit_deal_expired",    
+    "credit_deal_expired",
     "liquidity_pool_update",
     "credit_deal_update",
     "limit_order_update",
