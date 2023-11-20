@@ -521,7 +521,7 @@ class Testcases(unittest.TestCase):
         self.op = operations.Witness_update(
             **{
                 "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "prefix": "TEST",
+                "prefix": "BTS",
                 "witness": "1.6.63",
                 "witness_account": "1.2.212",
                 "new_url": "https://example.com",
