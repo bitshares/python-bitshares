@@ -469,7 +469,10 @@ class LimitOrderAutoAction(Static_variant):
                             ("fee_asset_id", ObjectId(kwargs["fee_asset_id"], "asset")),
                             ("spread_percent", Uint16(kwargs["spread_percent"])),
                             ("size_percent", Uint16(kwargs["size_percent"])),
-                            ("expiration_seconds", Uint32(kwargs["expiration_seconds"])),
+                            (
+                                "expiration_seconds",
+                                Uint32(kwargs["expiration_seconds"]),
+                            ),
                             ("repeat", Bool(kwargs["repeat"])),
                             ("extensions", Set([])),
                         ]
@@ -482,3 +485,15 @@ class LimitOrderAutoAction(Static_variant):
         else:
             raise ValueError("Unknown {}".format(self.__class__.__name__))
         super().__init__(data, id)
+
+
+class LimitOrderCreateExtensions(Extension):
+    def NestedLimitOrderAutoAction(value):
+        if value:
+            return Array([LimitOrderAutoAction(o) for o in value])
+        else:
+            return None
+
+    sorted_options = [
+        ("on_fill", NestedLimitOrderAutoAction),
+    ]

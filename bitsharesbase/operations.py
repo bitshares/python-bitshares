@@ -46,6 +46,7 @@ from .objects import (
     isArgsThisClass,
     AssertPredicate,
     LimitOrderAutoAction,
+    LimitOrderCreateExtensions,
 )
 from .operationids import operations
 
@@ -387,7 +388,10 @@ class Limit_order_create(GrapheneObject):
                         ("min_to_receive", Asset(kwargs["min_to_receive"])),
                         ("expiration", PointInTime(kwargs["expiration"])),
                         ("fill_or_kill", Bool(kwargs["fill_or_kill"])),
-                        ("extensions", Set([])),
+                        (
+                            "extensions",
+                            LimitOrderCreateExtensions(kwargs["extensions"]),
+                        ),
                     ]
                 )
             )
@@ -1226,6 +1230,7 @@ class Liquidity_pool_exchange(GrapheneObject):
                 )
             )
 
+
 class Liquidity_pool_update(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
@@ -1240,7 +1245,9 @@ class Liquidity_pool_update(GrapheneObject):
                 taker_fee_percent = Optional(None)
 
             if kwargs.get("withdrawal_fee_percent"):
-                withdrawal_fee_percent = Optional(Uint16(kwargs["withdrawal_fee_percent"]))
+                withdrawal_fee_percent = Optional(
+                    Uint16(kwargs["withdrawal_fee_percent"])
+                )
             else:
                 withdrawal_fee_percent = Optional(None)
 
@@ -1256,6 +1263,7 @@ class Liquidity_pool_update(GrapheneObject):
                     ]
                 )
             )
+
 
 class Credit_deal_update(GrapheneObject):
     def __init__(self, *args, **kwargs):
@@ -1275,7 +1283,8 @@ class Credit_deal_update(GrapheneObject):
                     ]
                 )
             )
-            
+
+
 class Limit_order_update(GrapheneObject):
     def __init__(self, *args, **kwargs):
         if isArgsThisClass(self, args):
@@ -1300,7 +1309,9 @@ class Limit_order_update(GrapheneObject):
                 new_expiration = Optional(None)
 
             if kwargs.get("on_fill"):
-                on_fill = Optional(Array([LimitOrderAutoAction(o) for o in kwargs["on_fill"]]))
+                on_fill = Optional(
+                    Array([LimitOrderAutoAction(o) for o in kwargs["on_fill"]])
+                )
             else:
                 on_fill = Optional(None)
 
@@ -1318,5 +1329,6 @@ class Limit_order_update(GrapheneObject):
                     ]
                 )
             )
+
 
 fill_classmaps()
