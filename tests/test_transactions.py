@@ -1045,6 +1045,203 @@ class Testcases(unittest.TestCase):
         )
         self.doit(0)
 
+
+   def test_samet_fund_create(self):
+        self.op = operations.Samet_fund_create(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "owner_account": "1.2.310",
+                "asset_type": "1.3.0",
+                "balance": 10000,
+                "fee_rate": 1,
+                "extensions": [],
+            }
+        )
+        self.cm = ('f68585abf4dce7c804570140000000000000000000b60200102700000000000001000000000001203431966ca7e7f40e921633cd767eece0ddefc5abb5224965cca6458dfa28572b687c459a2f4189bf1a41e13336fac6db10cc8c90215888948453b5063a8ccb9f')
+        self.doit()
+
+
+    def test_samet_fund_delete(self):
+        self.op = operations.Samet_fund_delete(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "owner_account": "1.2.123",
+                "fund_id": "1.20.1",
+                "extensions": [],
+            }
+        )
+        self.cm = ('f68585abf4dce7c8045701410000000000000000007b010000011f4abefaf5a630eace47f6db44d6516c4e459e70cd89ba5988586d04be40646cf3723cf4b5979e5d094b819f94c37d19e4fac5a0aa20ba3ff8dab8d8482b5356d8')
+        self.doit()
+
+
+    def test_samet_fund_update(self):
+        self.op = operations.Samet_fund_update(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "owner_account": "1.2.123",
+                "fund_id": "1.20.1",
+                "delta_amount": 100,
+                "new_fee_rate": 2,
+                "extensions": [],
+            }
+        )
+        self.cm = ('f68585abf4dce7c8045701420000000000000000007b010001020000000000011f08656f260d4e4c6580202ab2520cad06cdc2539f03c3a74bcc3b6a8cdf2da5f84b252f09f15b77e825f5bb3fe7ff70a28d48516160653318beda6e156ba47987')
+        self.doit()
+
+
+    def test_samet_fund_borrow(self):
+        self.op = operations.Samet_fund_borrow(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "borrower": "1.2.123",
+                "fund_id": "1.20.1",
+                "borrow_amount": {"amount": 10, "asset_id": "1.3.0"},
+                "extensions": [],
+            }
+        )
+        self.cm = ('f68585abf4dce7c8045701430000000000000000007b010a00000000000000000000012007d969d65e15f9bb2c227fdd1baf74fbb0ce3e9ef197b386098188a78c5a1b992a1d7da0d39a91fb862536b53d719f02d88657cb21ae1c2ab55222d4814a893d')
+        self.doit()
+
+
+    def test_samet_fund_repay(self):
+        self.op = operations.Samet_fund_repay(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": "1.2.123",
+                "fund_id": "1.20.1",
+                "repay_amount": {"amount": 10, "asset_id": "1.3.0"},
+                "fund_fee": {"amount": 10, "asset_id": "1.3.0"},
+                "extensions": [],
+            }
+        )
+        self.cm = ('f68585abf4dce7c8045701440000000000000000007b010a00000000000000000a00000000000000000000011f573766a5dfe79df21d82df4a858a032d083e7b5db8f1d10cf6c0f48967965190607170df053d90fdf46f6fe1d10e160d292de03697136f91865588718a272e88')
+        self.doit()
+
+
+    def test_credit_offer_create(self):
+        self.op = operations.Credit_offer_create(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "owner_account": "1.2.123",
+                "asset_type": "1.3.0",
+                "balance": 10000,
+                "fee_rate": 1,
+                "max_duration_seconds": 10000,
+                "min_deal_amount": 1000,
+                "enabled": False,
+                "auto_disable_time": 1000,
+                "acceptable_collateral":
+                [0,
+                    {
+                        "asset": "1.3.0"
+                    }
+                ],
+                "acceptable_borrowers":
+                [0,
+                    {
+                        "account": "1.2.1"
+                    }
+                ],
+                "extensions": [],
+            }
+        )
+        self.cm = ()
+        self.doit(1)
+
+
+    def test_credit_offer_delete(self):
+        self.op = operations.Credit_offer_delete(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "owner_account": "1.2.123",
+                "offer_id": "1.21.1",
+                "extensions": [],
+            }
+        )
+        self.cm = ('f68585abf4dce7c8045701460000000000000000007b010000012042aed7548e971617836c55d55c57b5ecd15e2ef8ed1cdf56c380891ce10e2aaa743e3665de606a7833145a1a2dbe5b60870396972e9e5c803040ee4cec8a8772')
+        self.doit()
+
+
+    def test_credit_offer_update(self):
+        self.op = operations.Credit_offer_update(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "owner_account": "1.2.123",
+                "offer_id": "1.21.1",
+                "delta_amount": {"amount": 1, "asset_id": "1.3.0"},
+                "fee_rate": 1,
+                "max_duration_seconds": 1000,
+                "min_deal_amount": 10,
+                "enabled": True,
+                "auto_disable_time": False,
+                "acceptable_collateral":
+                [0,
+                    {
+                        "asset": "1.3.0"
+                    }
+                ],
+                "acceptable_borrowers":
+                [0,
+                    {
+                        "account": "1.2.1"
+                    }
+                ],
+                "extensions": [],
+            }
+        )
+        self.cm = ()
+        self.doit(1)
+
+
+    def test_credit_offer_accept(self):
+        self.op = operations.Credit_offer_accept(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "borrower": "1.2.123",
+                "offer_id": "1.21.1",
+                "borrow_amount": {"amount": 10, "asset_id": "1.3.0"},
+                "collateral": {"amount": 10, "asset_id": "1.3.0"},
+                "max_fee_rate": 1,
+                "min_duration_seconds": 1000,
+                "extensions": [],
+            }
+        )
+        self.cm = ('f68585abf4dce7c8045701480000000000000000007b0100000000000000000000000000000000000001000000e8030000000001201dda600d9efc172ee7e0ca6a2b1279709184d0bb0960afd93b49f60f8d90caed6b0f84de19ee54d7434ee11ec0af1f45415f4b024adbf0ca59a9e167eab3901b')
+        self.doit()
+
+
+    def test_credit_deal_repay(self):
+        self.op = operations.Credit_deal_repay(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": "1.2.123",
+                "deal_id": "1.22.2356",
+                "repay_amount": {"amount": 10, "asset_id": "1.3.0"},
+                "credit_fee": {"amount": 10, "asset_id": "1.3.0"},
+                "extensions": [],
+            }
+        )
+        self.cm = ('f68585abf4dce7c8045701490000000000000000007bb412000000000000000000000000000000000000000001203ba717f69b6ed214ef1a105bda7756149cee25c0c92c48a7f2d59dee88997cec3f9254df2bd2476cf2df16b10ebca0937f8daf2eecccfb8848e4faed9b8c0df7')
+        self.doit()
+
+
+    def test_credit_deal_expired(self):
+        self.op = operations.Credit_deal_expired(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "deal_id": "1.22.2356",
+                "offer_id": "1.21.1",
+                "offer_owner": "1.2.123",
+                "borrower": "1.2.123",
+                "unpaid_amount": {"amount": 10, "asset_id": "1.3.0"},
+                "collateral": {"amount": 10, "asset_id": "1.3.0"},
+                "fee_rate": 1,
+            }
+        )
+        self.cm = ('f68585abf4dce7c80457014a000000000000000000b412017b7b000000000000000000000000000000000000010000000001207e5770f0fae74fc78bebbe5267583a824999d6356698ebce0a25e4a468bd3e356ca10920e3c4301537bd02205e63617546a5d8eded230655d170529801838a3f')
+        self.doit()
+
+
     def compareConstructedTX(self):
         self.maxDiff = None
         self.op = operations.Call_order_update(
@@ -1077,198 +1274,4 @@ class Testcases(unittest.TestCase):
         print("ist:  %s" % txWire[:-130])
         print(txWire[:-130] == self.cm[:-130])
         self.assertEqual(self.cm[:-130], txWire[:-130])
-
-    def test_samet_fund_create(self):
-        self.op = operations.Samet_fund_create(
-            **{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "owner_account": "1.2.123",
-                "asset_type": "1.3.0",
-                "balance": 10000,
-                "fee_rate": 1,
-                "extensions": [],
-            }
-        )
-        self.cm = ()
-        self.doit(1)
-    
-    
-    def test_samet_fund_delete(self):
-        self.op = operations.Samet_fund_delete(
-            **{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "owner_account": "1.2.123",
-                "fund_id": "1.20.1",
-                "extensions": [],
-            }
-        )
-        self.cm = ()
-        self.doit(1)
-    
-    
-    def test_samet_fund_update(self):
-        self.op = operations.Samet_fund_update(
-            **{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "owner_account": "1.2.123",
-                "fund_id": "1.20.1",
-                "delta_amount": 100,
-                "new_fee_rate": 2,
-                "extensions": [],
-            }
-        )
-        self.cm = ()
-        self.doit(1)
-    
-    
-    def test_samet_fund_borrow(self):
-        self.op = operations.Samet_fund_borrow(
-            **{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "borrower": "1.2.123",
-                "fund_id": "1.20.1",
-                "borrow_amount": {"amount": 10, "asset_id": "1.3.0"},
-                "extensions": [],
-            }
-        )
-        self.cm = ()
-        self.doit(1)
-    
-    
-    def test_samet_fund_repay(self):
-        self.op = operations.Samet_fund_repay(
-            **{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "account": "1.2.123",
-                "fund_id": "1.20.1",
-                "repay_amount": {"amount": 10, "asset_id": "1.3.0"},
-                "fund_fee": {"amount": 10, "asset_id": "1.3.0"},
-                "extensions": [],
-            }
-        )
-        self.cm = ()
-        self.doit(1)
-    
-    
-    def test_credit_offer_create(self):
-        self.op = operations.Credit_offer_create(
-            **{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "owner_account": "1.2.123",
-                "asset_type": "1.3.0",
-                "balance": 10000,
-                "fee_rate": 1,
-                "max_duration_seconds": 10000,
-                "min_deal_amount": 1000,
-                "enabled": True,
-                "auto_disable_time": 1000,
-                "acceptable_collateral":
-                [0,
-                    {
-                        "asset": "1.2.1"
-                    }
-                ],
-                "acceptable_borrowers":
-                [0,
-                    {
-                        "account": "1.2.1"
-                    }
-                ],
-                "extensions": [],
-            }
-        )
-        self.cm = ()
-        self.doit(1)
-    
-    
-    def test_credit_offer_delete(self):
-        self.op = operations.Credit_offer_delete(
-            **{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "owner_account": "1.2.123",
-                "offer_id": "1.21.1",
-                "extensions": [],
-            }
-        )
-        self.cm = ()
-        self.doit(1)
-    
-    
-    def test_credit_offer_update(self):
-        self.op = operations.Credit_offer_update(
-            **{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "owner_account": "1.2.123",
-                "offer_id": "1.21.1",
-                "delta_amount": {"amount": 1, "asset_id": "1.3.0"},
-                "fee_rate": 1,
-                "max_duration_seconds": 1000,
-                "min_deal_amount": 10,
-                "enabled": True,
-                "auto_disable_time": False,
-                "acceptable_collateral":
-                [0,
-                    {
-                        "asset": "1.2.1"
-                    }
-                ],
-                "acceptable_borrowers":
-                [0,
-                    {
-                        "account": "1.2.1"
-                    }
-                ],
-                "extensions": [],
-            }
-        )
-        self.cm = ()
-        self.doit(1)
-    
-    
-    def test_credit_offer_accept(self):
-        self.op = operations.Credit_offer_accept(
-            **{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "borrower": "1.2.123",
-                "offer_id": "1.21.1",
-                "borrow_amount": {"amount": 10, "asset_id": "1.3.0"},
-                "collateral": {"amount": 10, "asset_id": "1.3.0"},
-                "max_fee_rate": 1,
-                "min_duration_seconds": 1000,
-                "extensions": [],
-            }
-        )
-        self.cm = ()
-        self.doit(1)
-    
-    
-    def test_credit_deal_repay(self):
-        self.op = operations.Credit_deal_repay(
-            **{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "account": "1.2.123",
-                "deal_id": "1.22.2356",
-                "repay_amount": {"amount": 10, "asset_id": "1.3.0"},
-                "credit_fee": {"amount": 10, "asset_id": "1.3.0"},
-                "extensions": [],
-            }
-        )
-        self.cm = ()
-        self.doit(1)
-    
-    
-    def test_credit_deal_expired(self):
-        self.op = operations.Credit_deal_expired(
-            **{
-                "fee": {"amount": 0, "asset_id": "1.3.0"},
-                "deal_id": "1.22.2356",
-                "offer_id": "1.21.1",
-                "offer_owner": "1.2.123",
-                "borrower": "1.2.123",
-                "unpaid_amount": {"amount": 10, "asset_id": "1.3.0"},
-                "collateral": {"amount": 10, "asset_id": "1.3.0"},
-                "fee_rate": 1,
-            }
-        )
-        self.cm = ()
-        self.doit(1)
+        
