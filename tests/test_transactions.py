@@ -1126,10 +1126,10 @@ class Testcases(unittest.TestCase):
                 "asset_type": "1.3.0",
                 "balance": 10000,
                 "fee_rate": 1,
-                "max_duration_seconds": 10000,
+                "max_duration_seconds": 43200,
                 "min_deal_amount": 1000,
                 "enabled": False,
-                "auto_disable_time": 1000,
+                "auto_disable_time": "2024-01-01T00:00:00",
                 "acceptable_collateral":
                 [[
                     "1.3.5589",
@@ -1177,7 +1177,7 @@ class Testcases(unittest.TestCase):
                 "max_duration_seconds": 1000,
                 "min_deal_amount": 10,
                 "enabled": True,
-                "auto_disable_time": False,
+                "auto_disable_time": "2024-01-01T00:00:00",
                 "acceptable_collateral":
                 [[
                     "1.3.5589",
