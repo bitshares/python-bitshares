@@ -152,14 +152,14 @@ class Testcases(unittest.TestCase):
         self.assertEqual(op["symbol"], symbol)
         self.assertEqual(op["precision"], precision)
         self.assertEqual(
-            op["common_options"]["max_supply"], int(max_supply * 10 ** precision)
+            op["common_options"]["max_supply"], int(max_supply * 10**precision)
         )
         self.assertEqual(
             op["common_options"]["market_fee_percent"], int(market_fee_percent * 100)
         )
         self.assertEqual(
             op["common_options"]["max_market_fee"],
-            int(max_market_fee * 10 ** precision),
+            int(max_market_fee * 10**precision),
         )
         self.assertEqual(op["common_options"]["description"], description)
         self.assertEqual(
@@ -211,7 +211,7 @@ class Testcases(unittest.TestCase):
         op = tx["operations"][0][1]
         self.assertIn("owner", op)
         self.assertIn(
-            ["BTS55VCzsb47NZwWe5F3qyQKedX9iHBHMVVFSc96PDvV7wuj7W86n", "1"],
+            ["BTS55VCzsb47NZwWe5F3qyQKedX9iHBHMVVFSc96PDvV7wuj7W86n", 1],
             op["owner"]["key_auths"],
         )
         self.assertEqual(op["owner"]["weight_threshold"], 1)

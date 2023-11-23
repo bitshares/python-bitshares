@@ -83,15 +83,29 @@ class Testcases(unittest.TestCase):
                 "min_to_receive": {"amount": 10000, "asset_id": "1.3.105"},
                 "expiration": "2016-05-18T09:22:05",
                 "fill_or_kill": False,
-                "extensions": [],
+                "extensions": {
+                    "on_fill": [
+                        [
+                            0,
+                            {
+                                "fee_asset_id": "1.3.0",
+                                "spread_percent": 100,
+                                "size_percent": 1000,
+                                "expiration_seconds": 3600,
+                                "repeat": True,
+                                "extensions": [],
+                            },
+                        ]
+                    ]
+                },
             }
         )
         self.cm = (
-            "f68585abf4dce7c8045701016400000000000000001da08601000"
-            "0000000001027000000000000693d343c57000000011f75cbfd49"
-            "ae8d9b04af76cc0a7de8b6e30b71167db7fe8e2197ef9d858df18"
-            "77043493bc24ffdaaffe592357831c978fd8a296b913979f106de"
-            "be940d60d77b50"
+            "f68585abf4dce7c8045701016400000000000000001da0860100000"
+            "00000001027000000000000693d343c570001000100006400e80310"
+            "0e0000010000011f5ddffd232fd713e106aec3068646f5a74ae145e"
+            "08e1e13f7464885a507e808e365594f5e7c14049d9432bcf1ca2330"
+            "a65d1b7ab88aa08b355970ca6f23e06aa0"
         )
         self.doit()
 
@@ -1289,6 +1303,97 @@ class Testcases(unittest.TestCase):
             "7e5770f0fae74fc78bebbe5267583a824999d6356698ebce0a2"
             "5e4a468bd3e356ca10920e3c4301537bd02205e63617546a5d8"
             "eded230655d170529801838a3f"
+        )
+        self.doit()
+
+    def test_limit_order_update(self):
+        self.op = operations.Limit_order_update(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "seller": "1.2.4",
+                "order": "1.7.12535",
+                "extensions": [],
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c80457014d00000000000000000004f76100"
+            "0000000000011f06d0b4467a5916ffb3d8ef4261c0719b1fb0"
+            "964aa5d3fbecbfbcbc9fe1117bc20e8a2c3f87e7817b83446c"
+            "45deb2a0d3d5b8b0d3b22fc8076ffc8eeb1a95e928"
+        )
+        self.doit(0)
+
+        self.op = operations.Limit_order_update(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "seller": "1.2.4",
+                "order": "1.7.12535",
+                "new_price": {
+                    "base": {"amount": 1123456, "asset_id": "1.3.0"},
+                    "quote": {"amount": 78901122, "asset_id": "1.3.0"},
+                },
+                "delta_amount_to_sell": {"amount": 12562, "asset_id": "1.3.0"},
+                "new_expiration": "2023-12-18T09:22:05",
+                "on_fill": [
+                    [
+                        0,
+                        {
+                            "fee_asset_id": "1.3.0",
+                            "spread_percent": 100,
+                            "size_percent": 1000,
+                            "expiration_seconds": 3600,
+                            "repeat": True,
+                            "extensions": [],
+                        },
+                    ]
+                ],
+                "extensions": [],
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c80457014d00000000000000000004f76101"
+            "80241100000000000082efb304000000000001123100000000"
+            "000000013d0f8065010100006400e803100e00000100000001"
+            "2051a24fb550e4a8ec890ad404ea0e3cf6ea449d6ba397d280"
+            "64f7129153dd013e27846eb6567a88d8eea7557f32ddc02cdc"
+            "a614c5a30130c83141c4050ffc50e2"
+        )
+        self.doit()
+
+    def test_liquidity_pool_update(self):
+        self.op = operations.Liquidity_pool_update(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": "1.2.4",
+                "pool": "1.19.13356",
+                "taker_fee_percent": 124,
+                "withdrawal_fee_percent": 125,
+                "extensions": [],
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c80457014b00000000000000000004ac6801"
+            "7c00017d00000001202e3f140515ce936020348f845a4c034b"
+            "164441049dfe0a59a6c0fe27cbef740c10fa0d315e14e77e62"
+            "d8dae4f45d95fef358ff79f5304a420d6fc13abfd9374b"
+        )
+        self.doit(0)
+
+    def test_credit_deal_update(self):
+        self.op = operations.Credit_deal_update(
+            **{
+                "fee": {"amount": 0, "asset_id": "1.3.0"},
+                "account": "1.2.4",
+                "deal_id": "1.22.2356",
+                "auto_repay": 24,
+                "extensions": [],
+            }
+        )
+        self.cm = (
+            "f68585abf4dce7c80457014c00000000000000000004b41218"
+            "0000012026b59b7796cb9ca40d92b1d339558a94aa9f70d2f6"
+            "d8a7b8b0155c943b89bd602a1ecc9df3143664f801f401a728"
+            "78cce9f064dbcfc1af65826ce68a2177a38d"
         )
         self.doit()
 

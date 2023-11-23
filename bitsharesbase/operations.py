@@ -45,6 +45,8 @@ from .objects import (
     Worker_initializer,
     isArgsThisClass,
     AssertPredicate,
+    LimitOrderAutoAction,
+    LimitOrderCreateExtensions,
 )
 from .operationids import operations
 
@@ -52,22 +54,6 @@ from .operationids import operations
 default_prefix = "BTS"
 class_idmap = {}
 class_namemap = {}
-
-
-class VirtualOperationException(Exception):
-    pass
-
-
-class ChainParameters(NotImplementedError):
-    pass
-
-
-class CustomRestriction(NotImplementedError):
-    pass
-
-
-class VestingPolicy(NotImplementedError):
-    pass
 
 
 def fill_classmaps():
@@ -402,7 +388,10 @@ class Limit_order_create(GrapheneObject):
                         ("min_to_receive", Asset(kwargs["min_to_receive"])),
                         ("expiration", PointInTime(kwargs["expiration"])),
                         ("fill_or_kill", Bool(kwargs["fill_or_kill"])),
-                        ("extensions", Set([])),
+                        (
+                            "extensions",
+                            LimitOrderCreateExtensions(kwargs["extensions"]),
+                        ),
                     ]
                 )
             )
@@ -1527,6 +1516,106 @@ class Credit_deal_expired(GrapheneObject):
                         ("unpaid_amount", Asset(kwargs["fee"])),
                         ("collateral", Asset(kwargs["fee"])),
                         ("fee_rate", Uint32(kwargs["fee_rate"])),
+                    ]
+                )
+            )
+
+
+class Liquidity_pool_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            if kwargs.get("taker_fee_percent"):
+                taker_fee_percent = Optional(Uint16(kwargs["taker_fee_percent"]))
+            else:
+                taker_fee_percent = Optional(None)
+
+            if kwargs.get("withdrawal_fee_percent"):
+                withdrawal_fee_percent = Optional(
+                    Uint16(kwargs["withdrawal_fee_percent"])
+                )
+            else:
+                withdrawal_fee_percent = Optional(None)
+
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        ("pool", ObjectId(kwargs["pool"], "liquidity_pool")),
+                        ("taker_fee_percent", taker_fee_percent),
+                        ("withdrawal_fee_percent", withdrawal_fee_percent),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Credit_deal_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("account", ObjectId(kwargs["account"], "account")),
+                        ("deal_id", ObjectId(kwargs["deal_id"], "credit_deal")),
+                        ("auto_repay", Uint8(kwargs["auto_repay"])),
+                        ("extensions", Set([])),
+                    ]
+                )
+            )
+
+
+class Limit_order_update(GrapheneObject):
+    def __init__(self, *args, **kwargs):
+        if isArgsThisClass(self, args):
+            self.data = args[0].data
+        else:
+            if len(args) == 1 and len(kwargs) == 0:
+                kwargs = args[0]
+
+            if kwargs.get("new_price"):
+                new_price = Optional(Price(kwargs["new_price"]))
+            else:
+                new_price = Optional(None)
+
+            if kwargs.get("delta_amount_to_sell"):
+                delta_amount_to_sell = Optional(Asset(kwargs["delta_amount_to_sell"]))
+            else:
+                delta_amount_to_sell = Optional(None)
+
+            if kwargs.get("new_expiration"):
+                new_expiration = Optional(PointInTime(kwargs["new_expiration"]))
+            else:
+                new_expiration = Optional(None)
+
+            if kwargs.get("on_fill"):
+                on_fill = Optional(
+                    Array([LimitOrderAutoAction(o) for o in kwargs["on_fill"]])
+                )
+            else:
+                on_fill = Optional(None)
+
+            super().__init__(
+                OrderedDict(
+                    [
+                        ("fee", Asset(kwargs["fee"])),
+                        ("seller", ObjectId(kwargs["seller"], "account")),
+                        ("order", ObjectId(kwargs["order"], "limit_order")),
+                        ("new_price", new_price),
+                        ("delta_amount_to_sell", delta_amount_to_sell),
+                        ("new_expiration", new_expiration),
+                        ("on_fill", on_fill),
+                        ("extensions", Set([])),
                     ]
                 )
             )
