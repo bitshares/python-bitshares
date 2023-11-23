@@ -54,6 +54,22 @@ class_idmap = {}
 class_namemap = {}
 
 
+class VirtualOperationException(Exception):
+    pass
+
+
+class ChainParameters(NotImplementedError):
+    pass
+
+
+class CustomRestriction(NotImplementedError):
+    pass
+
+
+class VestingPolicy(NotImplementedError):
+    pass
+
+
 def fill_classmaps():
     for name, ind in operations.items():
         classname = name[0:1].upper() + name[1:]
@@ -1348,7 +1364,7 @@ class Credit_offer_create(GrapheneObject):
                             Uint32(kwargs["max_duration_seconds"]),
                         ),
                         ("min_deal_amount", Int64(kwargs["min_deal_amount"])),
-                        ("enabled", Bool(kwargs["enabled"])(kwargs["enabled"])),
+                        ("enabled", Bool(kwargs["enabled"])),
                         ("auto_disable_time", PointInTime(kwargs["auto_disable_time"])),
                         (
                             "acceptable_collateral",
