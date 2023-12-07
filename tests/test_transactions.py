@@ -649,7 +649,11 @@ class Testcases(unittest.TestCase):
                     "whitelist_markets": ["1.3.0"],
                     "blacklist_markets": ["1.3.1"],
                     "description": "Foobar think",
-                    "extensions": [],
+                    "extensions": {
+                        "reward_percent": 145,
+                        "whitelist_market_fee_sharing": ["1.2.215"],
+                        "taker_fee_percent": 675,
+                    },
                 },
                 "bitasset_opts": {
                     "feed_lifetime_sec": 86400,
@@ -668,12 +672,13 @@ class Testcases(unittest.TestCase):
             "f68585abf4dce7c80457010a000000000000000000000554484"
             "94e47000080c6a47e8d030000000080c6a47e8d03004f000000"
             "000000000000000000000000000000000000010001010100010"
-            "10c466f6f626172207468696e6b000180510100078051010064"
-            "0032000000000000011f1b8ac491bb327921d9346d543e530d8"
-            "8acb68bade58296a7a27b0a74a28eaca762260dbb905a6415f6"
-            "225a8028a810de6290badc29d16fea0ffd88bc8c0cbec4"
+            "10c466f6f626172207468696e6b030091000101d70102a30201"
+            "805101000780510100640032000000000000012049dd5c7f6fa"
+            "e9b7e071c59911cf61b12f7983f71eaa576b4b46313e0af27c5"
+            "6e20b781e8736362447645547c050c1fd5ae39881f6da68dc71"
+            "e230a64cb60c8db"
         )
-        self.doit()
+        self.doit(1)
 
     def test_asset_update(self):
         self.op = operations.Asset_update(

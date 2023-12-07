@@ -242,7 +242,10 @@ class AssetOptions(GrapheneObject):
                             ),
                         ),
                         ("description", String(kwargs["description"])),
-                        ("extensions", Set([])),
+                        (
+                            "extensions",
+                            AdditionalAssetOptionsType(kwargs.get("extensions")),
+                        ),
                     ]
                 )
             )
@@ -496,4 +499,30 @@ class LimitOrderCreateExtensions(Extension):
 
     sorted_options = [
         ("on_fill", NestedLimitOrderAutoAction),
+    ]
+
+
+class AdditionalAssetOptionsType(Extension):
+    def RewardPercent(value):
+        if value:
+            return Uint16(value)
+        else:
+            return None
+
+    def WhitelistMarketFeeSharing(value):
+        if value:
+            return Array([ObjectId(o, "account") for o in value])
+        else:
+            return None
+
+    def TakerFeePercent(value):
+        if value:
+            return Uint16(value)
+        else:
+            return None
+
+    sorted_options = [
+        ("reward_percent", RewardPercent),
+        ("whitelist_market_fee_sharing", WhitelistMarketFeeSharing),
+        ("taker_fee_percent", TakerFeePercent),
     ]
