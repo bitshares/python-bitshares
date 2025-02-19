@@ -27,10 +27,10 @@ Note: this way has limitation: public nodes doesn't store full account history,
 only limited number of entries
 
 * By querying `elasticsearch plugin
-  <https://dev.bitshares.works/en/master/supports_dev/elastic_search_plugin.html>`_.
+  <https://docs.bitshares.dev/en/master/supports_dev/elastic_search_plugin.html>`_.
   In short, elasticsearch plugin export account history data into elasticsearch
   instance, from which it's can be obtained directly or via elasticsearch
-  wrapper. See `<https://eswrapper.bitshares.eu/apidocs/>`_ to get info on how
+  wrapper. See `<https://api.bitshares.ws/docs>`_ to get info on how
   to query the wrapper. A real-world example of elasticsearch wrapper usage for
   obtaining filled orders history is `bitshares-tradehistory-analyzer
   <https://github.com/bitfag/bitshares-tradehistory-analyzer>`_
