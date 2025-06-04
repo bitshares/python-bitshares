@@ -23,6 +23,12 @@ def event_loop():
     loop.close()
 
 
+@pytest.fixture(scope="session", autouse=True)
+def set_random_seed():
+    """Set a fixed seed for random number generation to ensure reproducibility."""
+    random.seed(42)
+    yield
+
 @pytest.fixture(scope="session")
 async def bitshares_instance(bitshares_testnet, private_keys, event_loop):
     """Initialize BitShares instance connected to a local testnet."""
