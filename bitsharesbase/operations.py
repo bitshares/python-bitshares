@@ -1239,12 +1239,12 @@ class Liquidity_pool_update(GrapheneObject):
             if len(args) == 1 and len(kwargs) == 0:
                 kwargs = args[0]
 
-            if kwargs.get("taker_fee_percent"):
+            if "taker_fee_percent" in kwargs:
                 taker_fee_percent = Optional(Uint16(kwargs["taker_fee_percent"]))
             else:
                 taker_fee_percent = Optional(None)
 
-            if kwargs.get("withdrawal_fee_percent"):
+            if "withdrawal_fee_percent" in kwargs:
                 withdrawal_fee_percent = Optional(
                     Uint16(kwargs["withdrawal_fee_percent"])
                 )
